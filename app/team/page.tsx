@@ -1,139 +1,20 @@
-// app/services/page.tsx
+// app/team/page.tsx
 import { Metadata } from 'next'
-import { Shield, Target, TrendingUp } from 'lucide-react'
+import Image from 'next/image'
+import { Award, Briefcase, Shield, Target, Heart, Users, Calendar, GraduationCap, Building, Rocket } from 'lucide-react'
 import Button from '@/components/shared/Button'
+import { BreadcrumbSchema } from '@/components/seo/StructuredData'
 import Link from 'next/link'
-import { BreadcrumbSchema, ServiceSchema } from '@/components/seo/StructuredData'
 
 export const metadata: Metadata = {
-  title: 'Services - Essential Compliance, Strategic Advisory & Growth',
-  description: "IVC Accounting services: From rock-solid compliance to PE negotiations and growth strategy. Personal service from someone who's been in your shoes.",
+  title: 'Meet James Howard - Founder of IVC Accounting',
+  description: 'Meet James Howard, the founder of IVC Accounting. 15+ years of experience, 1 PE exit, and a commitment to fighting for business owners.',
 }
 
-export default function ServicesPage() {
+export default function TeamPage() {
   const breadcrumbs = [
     { name: 'Home', url: 'https://ivcaccounting.co.uk/ivc' },
-    { name: 'Services', url: 'https://ivcaccounting.co.uk/ivc/services' }
-  ]
-
-  const services = [
-    {
-      id: 'compliance',
-      icon: Shield,
-      name: 'ESSENTIAL COMPLIANCE',
-      tagline: 'THE FOUNDATIONS DONE RIGHT',
-      description: 'Rock-solid bookkeeping, VAT, payroll, and year-end accounts. No surprises, no excuses, just reliable execution you can count on.',
-      longDescription: `Every business needs the basics done perfectly. That's non-negotiable. 
-      
-      But "basic" doesn't mean "basic service." When HMRC comes calling, when you need clarity on your numbers, when payroll has to be perfect - you need someone who takes it personally.
-      
-      We handle your compliance like it's our own business. Because when you're limited to 50 clients, every single one matters.`,
-      features: [
-        {
-          title: 'Monthly Bookkeeping',
-          description: 'Clean, accurate, and always on time. Xero or QuickBooks - your choice.'
-        },
-        {
-          title: 'VAT Returns',
-          description: 'Submitted early, optimised properly, with no nasty surprises.'
-        },
-        {
-          title: 'Payroll Management',
-          description: 'RTI submissions, pensions, benefits - all handled seamlessly.'
-        },
-        {
-          title: 'Year-End Accounts',
-          description: 'Full statutory accounts prepared to the highest standards.'
-        },
-        {
-          title: 'Company Secretarial',
-          description: 'Annual returns, share transfers, board minutes - sorted.'
-        },
-        {
-          title: 'Tax Returns',
-          description: 'Personal and corporate tax returns filed strategically.'
-        }
-      ],
-      color: '#4a90e2'
-    },
-    {
-      id: 'advisory',
-      icon: Target,
-      name: 'STRATEGIC ADVISORY',
-      tagline: 'BEEN THERE, DONE THAT, GOT YOUR BACK',
-      description: "Real advice for real challenges. PE negotiations, tax planning, and business strategy from someone who's survived the pressure.",
-      longDescription: `This is where experience matters. When PE firms circle, when big decisions loom, when you need more than textbook answers - you need someone who's lived it.
-      
-      I've been through 3 PE acquisitions. I know their playbook, their pressure tactics, their sweet spots. More importantly, I know how to protect YOUR interests.
-      
-      This isn't theoretical advice from someone who's only read about it. This is battle-tested strategy from someone who's been in the trenches.`,
-      features: [
-        {
-          title: 'PE Deal Navigation',
-          description: 'From first approach to final exit - protecting your interests at every step.'
-        },
-        {
-          title: 'Tax Optimisation',
-          description: 'Legal, ethical, and aggressive tax planning that actually works.'
-        },
-        {
-          title: 'Cash Flow Planning',
-          description: 'Real-world cash management, not spreadsheet fantasies.'
-        },
-        {
-          title: 'Exit Strategy',
-          description: 'Building value today for the exit you want tomorrow.'
-        },
-        {
-          title: 'Board Advisory',
-          description: "Strategic input from someone who's actually built and sold businesses."
-        },
-        {
-          title: 'Deal Structuring',
-          description: 'Making sure the terms work for YOU, not just them.'
-        }
-      ],
-      color: '#ff6b35'
-    },
-    {
-      id: 'growth',
-      icon: TrendingUp,
-      name: 'BUSINESS GROWTH',
-      tagline: 'BUILDING SOMETHING REAL',
-      description: 'Beyond the numbers. We help you build systems, find opportunities, and grow sustainably without losing what makes you special.',
-      longDescription: `Growth isn't just about bigger numbers. It's about building something sustainable, something real, something that doesn't break when you push it.
-      
-      We've seen too many businesses grow themselves to death. More revenue, more stress, more problems, less profit. That's not growth - that's just getting bigger.
-      
-      Real growth means better systems, smarter decisions, and keeping what made you successful in the first place. With only 50 clients, we can actually help you build it.`,
-      features: [
-        {
-          title: 'Growth Strategy',
-          description: 'Sustainable growth plans based on real experience, not MBA theory.'
-        },
-        {
-          title: 'Financial Modeling',
-          description: 'Models that actually reflect reality and help you make decisions.'
-        },
-        {
-          title: 'KPI Dashboards',
-          description: "Track what matters, ignore what doesn't. Real-time visibility."
-        },
-        {
-          title: 'Funding Support',
-          description: 'From bank loans to investor pitches - we speak their language.'
-        },
-        {
-          title: 'Systems & Processes',
-          description: 'Building the machine that runs without you being everywhere.'
-        },
-        {
-          title: 'Margin Improvement',
-          description: 'Finding the profit hiding in your business.'
-        }
-      ],
-      color: '#1a2b4a'
-    }
+    { name: 'Team', url: 'https://ivcaccounting.co.uk/ivc/team' }
   ]
 
   return (
@@ -141,130 +22,296 @@ export default function ServicesPage() {
       <BreadcrumbSchema items={breadcrumbs} />
       
       {/* Hero Section */}
-      <section className="relative min-h-[50vh] flex items-center justify-center overflow-hidden bg-[#1a2b4a] pt-20">
+      <section className="relative min-h-[60vh] flex items-center justify-center overflow-hidden bg-[#1a2b4a] pt-20">
         <div className="absolute inset-0">
-          <div className="absolute inset-0 opacity-10" style={{
-            backgroundImage: `linear-gradient(to right, #f5f1e8 1px, transparent 1px), linear-gradient(to bottom, #f5f1e8 1px, transparent 1px)`,
-            backgroundSize: '50px 50px'
-          }} />
+          <div className="absolute top-0 right-0 w-96 h-96 opacity-10">
+            <div className="grid grid-cols-8 gap-2">
+              {[...Array(64)].map((_, i) => (
+                <div key={i} className={`w-2 h-2 ${i % 3 === 0 ? 'bg-[#ff6b35]' : 'bg-[#4a90e2]'}`} />
+              ))}
+            </div>
+          </div>
         </div>
         
         <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
-          <h1 className="text-5xl md:text-6xl font-black uppercase mb-6">
-            THREE WAYS WE <span className="text-[#ff6b35]">FIGHT FOR YOU</span>
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-black uppercase mb-6">
+            <span className="text-[#f5f1e8]">MEET YOUR</span>{' '}
+            <span className="text-[#ff6b35]">FIGHTER</span>
           </h1>
-          <p className="text-xl text-[#f5f1e8]/80">
-            From essential compliance to strategic growth - always personal, always fighting for your success
+          <p className="text-xl md:text-2xl text-[#f5f1e8]/80 leading-relaxed">
+            One accountant. Fifty clients. Unlimited commitment.
           </p>
         </div>
       </section>
 
-      {/* Services Detail */}
-      {services.map((service, index) => {
-        const Icon = service.icon
+      {/* Main Profile Section */}
+      <section className="py-24 bg-[#f5f1e8] relative overflow-hidden">
+        <div className="absolute inset-0 geometric-pattern" />
         
-        return (
-          <section 
-            key={service.id}
-            id={service.id}
-            className={`py-20 px-4 ${index % 2 === 0 ? 'bg-[#f5f1e8]' : 'bg-white'}`}
-          >
-            <ServiceSchema service={service} />
-            <div className="container mx-auto">
-              <div className="grid md:grid-cols-2 gap-12 items-start">
-                <div className={`${index % 2 === 1 ? 'md:order-2' : ''}`}>
-                  <div className="inline-flex p-4 bg-[#1a2b4a] mb-6">
-                    <Icon size={32} className="text-[#f5f1e8]" />
-                  </div>
-                  
-                  <h2 className="text-4xl font-black uppercase text-[#1a2b4a] mb-3">{service.name}</h2>
-                  <p className="text-xl font-bold text-[#ff6b35] mb-6">{service.tagline}</p>
-                  
-                  <div className="prose prose-lg text-[#1a2b4a] whitespace-pre-line">
-                    {service.longDescription}
-                  </div>
-                </div>
-                
-                <div className={`${index % 2 === 1 ? 'md:order-1' : ''}`}>
-                  <h3 className="text-2xl font-black uppercase text-[#1a2b4a] mb-6">WHAT&apos;S INCLUDED:</h3>
-                  <div className="space-y-4">
-                    {service.features.map((feature, featureIndex) => (
-                      <div key={featureIndex} className="flex items-start">
-                        <div className={`w-2 h-2 bg-[${service.color}] mt-2 mr-4 flex-shrink-0`} style={{backgroundColor: service.color}}></div>
-                        <div>
-                          <h4 className="font-bold text-[#1a2b4a] mb-1">{feature.title}</h4>
-                          <p className="text-[#1a2b4a]/80">{feature.description}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="grid lg:grid-cols-2 gap-16 items-start">
+            {/* Image Section */}
+            <div className="relative">
+              <div className="absolute -top-4 -left-4 w-full h-full border-2 border-[#ff6b35]" />
+              <div className="relative bg-white p-2">
+                <Image
+                  src="/images/james-howard.jpg"
+                  alt="James Howard - Founder of IVC Accounting"
+                  width={600}
+                  height={700}
+                  className="w-full"
+                />
+              </div>
+              
+              {/* Stats boxes */}
+              <div className="absolute -top-8 -right-8 bg-[#ff6b35] text-[#f5f1e8] p-6">
+                <p className="text-4xl font-black">15+</p>
+                <p className="text-sm font-bold uppercase">Years Fighting</p>
+              </div>
+              
+              <div className="absolute -bottom-8 -left-8 bg-[#4a90e2] text-[#f5f1e8] p-6">
+                <p className="text-4xl font-black">50</p>
+                <p className="text-sm font-bold uppercase">Client Limit</p>
               </div>
             </div>
-          </section>
-        )
-      })}
-
-      {/* Pricing Section */}
-      <section className="py-20 px-4 bg-[#1a2b4a]">
-        <div className="container mx-auto text-center">
-          <h2 className="text-4xl font-black uppercase text-[#f5f1e8] mb-6">
-            TRANSPARENT <span className="text-[#ff6b35]">PRICING</span>
-          </h2>
-          <p className="text-xl text-[#f5f1e8]/80 mb-12 max-w-3xl mx-auto">
-            No hidden fees. No surprise bills. Just honest pricing for exceptional service.
-          </p>
-          
-          <div className="bg-[#f5f1e8] p-8 mb-8 max-w-4xl mx-auto">
-            <h3 className="text-2xl font-black uppercase text-[#1a2b4a] mb-4">HOW WE PRICE</h3>
-            <div className="text-left space-y-4 text-[#1a2b4a] max-w-2xl mx-auto">
-              <p>
-                <strong className="font-bold">FIXED MONTHLY FEES:</strong> Most clients prefer predictable 
-                monthly fees. We&apos;ll agree on a package that covers everything you need.
-              </p>
-              <p>
-                <strong className="font-bold">PROJECT-BASED:</strong> For one-off projects like PE deals 
-                or exit planning, we quote a fixed fee upfront.
-              </p>
-              <p>
-                <strong className="font-bold">VALUE-BASED:</strong> For growth projects, we can align our 
-                fees with your success. We win when you win.
-              </p>
+            
+            {/* Content Section */}
+            <div className="space-y-8">
+              <div>
+                <h2 className="text-4xl md:text-5xl font-black uppercase text-[#1a2b4a] mb-4">
+                  JAMES HOWARD
+                </h2>
+                <p className="text-2xl font-bold text-[#ff6b35] mb-2">
+                  FOUNDER & YOUR DIRECT CONTACT
+                </p>
+                <p className="text-lg text-[#1a2b4a]/80 font-bold">
+                  FCCA | FFA | 15+ YEARS EXPERIENCE | 1 PE EXIT
+                </p>
+              </div>
+              
+              <div className="space-y-6 text-lg text-[#1a2b4a] leading-relaxed">
+                <p>
+                  I&apos;m not your typical accountant. I don&apos;t hide behind a desk, push paper, 
+                  or speak in riddles. I&apos;m here to fight for your business like it&apos;s my own - 
+                  because after 15 years in this industry, I know that&apos;s what it takes.
+                </p>
+                
+                <p>
+                  My journey through the accounting world has been anything but conventional. 
+                  From small practices to experiencing firsthand what happens when PE takes over, 
+                  I&apos;ve seen it all. And that PE exit? It wasn&apos;t about the money - it was about 
+                  maintaining the values that matter.
+                </p>
+                
+                <div className="bg-[#1a2b4a] p-6">
+                  <h3 className="text-xl font-black uppercase text-[#ff6b35] mb-3">WHY I LIMIT TO 50 CLIENTS</h3>
+                  <p className="text-[#f5f1e8]">
+                    Simple. Quality beats quantity every time. With 50 clients, I know every business 
+                    inside out. I know your challenges, your goals, and what keeps you up at night. 
+                    Try getting that from a firm with 5,000 clients.
+                  </p>
+                </div>
+              </div>
+              
+              {/* Contact buttons */}
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Link href="/contact">
+                  <Button size="large" className="bg-[#ff6b35] hover:bg-[#e55a2b] text-[#f5f1e8] font-black uppercase px-8 py-4">
+                    BOOK A DIRECT CALL
+                  </Button>
+                </Link>
+                <a href="mailto:james@ivcaccounting.co.uk">
+                  <Button variant="secondary" size="large" className="border-2 border-[#1a2b4a] text-[#1a2b4a] hover:bg-[#1a2b4a] hover:text-[#f5f1e8] font-black uppercase px-8 py-4">
+                    EMAIL ME DIRECTLY
+                  </Button>
+                </a>
+              </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Experience Timeline */}
+      <section className="py-24 bg-[#1a2b4a] relative overflow-hidden">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-4xl md:text-5xl font-black uppercase text-center mb-16">
+            <span className="text-[#f5f1e8]">THE EXPERIENCE THAT</span>{' '}
+            <span className="text-[#ff6b35]">BACKS YOUR BUSINESS</span>
+          </h2>
           
-          <div className="relative max-w-2xl mx-auto">
-            <div className="absolute -top-4 -left-4 w-full h-full border-2 border-[#ff6b35]" />
-            <div className="relative bg-[#ff6b35] p-6">
-              <p className="text-lg font-black uppercase text-[#f5f1e8] mb-2">🎯 REMEMBER: QUALITY COSTS MORE THAN QUANTITY</p>
-              <p className="text-[#f5f1e8]">
-                We&apos;re not the cheapest. But we are the best value for businesses that want more than just filing.
-              </p>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {[
+              {
+                icon: Calendar,
+                year: "2009",
+                title: "STARTED IN ACCOUNTING",
+                description: "Began learning that numbers tell stories about people"
+              },
+              {
+                icon: GraduationCap,
+                year: "2014",
+                title: "ACHIEVED FCCA & FFA",
+                description: "Qualified to fight battles on multiple fronts"
+              },
+              {
+                icon: Building,
+                year: "2020",
+                title: "PE EXIT EXPERIENCE",
+                description: "Chose values over valuations when PE took over"
+              },
+              {
+                icon: Rocket,
+                year: "2021",
+                title: "FOUNDED IVC",
+                description: "Built a firm where fighting beats filing"
+              }
+            ].map((item, index) => (
+              <div key={index} className="relative group">
+                <div className="absolute -top-2 -left-2 w-full h-full bg-[#ff6b35] opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
+                <div className="relative bg-[#f5f1e8]/10 backdrop-blur-sm border border-[#f5f1e8]/20 p-6 h-full">
+                  <item.icon className="w-10 h-10 text-[#ff6b35] mb-4" />
+                  <p className="text-[#ff6b35] font-black mb-2">{item.year}</p>
+                  <h3 className="text-lg font-black text-[#f5f1e8] mb-2">{item.title}</h3>
+                  <p className="text-[#f5f1e8]/80 text-sm">{item.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Skills & Expertise */}
+      <section className="py-24 bg-white relative overflow-hidden">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-4xl md:text-5xl font-black uppercase text-center mb-16">
+            <span className="text-[#1a2b4a]">ARMED WITH</span>{' '}
+            <span className="text-[#ff6b35]">BATTLE-TESTED SKILLS</span>
+          </h2>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[
+              {
+                icon: Shield,
+                title: "PE DEFENSE",
+                skills: ["Due diligence preparation", "Negotiation support", "Exit planning", "Valuation protection"],
+                color: 'bg-[#ff6b35]'
+              },
+              {
+                icon: Target,
+                title: "TAX STRATEGY",
+                skills: ["Advanced planning", "HMRC negotiations", "International structures", "R&D claims"],
+                color: 'bg-[#4a90e2]'
+              },
+              {
+                icon: Award,
+                title: "BUSINESS GROWTH",
+                skills: ["KPI dashboards", "Cash flow optimization", "Funding strategies", "M&A support"],
+                color: 'bg-[#1a2b4a]'
+              },
+              {
+                icon: Briefcase,
+                title: "COMPLIANCE EXCELLENCE",
+                skills: ["Year-end accounts", "VAT returns", "Payroll management", "Company secretarial"],
+                color: 'bg-[#ff6b35]'
+              },
+              {
+                icon: Heart,
+                title: "PERSONAL SERVICE",
+                skills: ["Direct access", "Same-day responses", "Plain English advice", "Proactive planning"],
+                color: 'bg-[#4a90e2]'
+              },
+              {
+                icon: Users,
+                title: "INDUSTRY EXPERIENCE",
+                skills: ["Tech & SaaS", "Professional services", "Manufacturing", "Retail & hospitality"],
+                color: 'bg-[#1a2b4a]'
+              }
+            ].map((skill, index) => (
+              <div key={index} className="relative group">
+                <div className="absolute -top-2 -left-2 w-full h-full border-2 border-[#1a2b4a]" />
+                <div className="relative bg-[#f5f1e8] p-8 h-full">
+                  <div className={`inline-flex p-3 ${skill.color} mb-4`}>
+                    <skill.icon className="w-8 h-8 text-white" />
+                  </div>
+                  <h3 className="text-xl font-black uppercase text-[#1a2b4a] mb-4">{skill.title}</h3>
+                  <ul className="space-y-2">
+                    {skill.skills.map((item, idx) => (
+                      <li key={idx} className="flex items-start">
+                        <span className="text-[#ff6b35] mr-2 font-bold">→</span>
+                        <span className="text-[#1a2b4a]">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Promise Section */}
+      <section className="py-24 bg-[#ff6b35] relative overflow-hidden">
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 opacity-10" style={{
+            backgroundImage: `repeating-linear-gradient(
+              45deg,
+              transparent,
+              transparent 40px,
+              #1a2b4a 40px,
+              #1a2b4a 41px
+            )`
+          }} />
+        </div>
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-3xl md:text-4xl font-black uppercase text-[#f5f1e8] mb-6">
+              MY PROMISE TO YOU
+            </h2>
+            <blockquote className="text-xl md:text-2xl text-[#f5f1e8] leading-relaxed mb-8">
+              &ldquo;When you work with IVC, you&apos;re not getting an accountant. You&apos;re getting a 
+              business partner who&apos;s been in the trenches, survived the battles, and knows exactly 
+              how to protect and grow what you&apos;ve built. I don&apos;t just file your numbers - 
+              I fight for your future.&rdquo;
+            </blockquote>
+            <div className="flex items-center justify-center space-x-4">
+              <div className="w-20 h-20 bg-white rounded-full overflow-hidden">
+                <Image
+                  src="/images/james-howard.jpg"
+                  alt="James Howard"
+                  width={80}
+                  height={80}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="text-left">
+                <p className="text-lg font-black text-[#f5f1e8]">JAMES HOWARD</p>
+                <p className="text-[#f5f1e8]/80">Founder, IVC Accounting</p>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 bg-[#ff6b35] text-center">
-        <div className="container mx-auto">
-          <h2 className="text-4xl font-black uppercase text-[#f5f1e8] mb-6">
-            READY TO EXPERIENCE THE DIFFERENCE?
+      <section className="py-24 bg-[#1a2b4a] relative overflow-hidden">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-4xl md:text-5xl font-black uppercase text-[#f5f1e8] mb-6">
+            READY TO WORK WITH SOMEONE WHO GETS IT?
           </h2>
           <p className="text-xl text-[#f5f1e8]/90 mb-8 max-w-2xl mx-auto">
-            Let&apos;s discuss your needs and how we can help. No sales pitch, just straight talk about your business.
+            No gatekeepers. No junior staff. Just direct access to someone who&apos;s been where you are.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/contact">
-              <Button size="large" className="bg-[#1a2b4a] text-[#f5f1e8] hover:bg-[#0f1829] font-black uppercase px-8 py-4 text-lg">
-                BOOK YOUR NO-BS CALL
+              <Button size="large" className="bg-[#ff6b35] hover:bg-[#e55a2b] text-[#f5f1e8] font-black uppercase px-8 py-4 text-lg">
+                BOOK A DIRECT CALL
               </Button>
             </Link>
-            <Link href="/about">
-              <Button variant="secondary" size="large" className="bg-transparent border-2 border-[#f5f1e8] text-[#f5f1e8] hover:bg-[#f5f1e8] hover:text-[#ff6b35] font-black uppercase px-8 py-4 text-lg">
-                LEARN MORE ABOUT US
+            <a href="mailto:james@ivcaccounting.co.uk">
+              <Button variant="secondary" size="large" className="bg-transparent border-2 border-[#f5f1e8] text-[#f5f1e8] hover:bg-[#f5f1e8] hover:text-[#1a2b4a] font-black uppercase px-8 py-4 text-lg">
+                EMAIL: JAMES@IVCACCOUNTING.CO.UK
               </Button>
-            </Link>
+            </a>
           </div>
         </div>
       </section>
