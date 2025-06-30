@@ -199,7 +199,7 @@ export default function ServicesPage() {
                 </div>
                 
                 <div className={`${index % 2 === 1 ? 'md:order-1' : ''}`}>
-                  <h3 className="text-2xl font-semibold mb-6">What's Included:</h3>
+                  <h3 className="text-2xl font-semibold mb-6">What&apos;s Included:</h3>
                   <div className="space-y-4">
                     {service.features.map((feature, featureIndex) => (
                       <div key={featureIndex} className="flex items-start">
@@ -233,7 +233,7 @@ export default function ServicesPage() {
             <div className="text-left space-y-4 text-gray-300 max-w-2xl mx-auto">
               <p>
                 <strong className="text-white">Fixed Monthly Fees:</strong> Most clients prefer predictable 
-                monthly fees. We'll agree on a package that covers everything you need.
+                monthly fees. We&apos;ll agree on a package that covers everything you need.
               </p>
               <p>
                 <strong className="text-white">Project-Based:</strong> For one-off projects like PE deals 
