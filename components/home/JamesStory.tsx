@@ -23,7 +23,7 @@ export default function JamesStory() {
                   height={600}
                   className="rounded-3xl shadow-2xl relative z-10"
                 />
-                <div className="absolute -bottom-8 -right-8 bg-gradient-to-br from-orange-500 to-orange-600 text-white p-6 rounded-2xl shadow-xl max-w-xs">
+                <div className="absolute -bottom-8 -right-8 bg-gradient-to-br from-orange-500 to-orange-600 text-white p-6 rounded-2xl shadow-xl max-w-xs z-20">
                   <p className="text-3xl font-bold mb-2">2021</p>
                   <p className="text-lg font-semibold">Founded IVC</p>
                   <p className="text-sm opacity-90 mt-1">After my 1st PE exit, I knew there was a better way</p>
