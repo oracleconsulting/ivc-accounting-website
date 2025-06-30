@@ -1,14 +1,14 @@
+// app/page.tsx
 import { Metadata } from 'next';
-import { Hero } from '@/components/home/Hero';
+import Hero from '@/components/home/Hero';
 import JamesStory from '@/components/home/JamesStory';
-import ServicesGrid from '@/components/services/ServicesGrid';
-import TrustIndicators from '@/components/home/TrustIndicators';
-import FAQSection from '@/components/shared/FAQSection';
-import ContactForm from '@/components/shared/ContactForm';
-import ContactSection from '@/components/shared/ContactSection'
+import ServicesGrid from '@/components/home/ServicesGrid';
+import FAQSection from '@/components/home/FAQSection';
+import ContactSection from '@/components/home/ContactSection';
 
 export const metadata: Metadata = {
-  // ... existing code ...
+  title: 'IVC Accounting - Other Accountants File. We Fight.',
+  description: 'Personal UK accounting services with a 50-client limit. Founded by James Howard after his PE exit, choosing values over valuations to fight for business owners.',
 };
 
 export default function IVCHomePage() {
@@ -17,10 +17,8 @@ export default function IVCHomePage() {
       <Hero />
       <JamesStory />
       <ServicesGrid />
-      <TrustIndicators />
       <FAQSection />
-      <ContactForm />
       <ContactSection />
     </>
-  )
-} 
+  );
+}
