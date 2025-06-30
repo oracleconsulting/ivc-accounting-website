@@ -27,11 +27,11 @@ export default function Navigation() {
   ]
 
   return (
-    <nav className={`fixed w-full z-50 transition-all duration-300 ${
-      isScrolled ? 'bg-black/95 backdrop-blur-lg shadow-lg border-b border-gray-800' : 'bg-black/80 backdrop-blur-md'
+    <nav className={`fixed w-full z-50 transition-all duration-500 ${
+      isScrolled ? 'bg-black/90 backdrop-blur-lg py-4' : 'bg-transparent py-6'
     }`}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
+        <div className="flex items-center justify-between">
           {/* Logo */}
           <div className="flex-shrink-0">
             <Link href="/" className="flex items-center">
