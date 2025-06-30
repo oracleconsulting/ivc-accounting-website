@@ -5,6 +5,7 @@ import Footer from '@/components/layout/Footer'
 import { OrganizationSchema } from '@/components/seo/StructuredData'
 import CookieConsent from '@/components/analytics/CookieConsent'
 import GoogleTagManager, { GTMNoscript } from '@/components/analytics/GoogleTagManager'
+import "./globals.css"
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -84,10 +85,10 @@ export default function IVCLayout({
   children: React.ReactNode
 }) {
   return (
-    <>
-      <GoogleTagManager />
-      <OrganizationSchema />
-      <div className={`${inter.className} bg-gray-900 text-white`}>
+    <html lang="en" className="dark">
+      <body className={`${inter.className} bg-gray-900 text-white min-h-screen`}>
+        <GoogleTagManager />
+        <OrganizationSchema />
         <Navigation />
         <main className="pt-20">
           <GTMNoscript />
@@ -95,7 +96,7 @@ export default function IVCLayout({
         </main>
         <Footer />
         <CookieConsent />
-      </div>
-    </>
+      </body>
+    </html>
   )
 } 

@@ -29,6 +29,24 @@ body {
 @tailwind components;
 @tailwind utilities;
 
+/* Base dark theme setup */
+@layer base {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ffffff;
+  }
+  
+  html {
+    @apply bg-gray-900;
+  }
+  
+  body {
+    @apply bg-gray-900 text-white antialiased;
+    min-height: 100vh;
+    background-color: rgb(17 24 39);
+  }
+}
+
 /* IVC Accounting Custom Styles */
 @layer utilities {
   .gradient-bg {
@@ -38,13 +56,21 @@ body {
   }
   
   .glass-morphism {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
   }
   
   .text-shadow-glow {
     text-shadow: 0 0 30px rgba(234, 88, 12, 0.5);
+  }
+  
+  /* Hero section background gradient */
+  .hero-gradient {
+    background: radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3), transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 119, 0, 0.3), transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(255, 0, 184, 0.3), transparent 50%);
   }
   
   @keyframes gradient-shift {
@@ -61,4 +87,32 @@ body {
   .float-animation {
     animation: float 6s ease-in-out infinite;
   }
+  
+  /* Button hover effects */
+  .btn-glow {
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .btn-glow:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(234, 88, 12, 0.3);
+  }
+  
+  /* Card hover effects */
+  .card-hover {
+    transition: all 0.3s ease;
+  }
+  
+  .card-hover:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* Ensure proper font rendering */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }

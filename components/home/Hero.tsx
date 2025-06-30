@@ -9,12 +9,12 @@ export default function Hero() {
   const heroRef = useRef<HTMLDivElement>(null)
 
   return (
-    <section ref={heroRef} className="min-h-screen flex items-center justify-center relative overflow-hidden">
+    <section ref={heroRef} className="min-h-screen flex items-center justify-center relative overflow-hidden bg-gray-900 hero-gradient">
       <FloatingElements />
       
       <div className="relative z-10 text-center px-4 max-w-5xl mx-auto hero-content">
         <div className="mb-6">
-          <span className="inline-block px-6 py-3 bg-orange-500/20 border border-orange-500/50 rounded-full text-orange-400 font-semibold">
+          <span className="inline-block px-6 py-3 bg-orange-500/20 border border-orange-500/50 rounded-full text-orange-400 font-semibold glass-morphism">
             🎯 Quality Over Quantity - 50 Client Limit
           </span>
         </div>
@@ -36,10 +36,10 @@ export default function Hero() {
         </p>
         
         <div className="flex flex-col sm:flex-row gap-6 justify-center">
-          <Button variant="primary" size="large" href="/ivc/contact">
+          <Button variant="primary" size="large" href="/contact" className="btn-glow">
             Book a No-BS Call
           </Button>
-          <Button variant="secondary" size="large" href="/ivc/about">
+          <Button variant="secondary" size="large" href="/about" className="btn-glow">
             Learn More
           </Button>
         </div>

@@ -69,7 +69,7 @@ export default function ServicesGrid() {
             return (
               <div
                 key={index}
-                className={`relative bg-gradient-to-br ${colorClasses[service.color as keyof typeof colorClasses]} border rounded-xl p-8 hover:scale-105 transition-transform duration-300`}
+                className={`relative bg-gradient-to-br ${colorClasses[service.color as keyof typeof colorClasses]} border rounded-xl p-8 hover:scale-105 transition-transform duration-300 card-hover glass-morphism`}
               >
                 <div className="mb-6">
                   <Icon size={48} className="text-white" />
