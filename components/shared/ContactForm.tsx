@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import Button from './Button'
 
 export default function ContactForm() {
   const [formData, setFormData] = useState({
@@ -11,62 +10,62 @@ export default function ContactForm() {
     message: ''
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [submitMessage, setSubmitMessage] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
     
-    // TODO: Implement actual form submission
+    // Here you would normally send the form data to your backend
     console.log('Form submitted:', formData)
     
-    // Simulate submission
+    // Simulate API call
     setTimeout(() => {
-      setIsSubmitting(false)
-      setSubmitMessage("Thanks for your message! I'll get back to you within 24 hours.")
+      alert('Thanks for your message! We\'ll be in touch within 24 hours.')
       setFormData({ name: '', email: '', company: '', message: '' })
-      
-      // Clear success message after 5 seconds
-      setTimeout(() => setSubmitMessage(''), 5000)
+      setIsSubmitting(false)
     }, 1000)
   }
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    })
+  }
+
   return (
-    <div className="bg-gray-800/50 rounded-lg p-8 border border-gray-700">
-      {submitMessage && (
-        <div className="mb-6 p-4 bg-green-500/20 border border-green-500/50 rounded-lg">
-          <p className="text-green-400">{submitMessage}</p>
-        </div>
-      )}
-      
+    <div className="bg-gray-900/50 backdrop-blur-sm rounded-2xl border border-gray-800 p-8 md:p-12">
+      <h3 className="text-2xl font-bold text-white mb-6">Send a Message</h3>
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
           <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">
-            Your Name *
+            Your Name
           </label>
           <input
             type="text"
             id="name"
+            name="name"
             value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 transition-colors"
-            placeholder="John Smith"
+            onChange={handleChange}
             required
+            className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors"
+            placeholder="John Smith"
           />
         </div>
         
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
-            Email Address *
+            Email Address
           </label>
           <input
             type="email"
             id="email"
+            name="email"
             value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 transition-colors"
-            placeholder="john@company.com"
+            onChange={handleChange}
             required
+            className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors"
+            placeholder="john@company.com"
           />
         </div>
         
@@ -77,40 +76,44 @@ export default function ContactForm() {
           <input
             type="text"
             id="company"
+            name="company"
             value={formData.company}
-            onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-            className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 transition-colors"
+            onChange={handleChange}
+            className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors"
             placeholder="Your Company Ltd"
           />
         </div>
         
         <div>
           <label htmlFor="message" className="block text-sm font-medium text-gray-300 mb-2">
-            How Can We Help? *
+            How Can We Help?
           </label>
           <textarea
             id="message"
+            name="message"
             value={formData.message}
-            onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-            rows={4}
-            className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 transition-colors resize-none"
-            placeholder="Tell us about your business and what you're looking for..."
+            onChange={handleChange}
             required
+            rows={5}
+            className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors resize-none"
+            placeholder="Tell us about your business and what you're looking for..."
           />
         </div>
         
-        <Button 
-          type="submit" 
-          variant="primary" 
-          fullWidth
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? 'Sending...' : 'Send Message'}
-        </Button>
-        
-        <p className="text-sm text-gray-500 text-center">
-          * Required fields. We&apos;ll respond within 24 hours.
-        </p>
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-gray-400">* Required fields. We&apos;ll respond within 24 hours.</p>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className={`px-8 py-3 bg-orange-500 text-white font-bold rounded-lg transition-all ${
+              isSubmitting 
+                ? 'opacity-50 cursor-not-allowed' 
+                : 'hover:bg-orange-600 hover:shadow-lg transform hover:-translate-y-0.5'
+            }`}
+          >
+            {isSubmitting ? 'Sending...' : 'Send Message'}
+          </button>
+        </div>
       </form>
     </div>
   )

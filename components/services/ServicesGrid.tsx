@@ -14,7 +14,7 @@ export default function ServicesGrid() {
         'Year-end accounts',
         'Company secretarial'
       ],
-      color: 'blue'
+      color: 'orange'
     },
     {
       icon: Target,
@@ -40,70 +40,86 @@ export default function ServicesGrid() {
         'Funding support',
         'Operational efficiency'
       ],
-      color: 'orange'
+      color: 'blue'
     }
   ]
 
-  const colorClasses = {
-    blue: 'from-blue-500/20 to-blue-600/20 border-blue-500/30',
-    purple: 'from-purple-500/20 to-purple-600/20 border-purple-500/30',
-    orange: 'from-orange-500/20 to-orange-600/20 border-orange-500/30'
-  }
-
   return (
-    <section className="py-20 px-4 bg-gray-900/50" id="services">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">
+    <section className="py-24 bg-black relative overflow-hidden" id="services">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-16 max-w-3xl mx-auto">
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
             Three Ways We <span className="text-orange-500">Fight For You</span>
           </h2>
-          <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-            From essential compliance to strategic growth, we&apos;re your complete financial partner. 
-            Not just an accountant - your business advocate.
+          <p className="text-lg md:text-xl text-gray-300 leading-relaxed">
+            From essential compliance to strategic growth, we&apos;re your complete financial 
+            partner. Not just an accountant - your business advocate.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-3 gap-8 mb-16">
           {services.map((service, index) => {
             const Icon = service.icon
             return (
               <div
                 key={index}
-                className={`relative bg-gradient-to-br ${colorClasses[service.color as keyof typeof colorClasses]} border rounded-xl p-8 hover:scale-105 transition-transform duration-300 card-hover glass-morphism`}
+                className="group relative bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-2xl p-8 hover:border-gray-700 transition-all duration-300"
               >
-                <div className="mb-6">
-                  <Icon size={48} className="text-white" />
+                {/* Icon with colored background */}
+                <div className={`inline-flex p-4 rounded-xl mb-6 ${
+                  service.color === 'orange' ? 'bg-orange-500/10' :
+                  service.color === 'purple' ? 'bg-purple-500/10' :
+                  'bg-blue-500/10'
+                }`}>
+                  <Icon size={32} className={
+                    service.color === 'orange' ? 'text-orange-500' :
+                    service.color === 'purple' ? 'text-purple-500' :
+                    'text-blue-500'
+                  } />
                 </div>
                 
-                <h3 className="text-2xl font-bold mb-4">{service.title}</h3>
-                <p className="text-gray-300 mb-6">{service.description}</p>
+                <h3 className="text-2xl font-bold text-white mb-4">{service.title}</h3>
+                <p className="text-gray-400 mb-6 leading-relaxed">{service.description}</p>
                 
-                <ul className="space-y-2">
+                <ul className="space-y-3 mb-8">
                   {service.features.map((feature, featureIndex) => (
-                    <li key={featureIndex} className="flex items-center text-gray-300">
-                      <span className="w-2 h-2 bg-white rounded-full mr-3"></span>
-                      {feature}
+                    <li key={featureIndex} className="flex items-start text-gray-300">
+                      <span className={`w-1.5 h-1.5 rounded-full mt-2 mr-3 flex-shrink-0 ${
+                        service.color === 'orange' ? 'bg-orange-500' :
+                        service.color === 'purple' ? 'bg-purple-500' :
+                        'bg-blue-500'
+                      }`} />
+                      <span className="text-sm">{feature}</span>
                     </li>
                   ))}
                 </ul>
                 
-                <div className="mt-8">
-                  <Link
-                    href="/services"
-                    className="text-white font-semibold hover:text-orange-400 transition-colors"
-                  >
-                    Learn more →
-                  </Link>
-                </div>
+                <Link
+                  href="/services"
+                  className={`inline-flex items-center font-semibold transition-colors ${
+                    service.color === 'orange' ? 'text-orange-500 hover:text-orange-400' :
+                    service.color === 'purple' ? 'text-purple-500 hover:text-purple-400' :
+                    'text-blue-500 hover:text-blue-400'
+                  }`}
+                >
+                  Learn more
+                  <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </Link>
               </div>
             )
           })}
         </div>
 
-        <div className="mt-16 text-center">
-          <div className="inline-block bg-orange-500/20 border border-orange-500/50 rounded-lg p-6">
-            <p className="text-lg mb-2">🎯 Remember: <span className="font-bold">50 Client Limit</span></p>
-            <p className="text-gray-300">Every client gets the attention they deserve</p>
+        <div className="flex justify-center">
+          <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-2xl p-8 text-center max-w-2xl">
+            <p className="text-2xl font-bold text-white mb-2">
+              🎯 Remember: <span className="text-orange-500">50 Client Limit</span>
+            </p>
+            <p className="text-gray-400 text-lg">
+              Every client gets the attention they deserve
+            </p>
           </div>
         </div>
       </div>

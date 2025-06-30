@@ -5,77 +5,87 @@ import Link from 'next/link'
 
 export function Hero() {
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black">
-      {/* Animated background */}
-      <div className="absolute inset-0 hero-gradient" />
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black pt-20">
+      {/* Animated background - subtle */}
+      <div className="absolute inset-0 hero-gradient opacity-30" />
       
-      {/* Animated particles */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute w-96 h-96 bg-orange-500/20 rounded-full blur-3xl animate-pulse top-10 left-10" />
-        <div className="absolute w-64 h-64 bg-purple-500/20 rounded-full blur-3xl animate-pulse bottom-10 right-10 animation-delay-2000" />
-        <div className="absolute w-80 h-80 bg-blue-500/20 rounded-full blur-3xl animate-pulse top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animation-delay-4000" />
+      {/* Animated particles - smaller and more subtle */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute w-64 h-64 bg-orange-500/10 rounded-full blur-3xl animate-pulse top-20 -left-20" />
+        <div className="absolute w-48 h-48 bg-purple-500/10 rounded-full blur-3xl animate-pulse bottom-20 -right-20 animation-delay-2000" />
+        <div className="absolute w-56 h-56 bg-blue-500/10 rounded-full blur-3xl animate-pulse top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animation-delay-4000" />
       </div>
       
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        {/* Main tagline with dynamic text effect */}
-        <h1 className="text-5xl sm:text-7xl lg:text-8xl font-bold mb-8 leading-tight">
-          <span className="block text-white text-reveal">Other Accountants</span>
-          <span className="block text-orange-500 neon-orange text-reveal animation-delay-200">File</span>
-          <span className="block text-white text-reveal animation-delay-400">
-            We <span className="text-transparent bg-clip-text gradient-bg">Fight</span>
-          </span>
-        </h1>
-        
-        {/* Subheading with better contrast */}
-        <p className="text-xl sm:text-2xl text-gray-100 mb-12 max-w-3xl mx-auto leading-relaxed high-contrast">
-          We don&apos;t hide behind jargon or drown you in reports. We protect your business and help you build something real.
-        </p>
-        
-        {/* Quality commitment badge */}
-        <div className="inline-flex items-center gap-2 mb-12 px-6 py-3 bg-white/10 backdrop-blur-lg rounded-full border border-white/20">
-          <span className="text-orange-500 font-semibold">⚡ Quality Over Quantity</span>
-          <span className="text-white">•</span>
-          <span className="text-white font-medium">50 Client Limit</span>
+      <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-5xl mx-auto text-center">
+          {/* Main tagline with better spacing */}
+          <h1 className="mb-12">
+            <span className="block text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold text-white mb-4">
+              Other Accountants
+            </span>
+            <span className="block text-6xl sm:text-7xl lg:text-8xl xl:text-9xl font-black text-orange-500 mb-4">
+              File
+            </span>
+            <span className="block text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold text-white">
+              We <span className="text-orange-500">Fight</span>
+            </span>
+          </h1>
+          
+          {/* Subheading with proper spacing */}
+          <p className="text-lg sm:text-xl lg:text-2xl text-gray-200 mb-12 max-w-3xl mx-auto leading-relaxed">
+            We don&apos;t hide behind jargon or drown you in reports. We protect your business and help you build something real.
+          </p>
+          
+          {/* Quality commitment badge */}
+          <div className="flex justify-center mb-12">
+            <div className="inline-flex items-center gap-3 px-6 py-3 bg-gray-900/80 backdrop-blur-sm rounded-full border border-gray-800">
+              <span className="text-orange-500 font-bold text-lg">⚡ Quality Over Quantity</span>
+              <span className="text-gray-500">•</span>
+              <span className="text-gray-300 font-medium">50 Client Limit</span>
+            </div>
+          </div>
+          
+          {/* CTA buttons with proper spacing */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-20">
+            <Link href="/contact">
+              <Button 
+                size="large" 
+                className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-8 py-4 text-lg shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all"
+              >
+                Book a No-BS Call
+              </Button>
+            </Link>
+            <Link href="/about">
+              <Button 
+                variant="secondary" 
+                size="large"
+                className="bg-transparent border-2 border-gray-700 text-white hover:bg-gray-900 hover:border-gray-600 font-semibold px-8 py-4 text-lg transition-all"
+              >
+                Learn More
+              </Button>
+            </Link>
+          </div>
         </div>
         
-        {/* CTA buttons with enhanced styling */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link href="/contact">
-            <Button 
-              size="large" 
-              className="btn-glow pulse-cta bg-orange-500 hover:bg-orange-600 text-white font-bold px-8 py-4 text-lg"
-            >
-              Book a No-BS Call
-            </Button>
-          </Link>
-          <Link href="/about">
-            <Button 
-              variant="secondary" 
-              size="large"
-              className="border-2 border-white/30 text-white hover:bg-white/10 backdrop-blur-sm font-semibold px-8 py-4 text-lg card-hover"
-            >
-              Learn More
-            </Button>
-          </Link>
-        </div>
-        
-        {/* Trust indicators with animation */}
-        <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-8">
-          <div className="text-center float-animation">
-            <div className="text-4xl font-bold text-orange-500 neon-orange">15+</div>
-            <div className="text-sm text-gray-300 mt-1">Years Fighting</div>
-          </div>
-          <div className="text-center float-animation animation-delay-1000">
-            <div className="text-4xl font-bold text-orange-500 neon-orange">1</div>
-            <div className="text-sm text-gray-300 mt-1">PE Exit (By Choice)</div>
-          </div>
-          <div className="text-center float-animation animation-delay-2000">
-            <div className="text-4xl font-bold text-orange-500 neon-orange">50</div>
-            <div className="text-sm text-gray-300 mt-1">Client Limit</div>
-          </div>
-          <div className="text-center float-animation animation-delay-3000">
-            <div className="text-4xl font-bold text-orange-500 neon-orange">100%</div>
-            <div className="text-sm text-gray-300 mt-1">Personal Service</div>
+        {/* Trust indicators - better layout */}
+        <div className="max-w-4xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div className="text-center p-6 bg-gray-900/50 backdrop-blur-sm rounded-xl border border-gray-800 hover:border-gray-700 transition-colors">
+              <div className="text-3xl font-bold text-orange-500 mb-2">15+</div>
+              <div className="text-sm text-gray-400">Years Fighting</div>
+            </div>
+            <div className="text-center p-6 bg-gray-900/50 backdrop-blur-sm rounded-xl border border-gray-800 hover:border-gray-700 transition-colors">
+              <div className="text-3xl font-bold text-orange-500 mb-2">1</div>
+              <div className="text-sm text-gray-400">PE Exit (By Choice)</div>
+            </div>
+            <div className="text-center p-6 bg-gray-900/50 backdrop-blur-sm rounded-xl border border-gray-800 hover:border-gray-700 transition-colors">
+              <div className="text-3xl font-bold text-orange-500 mb-2">50</div>
+              <div className="text-sm text-gray-400">Client Limit</div>
+            </div>
+            <div className="text-center p-6 bg-gray-900/50 backdrop-blur-sm rounded-xl border border-gray-800 hover:border-gray-700 transition-colors">
+              <div className="text-3xl font-bold text-orange-500 mb-2">100%</div>
+              <div className="text-sm text-gray-400">Personal Service</div>
+            </div>
           </div>
         </div>
       </div>
