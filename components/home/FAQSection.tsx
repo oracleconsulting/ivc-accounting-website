@@ -82,7 +82,7 @@ export default function FAQSection() {
         <div className="text-center mt-12">
           <p className="text-[#f5f1e8]/60 mb-4">Have more questions?</p>
           <Link href="/contact" className="inline-flex items-center font-bold uppercase text-[#ff6b35] hover:text-[#f5f1e8] transition-colors group">
-            Let's have a real conversation 
+            Let&apos;s have a real conversation 
             <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>

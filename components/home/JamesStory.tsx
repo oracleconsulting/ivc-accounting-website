@@ -51,14 +51,14 @@ export default function JamesStory() {
               
               <div className="space-y-4 text-lg text-[#f5f1e8]/80 leading-relaxed">
                 <p>
-                  I'm James Howard, and I've been in your shoes. After 15 years in accounting 
+                  I&apos;m James Howard, and I&apos;ve been in your shoes. After 15 years in accounting 
                   and surviving 1 PE acquisition personally, I know the pressure you face.
                 </p>
                 
                 <p>
-                  I've seen how the "big firms" operate - treating clients like numbers, 
-                  drowning them in jargon, and disappearing when things get tough. That's not 
-                  accounting. That's just filing paperwork.
+                  I&apos;ve seen how the &ldquo;big firms&rdquo; operate - treating clients like numbers, 
+                  drowning them in jargon, and disappearing when things get tough. That&apos;s not 
+                  accounting. That&apos;s just filing paperwork.
                 </p>
               </div>
               
@@ -66,9 +66,9 @@ export default function JamesStory() {
                 <h3 className="text-2xl font-black uppercase text-[#f5f1e8] mb-4">MY PE EXIT STORY</h3>
                 <p className="text-[#f5f1e8] leading-relaxed">
                   When PE came knocking, I made a choice. I could have stayed and watched as they 
-                  "optimized" everything - cutting corners, reducing service quality, 
+                  &ldquo;optimized&rdquo; everything - cutting corners, reducing service quality, 
                   treating clients like line items. But I chose to exit. Why? Because I knew it 
-                  wasn't right for the clients. They deserved better than becoming just another 
+                  wasn&apos;t right for the clients. They deserved better than becoming just another 
                   number in a portfolio.
                 </p>
               </div>
@@ -81,7 +81,7 @@ export default function JamesStory() {
               
               <blockquote className="border-l-4 border-[#ff6b35] pl-6">
                 <p className="text-2xl font-black uppercase text-[#ff6b35]">
-                  "OTHER ACCOUNTANTS FILE. WE FIGHT."
+                  &ldquo;OTHER ACCOUNTANTS FILE. WE FIGHT.&rdquo;
                 </p>
               </blockquote>
             </div>

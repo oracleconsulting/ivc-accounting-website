@@ -26,7 +26,7 @@ export default function ContactSection() {
             </h2>
             
             <p className="text-xl text-[#1a2b4a]/80 mb-12">
-              Let's have a real conversation. No sales pitch, no jargon, just 
+              Let&apos;s have a real conversation. No sales pitch, no jargon, just 
               straight talk about your business and how we can help protect and grow it.
             </p>
             

@@ -81,7 +81,7 @@ export default function Hero() {
           </h1>
           
           <p className="text-xl md:text-2xl text-[#f5f1e8]/80 mb-12 max-w-3xl mx-auto animate-fade-in font-light">
-            We don't hide behind jargon or drown you in reports. 
+            We don&apos;t hide behind jargon or drown you in reports. 
             We protect your business and help you build something real.
           </p>
           
