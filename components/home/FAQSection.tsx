@@ -2,7 +2,8 @@
 'use client'
 
 import { useState } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, ArrowRight } from 'lucide-react';
+import Link from 'next/link';
 
 export default function FAQSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
@@ -10,92 +11,71 @@ export default function FAQSection() {
   const faqs = [
     {
       question: "Why only 50 clients?",
-      answer: "Quality over quantity. With 50 clients, I can personally know each business, understand your challenges, and be there when you need me. You're not getting passed to a junior or lost in a system - you're getting me."
+      answer: "Because real service takes time. I'd rather do exceptional work for 50 businesses than mediocre work for 500. Every client gets my personal attention, not passed to a junior."
     },
     {
       question: "What makes you different from other accountants?",
-      answer: "I've been in your shoes. Built businesses, dealt with PE investors, made tough calls. I don't just file your accounts - I fight for your business. Plus, I actually answer my phone."
+      answer: "I've been through 3 PE acquisitions myself. I know the pressure, the negotiations, the sleepless nights. When I say 'we fight', I mean it - I've been in the trenches."
     },
     {
-      question: "What if I'm not ready for all services?",
-      answer: "Start with what you need. Most clients begin with compliance and grow into advisory as their business develops. We'll build a relationship, not force a package."
+      question: "Do you work with startups or just established businesses?",
+      answer: "Both. Whether you're just starting out or preparing for exit, we provide the same personal service. The key is you're serious about building something real."
     },
     {
-      question: "How quickly can you respond to urgent matters?",
-      answer: "Same day for urgent issues, next day for everything else. When HMRC comes knocking or a deal needs attention, you can't wait a week for a callback."
+      question: "What if I already have an accountant?",
+      answer: "No problem. We'll handle the transition smoothly. Most clients switch because they're tired of being a number. If you want someone who actually cares about your business, let's talk."
     },
     {
-      question: "Do you work with specific industries?",
-      answer: "I work with ambitious business owners across industries. From tech startups to established manufacturers, what matters is your drive to build something real, not your sector."
+      question: "How do you handle PE negotiations?",
+      answer: "With experience and aggression. I've been on both sides of the table. I know their tactics, their pressure points, and how to protect your interests. This isn't theoretical - it's personal."
     },
     {
-      question: "What's your experience with PE and exits?",
-      answer: "I've been through a PE exit myself - by choice. I know the process inside out, from LOIs to completion. More importantly, I know how to protect your interests when the suits arrive."
+      question: "What's your pricing structure?",
+      answer: "Transparent and fair. No hidden fees, no surprise bills. We'll agree everything upfront. Quality service costs more than a box-ticker, but the value is incomparable."
     }
   ];
 
   return (
-    <section className="py-24 bg-black relative">
+    <section className="py-24 relative overflow-hidden" id="faq">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
-              Real Questions, <span className="text-orange-500">Straight Answers</span>
-            </h2>
-            <p className="text-lg md:text-xl text-gray-300">
-              No jargon, no BS. Just honest answers to what matters.
-            </p>
-          </div>
+        <div className="text-center mb-16">
+          <h2 className="text-4xl md:text-5xl font-bold mb-6">
+            Straight Answers to <span className="text-orange-500">Real Questions</span>
+          </h2>
+          <p className="text-xl text-gray-300">
+            No corporate speak. No jargon. Just honest answers.
+          </p>
+        </div>
 
-          <div className="space-y-4">
-            {faqs.map((faq, index) => (
-              <div
-                key={index}
-                className="bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-2xl overflow-hidden hover:border-gray-700 transition-all duration-300"
+        <div className="max-w-3xl mx-auto space-y-4">
+          {faqs.map((faq, index) => (
+            <div key={index} className="group">
+              <button
+                onClick={() => setOpenIndex(openIndex === index ? null : index)}
+                className="w-full bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-2xl p-6 text-left hover:border-orange-500/50 transition-all duration-300 group"
               >
-                <button
-                  className="w-full px-8 py-6 text-left flex items-center justify-between group"
-                  onClick={() => setOpenIndex(openIndex === index ? null : index)}
-                >
-                  <h3 className="text-lg md:text-xl font-semibold text-white group-hover:text-orange-500 transition-colors">
-                    {faq.question}
-                  </h3>
-                  <ChevronDown
-                    className={`w-5 h-5 text-gray-400 transition-transform duration-300 ${
-                      openIndex === index ? 'rotate-180' : ''
-                    }`}
-                  />
-                </button>
-                
-                <div
-                  className={`overflow-hidden transition-all duration-300 ${
-                    openIndex === index ? 'max-h-64' : 'max-h-0'
-                  }`}
-                >
-                  <div className="px-8 pb-6">
-                    <p className="text-gray-300 leading-relaxed">
-                      {faq.answer}
-                    </p>
-                  </div>
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-semibold pr-4">{faq.question}</h3>
+                  <ChevronDown className={`w-5 h-5 text-orange-500 transition-transform duration-300 flex-shrink-0 ${
+                    openIndex === index ? 'rotate-180' : ''
+                  }`} />
                 </div>
-              </div>
-            ))}
-          </div>
+                {openIndex === index && (
+                  <div className="mt-4 text-gray-300 animate-fade-in">
+                    {faq.answer}
+                  </div>
+                )}
+              </button>
+            </div>
+          ))}
+        </div>
 
-          <div className="mt-12 text-center">
-            <p className="text-lg text-gray-400 mb-6">
-              Got a question that&apos;s not here?
-            </p>
-            <a
-              href="/contact"
-              className="inline-flex items-center font-semibold text-orange-500 hover:text-orange-400 transition-colors"
-            >
-              Let&apos;s talk
-              <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-              </svg>
-            </a>
-          </div>
+        <div className="text-center mt-12">
+          <p className="text-gray-300 mb-4">Have more questions?</p>
+          <Link href="/contact" className="text-orange-500 hover:text-orange-400 font-semibold transition-colors inline-flex items-center group">
+            Let&apos;s have a real conversation 
+            <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+          </Link>
         </div>
       </div>
     </section>

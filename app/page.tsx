@@ -1,6 +1,10 @@
 // app/page.tsx
 import { Metadata } from 'next';
-import IVCHomepage from '@/components/IVCHomepage';
+import Hero from '@/components/home/Hero';
+import JamesStory from '@/components/home/JamesStory';
+import ServicesGrid from '@/components/home/ServicesGrid';
+import FAQSection from '@/components/home/FAQSection';
+import ContactSection from '@/components/home/ContactSection';
 
 export const metadata: Metadata = {
   title: 'IVC Accounting - Other Accountants File. We Fight.',
@@ -8,5 +12,13 @@ export const metadata: Metadata = {
 };
 
 export default function HomePage() {
-  return <IVCHomepage />;
+  return (
+    <>
+      <Hero />
+      <JamesStory />
+      <ServicesGrid />
+      <FAQSection />
+      <ContactSection />
+    </>
+  );
 }
