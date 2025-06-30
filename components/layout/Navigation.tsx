@@ -1,3 +1,4 @@
+// components/layout/Navigation.tsx
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -19,41 +20,37 @@ export default function Navigation() {
   }, [])
 
   const navLinks = [
-    { href: '/', label: 'Home' },
-    { href: '/about', label: 'About' },
-    { href: '/services', label: 'Services' },
-    { href: '/team', label: 'Team' },
-    { href: '/contact', label: 'Contact' },
+    { href: '/', label: 'HOME' },
+    { href: '/about', label: 'ABOUT' },
+    { href: '/services', label: 'SERVICES' },
+    { href: '/team', label: 'TEAM' },
+    { href: '/contact', label: 'CONTACT' },
   ]
 
   return (
-    <nav className={`fixed w-full z-50 transition-all duration-500 ${
-      isScrolled ? 'bg-black/90 backdrop-blur-lg py-4' : 'bg-transparent py-6'
+    <nav className={`fixed w-full z-50 nav-transition ${
+      isScrolled ? 'bg-[#1a2b4a] shadow-corporate' : 'bg-transparent'
     }`}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <div className="flex-shrink-0">
             <Link href="/" className="flex items-center">
-              <Image
-                src="/images/ivc-logo.png"
-                alt="IVC Accounting"
-                width={140}
-                height={56}
-                priority
-                className="h-10 md:h-12 w-auto"
-              />
+              <div className="bg-[#ff6b35] px-4 py-2">
+                <span className="text-2xl font-black text-[#f5f1e8]">IVC</span>
+              </div>
+              <span className="ml-3 text-xl font-bold text-[#f5f1e8] hidden sm:block">ACCOUNTING</span>
             </Link>
           </div>
           
-          {/* Desktop Navigation - Centered */}
+          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center justify-center flex-1">
             <div className="flex items-center space-x-8">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="text-gray-300 hover:text-orange-500 transition-colors font-medium text-sm uppercase tracking-wider"
+                  className="text-[#f5f1e8] hover:text-[#ff6b35] transition-colors font-bold text-sm tracking-wider"
                 >
                   {link.label}
                 </Link>
@@ -63,8 +60,12 @@ export default function Navigation() {
           
           {/* Desktop CTA */}
           <div className="hidden md:block flex-shrink-0">
-            <Button variant="primary" href="/contact" className="whitespace-nowrap">
-              Book a No-BS Call
+            <Button 
+              variant="primary" 
+              href="/contact" 
+              className="bg-[#ff6b35] hover:bg-[#e55a2b] text-[#f5f1e8] px-6 py-3 font-bold uppercase tracking-wide transition-all duration-300 btn-corporate"
+            >
+              BOOK A NO-BS CALL
             </Button>
           </div>
           
@@ -72,7 +73,7 @@ export default function Navigation() {
           <div className="md:hidden">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="p-2 rounded-md text-gray-300 hover:text-white hover:bg-gray-800 transition-colors"
+              className="p-2 text-[#f5f1e8] hover:text-[#ff6b35] transition-colors"
               aria-label="Toggle menu"
             >
               {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -83,13 +84,13 @@ export default function Navigation() {
       
       {/* Mobile menu */}
       {isMobileMenuOpen && (
-        <div className="md:hidden bg-black/95 backdrop-blur-lg border-t border-gray-800">
+        <div className="md:hidden bg-[#1a2b4a] border-t border-[#ff6b35]/20">
           <div className="px-4 py-4 space-y-3">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="block px-4 py-3 text-base font-medium text-gray-300 hover:text-orange-500 hover:bg-gray-900 rounded-lg transition-colors"
+                className="block px-4 py-3 text-[#f5f1e8] hover:text-[#ff6b35] hover:bg-[#f5f1e8]/5 font-bold uppercase tracking-wide transition-colors"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 {link.label}
@@ -101,8 +102,9 @@ export default function Navigation() {
                 href="/contact" 
                 fullWidth
                 onClick={() => setIsMobileMenuOpen(false)}
+                className="bg-[#ff6b35] hover:bg-[#e55a2b] text-[#f5f1e8] font-bold uppercase tracking-wide"
               >
-                Book a No-BS Call
+                BOOK A NO-BS CALL
               </Button>
             </div>
           </div>
@@ -110,4 +112,4 @@ export default function Navigation() {
       )}
     </nav>
   )
-} 
+}

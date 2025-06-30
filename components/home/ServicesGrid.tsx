@@ -1,13 +1,15 @@
+// components/home/ServicesGrid.tsx
 'use client'
 
-import { Shield, Target, TrendingUp, CheckCircle, ArrowRight } from 'lucide-react'
-import Link from 'next/link'
+import { Shield, Target, TrendingUp, ArrowRight } from 'lucide-react';
+import Link from 'next/link';
 
 export default function ServicesGrid() {
   const services = [
     {
       icon: Shield,
-      title: 'Essential Compliance',
+      title: 'ESSENTIAL COMPLIANCE',
+      subtitle: 'FOUNDATION',
       description: 'Rock-solid bookkeeping, VAT, payroll, and year-end accounts. The basics done right, every time.',
       features: [
         'Monthly bookkeeping',
@@ -16,12 +18,12 @@ export default function ServicesGrid() {
         'Year-end accounts',
         'Company secretarial'
       ],
-      color: 'from-blue-500 to-cyan-500',
-      shadowColor: 'shadow-blue-500/30'
+      color: 'bg-[#4a90e2]'
     },
     {
       icon: Target,
-      title: 'Strategic Advisory',
+      title: 'STRATEGIC ADVISORY',
+      subtitle: 'STRATEGY',
       description: "Real advice for real challenges. PE negotiations, tax planning, and business strategy from someone who's been there.",
       features: [
         'PE deal navigation',
@@ -30,12 +32,12 @@ export default function ServicesGrid() {
         'Exit strategies',
         'Board reporting'
       ],
-      color: 'from-purple-500 to-pink-500',
-      shadowColor: 'shadow-purple-500/30'
+      color: 'bg-[#ff6b35]'
     },
     {
       icon: TrendingUp,
-      title: 'Business Growth',
+      title: 'BUSINESS GROWTH',
+      subtitle: 'GROWTH',
       description: 'Beyond the numbers. We help you build systems, find opportunities, and grow sustainably.',
       features: [
         'Growth strategy',
@@ -44,26 +46,22 @@ export default function ServicesGrid() {
         'Funding support',
         'Operational efficiency'
       ],
-      color: 'from-orange-500 to-red-500',
-      shadowColor: 'shadow-orange-500/30'
+      color: 'bg-[#1a2b4a]'
     }
-  ]
+  ];
 
   return (
-    <section className="py-24 bg-gray-900/30 relative overflow-hidden" id="services">
-      {/* Background Effects */}
-      <div className="absolute inset-0 opacity-30">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl" />
-      </div>
+    <section className="py-24 bg-[#f5f1e8] relative overflow-hidden" id="services">
+      {/* Geometric Background Pattern */}
+      <div className="absolute inset-0 geometric-pattern opacity-30" />
       
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
-            Three Ways We <span className="text-orange-500">Fight For You</span>
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-black uppercase text-[#1a2b4a] mb-6">
+            THREE WAYS WE <span className="text-[#ff6b35]">FIGHT FOR YOU</span>
           </h2>
-          <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-            From essential compliance to strategic growth, we&apos;re your complete financial 
+          <p className="text-xl text-[#1a2b4a]/80 max-w-3xl mx-auto">
+            From essential compliance to strategic growth, we're your complete financial 
             partner. Not just an accountant - your business advocate.
           </p>
         </div>
@@ -71,30 +69,34 @@ export default function ServicesGrid() {
         <div className="grid lg:grid-cols-3 gap-8 mb-16">
           {services.map((service, index) => (
             <div key={index} className="group relative">
-              <div className={`absolute inset-0 bg-gradient-to-br ${service.color} rounded-3xl blur-xl opacity-20 group-hover:opacity-40 transition-opacity duration-500`} />
-              <div className="relative bg-gray-900/80 backdrop-blur-sm border border-gray-800 rounded-3xl p-8 h-full hover:border-gray-700 transition-all duration-300 hover:-translate-y-2">
-                <div className={`inline-flex p-4 rounded-xl bg-gradient-to-br ${service.color} mb-6`}>
-                  <service.icon className="w-8 h-8 text-white" />
+              <div className="absolute inset-0 bg-[#1a2b4a] transform translate-x-2 translate-y-2 transition-transform group-hover:translate-x-3 group-hover:translate-y-3" />
+              <div className="relative bg-white border-2 border-[#1a2b4a] p-8 h-full transition-all duration-300">
+                <div className={`inline-flex p-4 ${service.color} text-white mb-6`}>
+                  <service.icon className="w-8 h-8" />
                 </div>
                 
-                <h3 className="text-2xl font-bold mb-4">{service.title}</h3>
-                <p className="text-gray-400 mb-6">{service.description}</p>
+                <div className="mb-4">
+                  <p className="text-sm font-bold text-[#ff6b35] tracking-wider mb-1">{service.subtitle}</p>
+                  <h3 className="text-2xl font-black uppercase text-[#1a2b4a]">{service.title}</h3>
+                </div>
+                
+                <p className="text-[#1a2b4a]/70 mb-6">{service.description}</p>
                 
                 <ul className="space-y-3 mb-8">
                   {service.features.map((feature, i) => (
-                    <li key={i} className="flex items-center text-gray-300">
-                      <CheckCircle className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                      <span>{feature}</span>
+                    <li key={i} className="flex items-center text-[#1a2b4a]">
+                      <div className="w-1.5 h-1.5 bg-[#ff6b35] mr-3 flex-shrink-0" />
+                      <span className="text-sm">{feature}</span>
                     </li>
                   ))}
                 </ul>
                 
                 <Link 
                   href="/services" 
-                  className="group/btn inline-flex items-center text-orange-500 hover:text-orange-400 font-semibold transition-colors"
+                  className="inline-flex items-center font-bold uppercase text-[#ff6b35] hover:text-[#e55a2b] transition-colors group/link"
                 >
                   Learn more
-                  <ArrowRight className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform" />
+                  <ArrowRight className="w-4 h-4 ml-2 group-hover/link:translate-x-1 transition-transform" />
                 </Link>
               </div>
             </div>
@@ -102,16 +104,19 @@ export default function ServicesGrid() {
         </div>
 
         <div className="flex justify-center">
-          <div className="bg-gradient-to-r from-orange-500/20 to-purple-500/20 backdrop-blur-sm border border-orange-500/30 rounded-3xl p-8 text-center max-w-2xl animate-pulse-subtle">
-            <p className="text-2xl font-bold mb-2">
-              🎯 Remember: <span className="text-orange-500">50 Client Limit</span>
-            </p>
-            <p className="text-gray-300 text-lg">
-              Every client gets the attention they deserve
-            </p>
+          <div className="bg-[#1a2b4a] text-[#f5f1e8] p-8 text-center max-w-2xl relative">
+            <div className="absolute -top-4 -left-4 w-full h-full border-2 border-[#ff6b35]" />
+            <div className="relative z-10">
+              <p className="text-2xl font-black uppercase mb-2">
+                REMEMBER: <span className="text-[#ff6b35]">50 CLIENT LIMIT</span>
+              </p>
+              <p className="text-lg">
+                Every client gets the attention they deserve
+              </p>
+            </div>
           </div>
         </div>
       </div>
     </section>
-  )
-} 
+  );
+}

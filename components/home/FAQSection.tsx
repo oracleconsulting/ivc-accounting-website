@@ -36,13 +36,22 @@ export default function FAQSection() {
   ];
 
   return (
-    <section className="py-24 relative overflow-hidden" id="faq">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="py-24 bg-[#1a2b4a] relative overflow-hidden" id="faq">
+      {/* Geometric Accent */}
+      <div className="absolute top-0 right-0 w-64 h-64 opacity-10">
+        <div className="grid grid-cols-8 gap-2">
+          {[...Array(64)].map((_, i) => (
+            <div key={i} className={`w-2 h-2 ${i % 3 === 0 ? 'bg-[#ff6b35]' : 'bg-[#4a90e2]'}`} />
+          ))}
+        </div>
+      </div>
+      
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            Straight Answers to <span className="text-orange-500">Real Questions</span>
+          <h2 className="text-4xl md:text-5xl font-black uppercase text-[#f5f1e8] mb-6">
+            STRAIGHT ANSWERS TO <span className="text-[#ff6b35]">REAL QUESTIONS</span>
           </h2>
-          <p className="text-xl text-gray-300">
+          <p className="text-xl text-[#f5f1e8]/80">
             No corporate speak. No jargon. Just honest answers.
           </p>
         </div>
@@ -52,16 +61,16 @@ export default function FAQSection() {
             <div key={index} className="group">
               <button
                 onClick={() => setOpenIndex(openIndex === index ? null : index)}
-                className="w-full bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-2xl p-6 text-left hover:border-orange-500/50 transition-all duration-300 group"
+                className="w-full bg-[#f5f1e8]/5 backdrop-blur-sm border border-[#f5f1e8]/20 p-6 text-left hover:border-[#ff6b35]/50 transition-all duration-300 group"
               >
                 <div className="flex justify-between items-center">
-                  <h3 className="text-lg font-semibold pr-4">{faq.question}</h3>
-                  <ChevronDown className={`w-5 h-5 text-orange-500 transition-transform duration-300 flex-shrink-0 ${
+                  <h3 className="text-lg font-bold uppercase text-[#f5f1e8] pr-4">{faq.question}</h3>
+                  <ChevronDown className={`w-5 h-5 text-[#ff6b35] transition-transform duration-300 flex-shrink-0 ${
                     openIndex === index ? 'rotate-180' : ''
                   }`} />
                 </div>
                 {openIndex === index && (
-                  <div className="mt-4 text-gray-300 animate-fade-in">
+                  <div className="mt-4 text-[#f5f1e8]/80 animate-fade-in">
                     {faq.answer}
                   </div>
                 )}
@@ -71,9 +80,9 @@ export default function FAQSection() {
         </div>
 
         <div className="text-center mt-12">
-          <p className="text-gray-300 mb-4">Have more questions?</p>
-          <Link href="/contact" className="text-orange-500 hover:text-orange-400 font-semibold transition-colors inline-flex items-center group">
-            Let&apos;s have a real conversation 
+          <p className="text-[#f5f1e8]/60 mb-4">Have more questions?</p>
+          <Link href="/contact" className="inline-flex items-center font-bold uppercase text-[#ff6b35] hover:text-[#f5f1e8] transition-colors group">
+            Let's have a real conversation 
             <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
