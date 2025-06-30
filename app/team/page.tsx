@@ -1,8 +1,8 @@
 import { Metadata } from 'next'
 import Image from 'next/image'
 import { Award, Briefcase, TrendingUp, Shield } from 'lucide-react'
-import Button from '@/components/ivc/shared/Button'
-import { BreadcrumbSchema } from '@/components/ivc/seo/StructuredData'
+import Button from '@/components/shared/Button'
+import { BreadcrumbSchema } from '@/components/seo/StructuredData'
 
 export const metadata: Metadata = {
   title: 'Meet James Howard - Founder of IVC Accounting',

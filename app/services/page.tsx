@@ -1,7 +1,7 @@
 import { Metadata } from 'next'
 import { Shield, Target, TrendingUp, Check } from 'lucide-react'
-import Button from '@/components/ivc/shared/Button'
-import { BreadcrumbSchema, ServiceSchema } from '@/components/ivc/seo/StructuredData'
+import Button from '@/components/shared/Button'
+import { BreadcrumbSchema, ServiceSchema } from '@/components/seo/StructuredData'
 
 export const metadata: Metadata = {
   title: 'Services - Essential Compliance, Strategic Advisory & Growth',

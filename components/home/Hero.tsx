@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import Button from '@/components/ivc/shared/Button'
+import Button from '@/components/shared/Button'
 import TrustIndicators from './TrustIndicators'
 import FloatingElements from './FloatingElements'
 

@@ -1,10 +1,10 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
-import Navigation from '@/components/ivc/layout/Navigation'
-import Footer from '@/components/ivc/layout/Footer'
-import { OrganizationSchema } from '@/components/ivc/seo/StructuredData'
-import CookieConsent from '@/components/ivc/analytics/CookieConsent'
-import GoogleTagManager, { GTMNoscript } from '@/components/ivc/analytics/GoogleTagManager'
+import Navigation from '@/components/layout/Navigation'
+import Footer from '@/components/layout/Footer'
+import { OrganizationSchema } from '@/components/seo/StructuredData'
+import CookieConsent from '@/components/analytics/CookieConsent'
+import GoogleTagManager, { GTMNoscript } from '@/components/analytics/GoogleTagManager'
 
 const inter = Inter({ subsets: ['latin'] })
 

@@ -1,8 +1,8 @@
 import { Metadata } from 'next'
 import { Phone, Mail, Calendar, MapPin, Clock } from 'lucide-react'
-import Button from '@/components/ivc/shared/Button'
-import ContactForm from '@/components/ivc/shared/ContactForm'
-import { BreadcrumbSchema } from '@/components/ivc/seo/StructuredData'
+import Button from '@/components/shared/Button'
+import ContactForm from '@/components/shared/ContactForm'
+import { BreadcrumbSchema } from '@/components/seo/StructuredData'
 
 export const metadata: Metadata = {
   title: 'Contact IVC Accounting - Book a No-BS Call with James',

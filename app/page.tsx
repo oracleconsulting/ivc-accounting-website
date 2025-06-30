@@ -1,8 +1,8 @@
-import Hero from '@/components/ivc/home/Hero'
-import JamesStory from '@/components/ivc/about/JamesStory'
-import ServicesGrid from '@/components/ivc/services/ServicesGrid'
-import FAQSection from '@/components/ivc/shared/FAQSection'
-import ContactSection from '@/components/ivc/shared/ContactSection'
+import Hero from '@/components/home/Hero'
+import JamesStory from '@/components/about/JamesStory'
+import ServicesGrid from '@/components/services/ServicesGrid'
+import FAQSection from '@/components/shared/FAQSection'
+import ContactSection from '@/components/shared/ContactSection'
 
 export default function IVCHomePage() {
   return (

@@ -1,7 +1,7 @@
 import { Metadata } from 'next'
 import Image from 'next/image'
-import Button from '@/components/ivc/shared/Button'
-import { BreadcrumbSchema } from '@/components/ivc/seo/StructuredData'
+import Button from '@/components/shared/Button'
+import { BreadcrumbSchema } from '@/components/seo/StructuredData'
 
 export const metadata: Metadata = {
   title: 'About IVC Accounting - James Howard\'s Story',
