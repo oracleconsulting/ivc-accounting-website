@@ -90,7 +90,7 @@ export default function AboutPage() {
                 className="rounded-3xl shadow-2xl relative z-10 border-gradient"
               />
               <div className="absolute -bottom-8 -right-8 bg-gradient-to-r from-orange-500 to-orange-600 text-white p-8 rounded-2xl shadow-xl card-hover max-w-sm">
-                <p className="text-lg font-semibold mb-2">Founded IVC in 2021</p>
+                <p className="text-lg font-semibold mb-2">Founded IVC in 2024</p>
                 <p className="text-sm opacity-90">
                   &ldquo;I chose to build something where relationships matter more than revenue, 
                   where fighting for clients beats filing for numbers.&rdquo;
@@ -185,22 +185,22 @@ export default function AboutPage() {
             <div className="space-y-16">
               {[
                 {
-                  year: "2009",
+                  year: "2010",
                   title: "Started in Accounting",
                   description: "Began my journey in a small practice, learning that behind every number is a person with a dream."
                 },
                 {
-                  year: "2015",
+                  year: "2014",
                   title: "Senior Leadership",
                   description: "Moved into senior roles, seeing firsthand how larger firms lose touch with what matters."
                 },
                 {
-                  year: "2020",
+                  year: "2023-2024",
                   title: "The PE Experience",
                   description: "Experienced a private equity acquisition. Chose to exit when values clashed with profit margins."
                 },
                 {
-                  year: "2021",
+                  year: "2024",
                   title: "Founded IVC Accounting",
                   description: "Built a firm based on fighting for clients, not just filing for them. Limited to 50 clients by choice."
                 },

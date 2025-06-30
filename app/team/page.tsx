@@ -77,7 +77,7 @@ export default function TeamPage() {
                   Founder & Your Direct Contact
                 </p>
                 <p className="text-lg text-gray-400">
-                  FCA | CTA | 15+ Years Experience | 1 PE Exit
+                  FCCA | FFA | 15+ Years Experience | 1 PE Exit
                 </p>
               </div>
               
@@ -142,7 +142,7 @@ export default function TeamPage() {
               {
                 icon: GraduationCap,
                 year: "2014",
-                title: "Achieved FCA & CTA",
+                title: "Achieved FCCA & FFA",
                 description: "Qualified to fight battles on multiple fronts"
               },
               {

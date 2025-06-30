@@ -33,7 +33,7 @@ export default function ServicesPage() {
         },
         {
           title: 'VAT Returns',
-          description: 'Submitted early, optimized properly, with no nasty surprises.'
+          description: 'Submitted early, optimised properly, with no nasty surprises.'
         },
         {
           title: 'Payroll Management',
@@ -71,7 +71,7 @@ export default function ServicesPage() {
           description: 'From first approach to final exit - protecting your interests at every step.'
         },
         {
-          title: 'Tax Optimization',
+          title: 'Tax Optimisation',
           description: 'Legal, ethical, and aggressive tax planning that actually works.'
         },
         {
