@@ -1,118 +1,261 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-}
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Base dark theme setup */
-@layer base {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ffffff;
-  }
-  
-  html {
-    @apply bg-gray-900;
-  }
-  
-  body {
-    @apply bg-gray-900 text-white antialiased;
-    min-height: 100vh;
-    background-color: rgb(17 24 39);
-  }
-}
-
-/* IVC Accounting Custom Styles */
-@layer utilities {
-  .gradient-bg {
-    background: linear-gradient(-45deg, #1e40af, #7c3aed, #db2777, #ea580c);
-    background-size: 400% 400%;
-    animation: gradient-shift 15s ease infinite;
-  }
-  
-  .glass-morphism {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-  }
-  
-  .text-shadow-glow {
-    text-shadow: 0 0 30px rgba(234, 88, 12, 0.5);
-  }
-  
-  /* Hero section background gradient */
-  .hero-gradient {
-    background: radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3), transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(255, 119, 0, 0.3), transparent 50%),
-                radial-gradient(circle at 40% 20%, rgba(255, 0, 184, 0.3), transparent 50%);
-  }
-  
-  @keyframes gradient-shift {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-  }
-  
-  @keyframes float {
-    0%, 100% { transform: translateY(0px) rotate(0deg); }
-    50% { transform: translateY(-20px) rotate(2deg); }
-  }
-  
-  .float-animation {
-    animation: float 6s ease-in-out infinite;
-  }
-  
-  /* Button hover effects */
-  .btn-glow {
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-  }
-  
-  .btn-glow:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(234, 88, 12, 0.3);
-  }
-  
-  /* Card hover effects */
-  .card-hover {
-    transition: all 0.3s ease;
-  }
-  
-  .card-hover:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-  }
-}
-
-/* Ensure proper font rendering */
+/* Force dark theme with maximum contrast */
 * {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --background: #000000;
+  --foreground: #ffffff;
+  --orange: #ff6b00;
+  --orange-hover: #ff8533;
+}
+
+html {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+body {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  min-height: 100vh;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Force all backgrounds to be truly black */
+main, section, div {
+  background-color: transparent;
+}
+
+/* Ensure all text is readable */
+h1, h2, h3, h4, h5, h6 {
+  color: #ffffff !important;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+p, span, li, a {
+  color: #ffffff !important;
+}
+
+/* Fix gray text issues - make them much brighter */
+.text-gray-100 { color: #f5f5f5 !important; }
+.text-gray-200 { color: #e5e5e5 !important; }
+.text-gray-300 { color: #d4d4d4 !important; }
+.text-gray-400 { color: #a3a3a3 !important; }
+.text-gray-500 { color: #737373 !important; }
+
+/* Orange should pop */
+.text-orange-400 { color: #fb923c !important; }
+.text-orange-500 { color: #ff6b00 !important; }
+.text-orange-600 { color: #ea580c !important; }
+
+/* Background fixes */
+.bg-black { background-color: #000000 !important; }
+.bg-gray-800 { background-color: rgba(31, 41, 55, 0.8) !important; }
+.bg-gray-900 { background-color: rgba(17, 24, 39, 0.9) !important; }
+.bg-orange-500 { background-color: #ff6b00 !important; }
+
+/* Hero gradient background */
+.hero-gradient {
+  position: absolute;
+  inset: 0;
+  background: 
+    radial-gradient(circle at 20% 50%, rgba(255, 106, 0, 0.15), transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(255, 0, 132, 0.15), transparent 50%),
+    radial-gradient(circle at 40% 20%, rgba(121, 40, 202, 0.15), transparent 50%);
+  z-index: 0;
+}
+
+/* Dynamic gradient text */
+.gradient-bg {
+  background: linear-gradient(-45deg, #ff6b00, #ff0084, #7928ca, #0070f3);
+  background-size: 400% 400%;
+  animation: gradient-shift 10s ease infinite;
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Glassmorphism with better contrast */
+.glass-morphism {
+  background: rgba(255, 255, 255, 0.05) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Neon orange glow */
+.neon-orange {
+  color: #ff6b00 !important;
+  text-shadow: 
+    0 0 20px rgba(255, 106, 0, 0.8),
+    0 0 40px rgba(255, 106, 0, 0.6),
+    0 0 60px rgba(255, 106, 0, 0.4) !important;
+}
+
+/* High contrast helper */
+.high-contrast {
+  color: #ffffff !important;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8) !important;
+}
+
+/* Button improvements */
+.btn-glow {
+  background-color: #ff6b00 !important;
+  color: #ffffff !important;
+  font-weight: 600;
+  padding: 0.75rem 2rem;
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(255, 106, 0, 0.3);
+}
+
+.btn-glow:hover {
+  background-color: #ff8533 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(255, 106, 0, 0.5);
+}
+
+/* Animation utilities */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+}
+
+.float-animation {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(255, 106, 0, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 20px rgba(255, 106, 0, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(255, 106, 0, 0);
+  }
+}
+
+.pulse-cta {
+  animation: pulse-ring 2s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite;
+}
+
+@keyframes text-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.text-reveal {
+  animation: text-reveal 0.8s ease-out forwards;
+}
+
+/* Animation delays */
+.animation-delay-200 { animation-delay: 200ms; }
+.animation-delay-400 { animation-delay: 400ms; }
+.animation-delay-1000 { animation-delay: 1s; }
+.animation-delay-2000 { animation-delay: 2s; }
+.animation-delay-3000 { animation-delay: 3s; }
+.animation-delay-4000 { animation-delay: 4s; }
+
+/* Card hover effect */
+.card-hover {
+  transition: all 0.3s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(255, 106, 0, 0.2);
+}
+
+/* Border gradient */
+.border-gradient {
+  position: relative;
+  background: linear-gradient(#000, #000) padding-box,
+              linear-gradient(45deg, #ff6b00, #ff0084, #7928ca, #0070f3) border-box;
+  border: 2px solid transparent;
+  border-radius: 0.75rem;
+}
+
+/* Navigation fixes */
+nav {
+  background-color: rgba(0, 0, 0, 0.9) !important;
+  backdrop-filter: blur(10px);
+}
+
+/* Footer fixes */
+footer {
+  background-color: #000000 !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Fix any pink/purple gradient issues */
+.bg-gradient-to-br {
+  background: #000000 !important;
+}
+
+/* Ensure links are visible */
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #ff6b00 !important;
+}
+
+/* Form inputs */
+input, textarea {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  color: #ffffff !important;
+}
+
+input::placeholder, textarea::placeholder {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #000000;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #ff6b00;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #ff8533;
 }

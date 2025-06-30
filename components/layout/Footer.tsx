@@ -23,7 +23,7 @@ export default function Footer() {
   }
 
   return (
-    <footer className="bg-gray-900 border-t border-gray-800">
+    <footer className="bg-black border-t border-gray-800">
       <div className="max-w-7xl mx-auto px-4 py-12">
         <div className="grid md:grid-cols-4 gap-8 mb-8">
           <div className="col-span-1">
@@ -36,10 +36,10 @@ export default function Footer() {
                 className="h-10 w-auto"
               />
             </div>
-            <p className="text-gray-400 mb-4">
+            <p className="text-gray-100 mb-4">
               Other Accountants File. We Fight.
             </p>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-300">
               Quality over quantity. 50 client limit.
             </p>
           </div>
@@ -51,7 +51,7 @@ export default function Footer() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="text-gray-400 hover:text-orange-400 transition-colors"
+                    className="text-gray-300 hover:text-orange-500 transition-colors"
                   >
                     {link.label}
                   </Link>
@@ -67,7 +67,7 @@ export default function Footer() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="text-gray-400 hover:text-orange-400 transition-colors"
+                    className="text-gray-300 hover:text-orange-500 transition-colors"
                   >
                     {link.label}
                   </Link>
@@ -78,11 +78,11 @@ export default function Footer() {
           
           <div>
             <h4 className="text-lg font-semibold text-white mb-4">Contact</h4>
-            <div className="space-y-2 text-gray-400">
+            <div className="space-y-2 text-gray-300">
               <p>
                 <a
                   href="mailto:james@ivcaccounting.co.uk"
-                  className="hover:text-orange-400 transition-colors"
+                  className="hover:text-orange-500 transition-colors"
                 >
                   james@ivcaccounting.co.uk
                 </a>
@@ -91,7 +91,7 @@ export default function Footer() {
               <div className="pt-4">
                 <Link
                   href="https://calendly.com/james-ivc/consultation"
-                  className="inline-flex items-center text-orange-400 hover:text-orange-300 transition-colors"
+                  className="inline-flex items-center text-orange-500 hover:text-orange-400 transition-colors"
                 >
                   <span className="mr-2">📅</span>
                   Book a Call
@@ -103,7 +103,7 @@ export default function Footer() {
         
         <div className="border-t border-gray-800 pt-8 mt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <p className="text-gray-500 text-sm mb-4 md:mb-0">
+            <p className="text-gray-400 text-sm mb-4 md:mb-0">
               © {currentYear} IVC Accounting Ltd. All rights reserved.
             </p>
             <div className="flex space-x-6">
@@ -111,7 +111,7 @@ export default function Footer() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="text-gray-500 hover:text-gray-400 text-sm transition-colors"
+                  className="text-gray-400 hover:text-gray-300 text-sm transition-colors"
                 >
                   {link.label}
                 </Link>

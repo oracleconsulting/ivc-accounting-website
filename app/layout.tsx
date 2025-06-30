@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     default: 'IVC Accounting - Other Accountants File. We Fight.',
     template: '%s | IVC Accounting'
   },
-  description: 'Personal UK accounting services with a 50-client limit. Founded by James Howard, who survived 3 PE acquisitions and knows what business owners really need.',
+  description: 'Personal UK accounting services with a 50-client limit. Founded by James Howard after his PE exit, choosing values over valuations to fight for business owners.',
   keywords: [
     'UK accountant',
     'business accounting',
@@ -86,7 +86,7 @@ export default function IVCLayout({
 }) {
   return (
     <html lang="en" className="dark">
-      <body className={`${inter.className} bg-gray-900 text-white min-h-screen`}>
+      <body className={`${inter.className} bg-black text-white min-h-screen`}>
         <GoogleTagManager />
         <OrganizationSchema />
         <Navigation />
