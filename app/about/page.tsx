@@ -4,7 +4,7 @@ import Button from '@/components/shared/Button'
 import { BreadcrumbSchema } from '@/components/seo/StructuredData'
 
 export const metadata: Metadata = {
-  title: 'About IVC Accounting - James Howard\'s Story',
+  title: "About IVC Accounting - James Howard's Story",
   description: 'Learn how surviving 3 PE acquisitions led James Howard to found IVC Accounting with a 50-client limit and personal service guarantee.',
 }
 
@@ -56,22 +56,22 @@ export default function AboutPage() {
               
               <div className="space-y-4 text-gray-300">
                 <p>
-                  I'm James Howard, and I've spent over 15 years in the accounting world. 
-                  But it wasn't until I survived my third PE acquisition that I realized 
+                  I&apos;m James Howard, and I&apos;ve spent over 15 years in the accounting world. 
+                  But it wasn&apos;t until I survived my third PE acquisition that I realized 
                   something was fundamentally broken in our industry.
                 </p>
                 
                 <p>
                   Each acquisition taught me something new. The first showed me how unprepared 
                   most business owners are for the PE machine. The second revealed how little 
-                  support they get from their "trusted advisors." The third? That's when I 
+                  support they get from their &ldquo;trusted advisors.&rdquo; The third? That&apos;s when I 
                   decided enough was enough.
                 </p>
                 
                 <p>
                   I watched as firms grew bigger, promised more, and delivered less. Clients 
                   became account numbers. Partners became salespeople. And the actual work? 
-                  Pushed down to juniors who'd never run a business or faced a PE partner 
+                  Pushed down to juniors who&apos;d never run a business or faced a PE partner 
                   across the negotiating table.
                 </p>
               </div>
@@ -163,7 +163,7 @@ export default function AboutPage() {
               <div>
                 <h3 className="text-2xl font-semibold mb-2">Quality Over Quantity</h3>
                 <p className="text-gray-300">
-                  50 clients means every single one matters. You're not a number, you're a 
+                  50 clients means every single one matters. You&apos;re not a number, you&apos;re a 
                   partner in business growth.
                 </p>
               </div>
@@ -185,7 +185,7 @@ export default function AboutPage() {
               <div>
                 <h3 className="text-2xl font-semibold mb-2">Your Advocate</h3>
                 <p className="text-gray-300">
-                  When you face PE, HMRC, or any business challenge, we're in your corner 
+                  When you face PE, HMRC, or any business challenge, we&apos;re in your corner 
                   with experience that matters.
                 </p>
               </div>
@@ -201,7 +201,7 @@ export default function AboutPage() {
             Ready for an Accountant Who Actually <span className="text-orange-500">Gives a Damn</span>?
           </h2>
           <p className="text-xl text-gray-300 mb-8">
-            Let's have a real conversation about your business and how we can help protect and grow it.
+            Let&apos;s have a real conversation about your business and how we can help protect and grow it.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button variant="primary" size="large" href="/ivc/contact">

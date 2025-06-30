@@ -78,7 +78,7 @@ export default function FAQSection() {
             href="/ivc/contact"
             className="text-orange-400 font-semibold hover:text-orange-300 transition-colors"
           >
-            Let's have a real conversation →
+            Let&apos;s have a real conversation →
           </a>
         </div>
       </div>

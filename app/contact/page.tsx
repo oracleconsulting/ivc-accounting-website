@@ -1,5 +1,5 @@
 import { Metadata } from 'next'
-import { Phone, Mail, Calendar, MapPin, Clock } from 'lucide-react'
+import { Phone, Mail, Calendar, Clock } from 'lucide-react'
 import Button from '@/components/shared/Button'
 import ContactForm from '@/components/shared/ContactForm'
 import { BreadcrumbSchema } from '@/components/seo/StructuredData'
@@ -23,7 +23,7 @@ export default function ContactPage() {
       <section className="pt-32 pb-20 px-4">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-5xl md:text-6xl font-bold mb-6">
-            Let's Have a <span className="text-orange-500">Real Conversation</span>
+            Let&apos;s Have a <span className="text-orange-500">Real Conversation</span>
           </h1>
           <p className="text-xl text-gray-300">
             No gatekeepers, no runaround. Direct access to someone who actually gives a damn.
@@ -90,7 +90,7 @@ export default function ContactPage() {
                         Available to clients. Get my direct line after our first call.
                       </p>
                       <p className="text-sm text-gray-500">
-                        (Book a call first - I'll share my number then)
+                        (Book a call first - I&apos;ll share my number then)
                       </p>
                     </div>
                   </div>
@@ -142,7 +142,7 @@ export default function ContactPage() {
               <div className="text-5xl font-bold text-purple-500 mb-4">2</div>
               <h3 className="text-xl font-semibold mb-2">We Plan</h3>
               <p className="text-gray-400">
-                If we're a fit, we'll create a clear plan for how we can help you win.
+                If we&apos;re a fit, we&apos;ll create a clear plan for how we can help you win.
               </p>
             </div>
             
@@ -164,7 +164,7 @@ export default function ContactPage() {
             Remember: Only <span className="text-orange-500">50 Clients</span>
           </h2>
           <p className="text-xl text-gray-300 mb-8">
-            We're selective because we care. If you want an accountant who takes your success personally, let's talk.
+            We&apos;re selective because we care. If you want an accountant who takes your success personally, let&apos;s talk.
           </p>
           <Button variant="primary" size="large" href="https://calendly.com/james-ivc/consultation">
             Book Your No-BS Call Now

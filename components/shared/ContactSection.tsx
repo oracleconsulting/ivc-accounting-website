@@ -28,7 +28,7 @@ export default function ContactSection() {
             
             <div className="space-y-6 text-lg text-gray-300">
               <p>
-                Let's have a real conversation. No sales pitch, no jargon, just straight talk 
+                Let&apos;s have a real conversation. No sales pitch, no jargon, just straight talk 
                 about your business and how we can help protect and grow it.
               </p>
               

@@ -59,14 +59,14 @@ export default function TeamPage() {
     },
     {
       year: '2018-2021',
-      title: 'Third Time\'s the Charm',
+      title: "Third Time's the Charm",
       description: 'CFO at services business. Third PE exit. Realized I was on the wrong side.',
       highlight: 'Protected founder interests'
     },
     {
       year: '2021-Present',
       title: 'Founded IVC',
-      description: 'Built IVC to be the accountant I wish I\'d had. Fighting for owners, not filing.',
+      description: "Built IVC to be the accountant I wish I'd had. Fighting for owners, not filing.",
       highlight: '50 client limit'
     }
   ]
@@ -111,9 +111,9 @@ export default function TeamPage() {
               
               <div className="space-y-4 text-lg text-gray-300 mb-8">
                 <p>
-                  I'm not your typical accountant. I don't hide behind a desk, pushing papers and 
-                  avoiding difficult conversations. I've been in the arena - as a CFO, as a founder, 
-                  as someone who's faced the pressure of PE ownership.
+                  I&apos;m not your typical accountant. I don&apos;t hide behind a desk, pushing papers and 
+                  avoiding difficult conversations. I&apos;ve been in the arena - as a CFO, as a founder, 
+                  as someone who&apos;s faced the pressure of PE ownership.
                 </p>
                 
                 <p>
@@ -123,8 +123,8 @@ export default function TeamPage() {
                 
                 <p>
                   IVC exists because business owners deserve better than being treated like account 
-                  numbers. You deserve someone who understands the pressure, who's been through the 
-                  fire, and who'll fight for your interests like they're my own.
+                  numbers. You deserve someone who understands the pressure, who&apos;s been through the 
+                  fire, and who&apos;ll fight for your interests like they&apos;re my own.
                 </p>
                 
                 <p className="font-semibold text-white">
@@ -187,9 +187,9 @@ export default function TeamPage() {
           
           <div className="grid md:grid-cols-2 gap-8">
             <div className="bg-gray-800 rounded-lg p-6">
-              <h3 className="text-xl font-semibold mb-3">I've Been in Your Shoes</h3>
+              <h3 className="text-xl font-semibold mb-3">I&apos;ve Been in Your Shoes</h3>
               <p className="text-gray-300">
-                Cash flow crises, PE pressure, growth challenges - I've faced them all. 
+                Cash flow crises, PE pressure, growth challenges - I&apos;ve faced them all. 
                 Not in theory, but in reality. That experience is now yours.
               </p>
             </div>
@@ -197,7 +197,7 @@ export default function TeamPage() {
             <div className="bg-gray-800 rounded-lg p-6">
               <h3 className="text-xl font-semibold mb-3">I Know Their Playbook</h3>
               <p className="text-gray-300">
-                PE firms, HMRC, banks - I know how they think because I've been on their 
+                PE firms, HMRC, banks - I know how they think because I&apos;ve been on their 
                 side. Now I use that knowledge to protect you.
               </p>
             </div>
@@ -206,15 +206,15 @@ export default function TeamPage() {
               <h3 className="text-xl font-semibold mb-3">I Take It Personally</h3>
               <p className="text-gray-300">
                 With 50 clients max, your success is my success. When you win, I win. 
-                When you're under pressure, I feel it too.
+                When you&apos;re under pressure, I feel it too.
               </p>
             </div>
             
             <div className="bg-gray-800 rounded-lg p-6">
-              <h3 className="text-xl font-semibold mb-3">I'm Always Available</h3>
+              <h3 className="text-xl font-semibold mb-3">I&apos;m Always Available</h3>
               <p className="text-gray-300">
-                PE doesn't wait for office hours. Neither do I. When you need me, 
-                I'm there - evenings, weekends, whenever.
+                PE doesn&apos;t wait for office hours. Neither do I. When you need me, 
+                I&apos;m there - evenings, weekends, whenever.
               </p>
             </div>
           </div>
@@ -228,7 +228,7 @@ export default function TeamPage() {
             Want an Accountant Who <span className="text-orange-500">Gets It</span>?
           </h2>
           <p className="text-xl text-gray-300 mb-8">
-            Let's talk about your business, your challenges, and how I can help you win.
+            Let&apos;s talk about your business, your challenges, and how I can help you win.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button variant="primary" size="large" href="/ivc/contact">

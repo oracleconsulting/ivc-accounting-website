@@ -23,7 +23,7 @@ export default function ContactForm() {
     // Simulate submission
     setTimeout(() => {
       setIsSubmitting(false)
-      setSubmitMessage('Thanks for your message! I\'ll get back to you within 24 hours.')
+      setSubmitMessage("Thanks for your message! I'll get back to you within 24 hours.")
       setFormData({ name: '', email: '', company: '', message: '' })
       
       // Clear success message after 5 seconds
@@ -109,7 +109,7 @@ export default function ContactForm() {
         </Button>
         
         <p className="text-sm text-gray-500 text-center">
-          * Required fields. We'll respond within 24 hours.
+          * Required fields. We&apos;ll respond within 24 hours.
         </p>
       </form>
     </div>

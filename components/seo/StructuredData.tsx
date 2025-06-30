@@ -47,7 +47,7 @@ export const OrganizationSchema = () => {
   );
 };
 
-export const ServiceSchema = ({ service }: { service: any }) => {
+export const ServiceSchema = ({ service }: { service: { name: string; description: string; features: { title: string }[] } }) => {
   const schema = {
     "@context": "https://schema.org",
     "@type": "Service",
@@ -60,11 +60,11 @@ export const ServiceSchema = ({ service }: { service: any }) => {
     "hasOfferCatalog": {
       "@type": "OfferCatalog",
       "name": service.name,
-      "itemListElement": service.features.map((feature: string, index: number) => ({
+      "itemListElement": service.features.map((feature, index) => ({
         "@type": "Offer",
         "itemOffered": {
           "@type": "Service",
-          "name": feature
+          "name": feature.title
         },
         "position": index + 1
       }))
@@ -79,7 +79,7 @@ export const ServiceSchema = ({ service }: { service: any }) => {
   );
 };
 
-export const FAQSchema = ({ faqs }: { faqs: any[] }) => {
+export const FAQSchema = ({ faqs }: { faqs: { question: string; answer: string }[] }) => {
   const schema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",

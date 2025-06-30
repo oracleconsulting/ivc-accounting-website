@@ -19,7 +19,7 @@ export default function ServicesGrid() {
     {
       icon: Target,
       title: 'Strategic Advisory',
-      description: 'Real advice for real challenges. PE negotiations, tax planning, and business strategy from someone who\'s been there.',
+      description: "Real advice for real challenges. PE negotiations, tax planning, and business strategy from someone who's been there.",
       features: [
         'PE deal navigation',
         'Tax optimization',
@@ -58,7 +58,7 @@ export default function ServicesGrid() {
             Three Ways We <span className="text-orange-500">Fight For You</span>
           </h2>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-            From essential compliance to strategic growth, we're your complete financial partner. 
+            From essential compliance to strategic growth, we&apos;re your complete financial partner. 
             Not just an accountant - your business advocate.
           </p>
         </div>

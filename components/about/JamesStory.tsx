@@ -12,14 +12,14 @@ export default function JamesStory() {
             
             <div className="space-y-4 text-lg text-gray-300">
               <p>
-                I'm James Howard, and I've been in your shoes. After 15 years in accounting and 
+                I&apos;m James Howard, and I&apos;ve been in your shoes. After 15 years in accounting and 
                 surviving 3 PE acquisitions personally, I know the pressure you face.
               </p>
               
               <p>
-                I've seen how the "big firms" operate - treating clients like numbers, drowning 
-                them in jargon, and disappearing when things get tough. That's not accounting. 
-                That's just filing paperwork.
+                I&apos;ve seen how the &ldquo;big firms&rdquo; operate - treating clients like numbers, drowning 
+                them in jargon, and disappearing when things get tough. That&apos;s not accounting. 
+                That&apos;s just filing paperwork.
               </p>
               
               <p>
@@ -30,7 +30,7 @@ export default function JamesStory() {
               
               <div className="pt-4">
                 <blockquote className="border-l-4 border-orange-500 pl-6 italic text-xl">
-                  "Other accountants file. We fight."
+                  &ldquo;Other accountants file. We fight.&rdquo;
                 </blockquote>
               </div>
             </div>

@@ -1,11 +1,11 @@
 import { Metadata } from 'next'
-import { Shield, Target, TrendingUp, Check } from 'lucide-react'
+import { Shield, Target, TrendingUp } from 'lucide-react'
 import Button from '@/components/shared/Button'
 import { BreadcrumbSchema, ServiceSchema } from '@/components/seo/StructuredData'
 
 export const metadata: Metadata = {
   title: 'Services - Essential Compliance, Strategic Advisory & Growth',
-  description: 'IVC Accounting services: From rock-solid compliance to PE negotiations and growth strategy. Personal service from someone who\'s been in your shoes.',
+  description: "IVC Accounting services: From rock-solid compliance to PE negotiations and growth strategy. Personal service from someone who's been in your shoes.",
 }
 
 export default function ServicesPage() {
@@ -59,7 +59,7 @@ export default function ServicesPage() {
       icon: Target,
       name: 'Strategic Advisory',
       tagline: 'Been There, Done That, Got Your Back',
-      description: 'Real advice for real challenges. PE negotiations, tax planning, and business strategy from someone who\'s survived the pressure.',
+      description: "Real advice for real challenges. PE negotiations, tax planning, and business strategy from someone who's survived the pressure.",
       longDescription: `This is where experience matters. When PE firms circle, when big decisions loom, when you need more than textbook answers - you need someone who's lived it.
       
       I've been through 3 PE acquisitions. I know their playbook, their pressure tactics, their sweet spots. More importantly, I know how to protect YOUR interests.
@@ -84,7 +84,7 @@ export default function ServicesPage() {
         },
         {
           title: 'Board Advisory',
-          description: 'Strategic input from someone who\'s actually built and sold businesses.'
+          description: "Strategic input from someone who's actually built and sold businesses."
         },
         {
           title: 'Deal Structuring',
@@ -115,7 +115,7 @@ export default function ServicesPage() {
         },
         {
           title: 'KPI Dashboards',
-          description: 'Track what matters, ignore what doesn\'t. Real-time visibility.'
+          description: "Track what matters, ignore what doesn't. Real-time visibility."
         },
         {
           title: 'Funding Support',
@@ -249,7 +249,7 @@ export default function ServicesPage() {
           <div className="bg-orange-500/20 border border-orange-500/50 rounded-lg p-6 inline-block">
             <p className="text-lg font-semibold mb-2">🎯 Remember: Quality Costs More Than Quantity</p>
             <p className="text-gray-300">
-              We're not the cheapest. But we are the best value for businesses that want more than just filing.
+              We&apos;re not the cheapest. But we are the best value for businesses that want more than just filing.
             </p>
           </div>
         </div>
@@ -262,7 +262,7 @@ export default function ServicesPage() {
             Ready to Experience the <span className="text-orange-500">Difference</span>?
           </h2>
           <p className="text-xl text-gray-300 mb-8">
-            Let's discuss your needs and how we can help. No sales pitch, just straight talk about your business.
+            Let&apos;s discuss your needs and how we can help. No sales pitch, just straight talk about your business.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button variant="primary" size="large" href="/ivc/contact">
