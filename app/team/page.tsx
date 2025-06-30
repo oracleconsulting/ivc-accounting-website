@@ -231,10 +231,10 @@ export default function TeamPage() {
             Let&apos;s talk about your business, your challenges, and how I can help you win.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button variant="primary" size="large" href="/ivc/contact">
+            <Button variant="primary" size="large" href="/contact">
               Book a No-BS Call
             </Button>
-            <Button variant="secondary" size="large" href="/ivc/services">
+            <Button variant="secondary" size="large" href="/services">
               See How I Can Help
             </Button>
           </div>

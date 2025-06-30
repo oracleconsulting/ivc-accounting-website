@@ -89,7 +89,7 @@ export default function ServicesGrid() {
                 
                 <div className="mt-8">
                   <Link
-                    href="/ivc/services"
+                    href="/services"
                     className="text-white font-semibold hover:text-orange-400 transition-colors"
                   >
                     Learn more →

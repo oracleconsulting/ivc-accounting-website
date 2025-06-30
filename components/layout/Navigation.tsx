@@ -19,11 +19,11 @@ export default function Navigation() {
   }, [])
 
   const navLinks = [
-    { href: '/ivc', label: 'Home' },
-    { href: '/ivc/about', label: 'About' },
-    { href: '/ivc/services', label: 'Services' },
-    { href: '/ivc/team', label: 'Team' },
-    { href: '/ivc/contact', label: 'Contact' },
+    { href: '/', label: 'Home' },
+    { href: '/about', label: 'About' },
+    { href: '/services', label: 'Services' },
+    { href: '/team', label: 'Team' },
+    { href: '/contact', label: 'Contact' },
   ]
 
   return (
@@ -33,7 +33,7 @@ export default function Navigation() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           <div className="flex items-center">
-            <Link href="/ivc" className="flex-shrink-0">
+            <Link href="/" className="flex-shrink-0">
               <Image
                 src="/images/ivc-logo.png"
                 alt="IVC Accounting"
@@ -60,7 +60,7 @@ export default function Navigation() {
           </div>
           
           <div className="hidden md:block">
-            <Button variant="primary" href="/ivc/contact">
+            <Button variant="primary" href="/contact">
               Book a No-BS Call
             </Button>
           </div>
@@ -91,7 +91,7 @@ export default function Navigation() {
               </Link>
             ))}
             <div className="pt-4 px-3">
-              <Button variant="primary" href="/ivc/contact" fullWidth>
+              <Button variant="primary" href="/contact" fullWidth>
                 Book a No-BS Call
               </Button>
             </div>

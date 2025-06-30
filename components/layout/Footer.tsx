@@ -6,19 +6,19 @@ export default function Footer() {
   
   const footerLinks = {
     services: [
-      { label: 'Essential Compliance', href: '/ivc/services#compliance' },
-      { label: 'Strategic Advisory', href: '/ivc/services#advisory' },
-      { label: 'Business Growth', href: '/ivc/services#growth' },
+      { label: 'Essential Compliance', href: '/services#compliance' },
+      { label: 'Strategic Advisory', href: '/services#advisory' },
+      { label: 'Business Growth', href: '/services#growth' },
     ],
     company: [
-      { label: 'About', href: '/ivc/about' },
-      { label: 'Team', href: '/ivc/team' },
-      { label: 'Contact', href: '/ivc/contact' },
+      { label: 'About', href: '/about' },
+      { label: 'Team', href: '/team' },
+      { label: 'Contact', href: '/contact' },
     ],
     legal: [
-      { label: 'Privacy Policy', href: '/ivc/privacy' },
-      { label: 'Terms of Service', href: '/ivc/terms' },
-      { label: 'Cookie Policy', href: '/ivc/cookies' },
+      { label: 'Privacy Policy', href: '/privacy' },
+      { label: 'Terms of Service', href: '/terms' },
+      { label: 'Cookie Policy', href: '/cookies' },
     ]
   }
 

@@ -265,10 +265,10 @@ export default function ServicesPage() {
             Let&apos;s discuss your needs and how we can help. No sales pitch, just straight talk about your business.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button variant="primary" size="large" href="/ivc/contact">
+            <Button variant="primary" size="large" href="/contact">
               Book Your No-BS Call
             </Button>
-            <Button variant="secondary" size="large" href="/ivc/about">
+            <Button variant="secondary" size="large" href="/about">
               Learn More About Us
             </Button>
           </div>

@@ -204,10 +204,10 @@ export default function AboutPage() {
             Let&apos;s have a real conversation about your business and how we can help protect and grow it.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button variant="primary" size="large" href="/ivc/contact">
+            <Button variant="primary" size="large" href="/contact">
               Book a No-BS Call
             </Button>
-            <Button variant="secondary" size="large" href="/ivc/services">
+            <Button variant="secondary" size="large" href="/services">
               See Our Services
             </Button>
           </div>

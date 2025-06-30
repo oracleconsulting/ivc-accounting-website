@@ -75,7 +75,7 @@ export default function FAQSection() {
         <div className="mt-12 text-center">
           <p className="text-gray-300 mb-4">Have more questions?</p>
           <a
-            href="/ivc/contact"
+            href="/contact"
             className="text-orange-400 font-semibold hover:text-orange-300 transition-colors"
           >
             Let&apos;s have a real conversation →
