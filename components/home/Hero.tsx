@@ -6,7 +6,6 @@ import { useState, useEffect } from 'react';
 
 export default function Hero() {
   const [clientCount, setClientCount] = useState(42); // Default value
-  const [loading, setLoading] = useState(true);
   
   useEffect(() => {
     // Fetch client count from API
@@ -21,8 +20,6 @@ export default function Hero() {
       } catch (error) {
         console.error('Failed to fetch client count:', error);
         // Keep default value if fetch fails
-      } finally {
-        setLoading(false);
       }
     };
     
