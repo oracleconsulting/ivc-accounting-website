@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Calculator, Shield, AlertTriangle } from 'lucide-react'
+import { Calculator, Shield, AlertTriangle, Clock, TrendingUp, FileText } from 'lucide-react'
 
 // Tax Savings Calculator Component
 function TaxSavingsCalculator() {
@@ -293,6 +293,37 @@ function FightAssessment() {
   )
 }
 
+// Coming Soon Component
+function ComingSoon({ title, description }: { title: string; description: string }) {
+  return (
+    <div className="bg-white border-2 border-[#1a2b4a] p-8 relative overflow-hidden">
+      <div className="absolute inset-0 bg-[#1a2b4a]/5" />
+      <div className="relative">
+        <h3 className="text-2xl font-black uppercase text-[#1a2b4a] mb-6">
+          {title}
+        </h3>
+        <p className="text-[#1a2b4a]/80 mb-8">{description}</p>
+        
+        <div className="bg-[#ff6b35] p-8 text-center">
+          <Clock className="w-16 h-16 text-[#f5f1e8] mx-auto mb-4" />
+          <p className="text-2xl font-black uppercase text-[#f5f1e8] mb-2">
+            COMING SOON
+          </p>
+          <p className="text-[#f5f1e8]/90">
+            We&apos;re building something special to help you fight harder.
+          </p>
+        </div>
+        
+        <div className="mt-8 text-center">
+          <p className="text-sm text-[#1a2b4a]/60">
+            Want this tool faster? <a href="/contact" className="text-[#ff6b35] font-bold underline">Let us know</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function ToolsPage() {
   const [selectedTool, setSelectedTool] = useState('tax-savings')
 
@@ -302,21 +333,40 @@ export default function ToolsPage() {
       name: 'TAX SAVINGS ESTIMATOR',
       description: 'Find money they missed',
       icon: Calculator,
-      component: <TaxSavingsCalculator />
+      component: <TaxSavingsCalculator />,
+      isActive: true
     },
     {
       id: 'pe-translator',
       name: 'PE TRANSLATOR',
       description: 'Decode the corporate BS',
       icon: Shield,
-      component: <PETranslator />
+      component: <PETranslator />,
+      isActive: true
     },
     {
       id: 'fight-assessment',
       name: 'FIGHT ASSESSMENT',
       description: 'Is your accountant fighting for you?',
       icon: AlertTriangle,
-      component: <FightAssessment />
+      component: <FightAssessment />,
+      isActive: true
+    },
+    {
+      id: 'cashflow-predictor',
+      name: 'CASHFLOW PREDICTOR',
+      description: 'See problems before they happen',
+      icon: TrendingUp,
+      component: <ComingSoon title="CASHFLOW PREDICTOR" description="AI-powered cashflow forecasting that spots issues 90 days before they hit. Know when to attack and when to defend." />,
+      isActive: false
+    },
+    {
+      id: 'hmrc-defender',
+      name: 'HMRC DEFENDER',
+      description: 'Your investigation shield',
+      icon: FileText,
+      component: <ComingSoon title="HMRC DEFENDER" description="Instant HMRC investigation risk assessment. Know your exposure and how to protect yourself before they come knocking." />,
+      isActive: false
     }
   ]
 
@@ -334,13 +384,18 @@ export default function ToolsPage() {
               <button
                 key={tool.id}
                 onClick={() => setSelectedTool(tool.id)}
-                className={`px-6 py-3 font-bold uppercase transition-all ${
+                className={`px-6 py-3 font-bold uppercase transition-all relative ${
                   selectedTool === tool.id
                     ? 'bg-[#ff6b35] text-[#f5f1e8]'
                     : 'bg-transparent border-2 border-[#f5f1e8] text-[#f5f1e8] hover:bg-[#f5f1e8] hover:text-[#1a2b4a]'
                 }`}
               >
                 {tool.name}
+                {!tool.isActive && (
+                  <span className="absolute -top-2 -right-2 bg-[#4a90e2] text-[#f5f1e8] text-xs px-2 py-1 rounded-full">
+                    SOON
+                  </span>
+                )}
               </button>
             ))}
           </div>
