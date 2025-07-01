@@ -123,7 +123,7 @@ function PETranslator() {
       const data = await response.json()
       setTranslation(data.translation)
       setBsLevel(data.bs_level)
-    } catch (err) {
+    } catch {
       setError('Translation failed - even our BS detector is confused by this one!')
       // Fallback to simple translation
       setTranslation("Our AI is currently out fighting corporate BS elsewhere. Try again in a moment!")
