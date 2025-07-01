@@ -1,13 +1,32 @@
 // components/layout/Navigation.tsx
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Menu, X } from 'lucide-react'
 
 export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false)
-  const clientCount = 42 // This would come from your database
+  const [clientCount, setClientCount] = useState(42) // Default value
+  
+  useEffect(() => {
+    // Fetch client count from API
+    const fetchClientCount = async () => {
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://oracle-api-server-production.up.railway.app';
+        const response = await fetch(`${apiUrl}/api/stats`);
+        if (response.ok) {
+          const data = await response.json();
+          setClientCount(data.current_clients);
+        }
+      } catch (error) {
+        console.error('Failed to fetch client count:', error);
+        // Keep default value if fetch fails
+      }
+    };
+    
+    fetchClientCount();
+  }, []);
 
   const navItems = [
     { href: '/', label: 'HOME' },

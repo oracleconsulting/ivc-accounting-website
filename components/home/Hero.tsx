@@ -2,9 +2,32 @@
 'use client'
 
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
 
 export default function Hero() {
-  const clientCount = 42; // This would come from your database
+  const [clientCount, setClientCount] = useState(42); // Default value
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    // Fetch client count from API
+    const fetchClientCount = async () => {
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://oracle-api-server-production.up.railway.app';
+        const response = await fetch(`${apiUrl}/api/stats`);
+        if (response.ok) {
+          const data = await response.json();
+          setClientCount(data.current_clients);
+        }
+      } catch (error) {
+        console.error('Failed to fetch client count:', error);
+        // Keep default value if fetch fails
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchClientCount();
+  }, []);
   
   return (
     <section className="relative min-h-[80vh] bg-[#1a2b4a] flex items-center justify-center overflow-hidden pt-20">
