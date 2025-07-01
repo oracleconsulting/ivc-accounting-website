@@ -96,6 +96,7 @@ export default function PricingPage() {
         "Audit defense included",
         "Unlimited email access",
         "Document vault access",
+        "OraleAI Roadmap Tracker (worth £150 a month)"
         "Tax savings tracker",
         "Annual accounts & tax returns",
         "VAT returns (if applicable)",
@@ -119,6 +120,7 @@ export default function PricingPage() {
         "Cash flow forecasting",
         "KPI dashboard access",
         "Tax planning reviews",
+        "OracleaI Virtual Board room (Worth £250 a month)"
         "Investment readiness support",
         "Benchmarking reports",
         "Priority response (4 hours)",
@@ -140,7 +142,7 @@ export default function PricingPage() {
         "Everything in Strategic Warrior",
         "Weekly check-ins with James",
         "Exit planning support",
-        "Board meeting attendance",
+        "Board Structure Implementation & meeting attendance",
         "Investor pitch deck reviews",
         "M&A transaction support",
         "Custom financial modeling",

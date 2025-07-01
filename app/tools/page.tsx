@@ -38,7 +38,7 @@ function TaxSavingsCalculator() {
             type="number"
             value={revenue}
             onChange={(e) => setRevenue(e.target.value)}
-            className="w-full px-4 py-2 border-2 border-[#1a2b4a] focus:border-[#ff6b35] outline-none"
+            className="w-full px-4 py-2 border-2 border-[#1a2b4a] focus:border-[#ff6b35] outline-none text-[#1a2b4a] placeholder-[#1a2b4a]/50"
             placeholder="250000"
           />
         </div>
@@ -51,7 +51,7 @@ function TaxSavingsCalculator() {
             type="number"
             value={expenses}
             onChange={(e) => setExpenses(e.target.value)}
-            className="w-full px-4 py-2 border-2 border-[#1a2b4a] focus:border-[#ff6b35] outline-none"
+            className="w-full px-4 py-2 border-2 border-[#1a2b4a] focus:border-[#ff6b35] outline-none text-[#1a2b4a] placeholder-[#1a2b4a]/50"
             placeholder="150000"
           />
         </div>
@@ -129,7 +129,7 @@ function PETranslator() {
         <textarea
           value={peText}
           onChange={(e) => setPeText(e.target.value)}
-          className="w-full px-4 py-2 border-2 border-[#1a2b4a] focus:border-[#ff6b35] outline-none h-32"
+          className="w-full px-4 py-2 border-2 border-[#1a2b4a] focus:border-[#ff6b35] outline-none h-32 text-[#1a2b4a] placeholder-[#1a2b4a]/50"
           placeholder="We're excited about the synergies from this strategic acquisition..."
         />
       </div>
