@@ -1,5 +1,5 @@
 import { Metadata } from 'next'
-import { Shield, AlertCircle, Calculator, TrendingUp } from 'lucide-react'
+import { Shield, AlertCircle, Calculator, TrendingUp, Clock } from 'lucide-react'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
@@ -13,6 +13,7 @@ interface Resource {
   potentialSavings?: string
   description: string
   link: string
+  isComingSoon?: boolean
 }
 
 interface Category {
@@ -39,10 +40,13 @@ function CategorySection({ title, description, icon: Icon, resources }: Category
       
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         {resources.map((resource, idx) => (
-          <Link href={resource.link} key={idx}>
-            <div className="relative group h-full">
-              <div className="absolute -top-2 -left-2 w-full h-full border-2 border-[#4a90e2] group-hover:translate-x-1 group-hover:translate-y-1 transition-transform" />
-              <div className="relative bg-white border-2 border-[#1a2b4a] p-6 h-full hover:bg-[#f5f1e8] transition-colors">
+          resource.isComingSoon ? (
+            <div key={idx} className="relative group h-full cursor-not-allowed">
+              <div className="absolute -top-2 -left-2 w-full h-full border-2 border-[#4a90e2] opacity-50" />
+              <div className="relative bg-white border-2 border-[#1a2b4a] p-6 h-full opacity-90">
+                <div className="absolute -top-3 -right-3 bg-[#ff6b35] text-[#f5f1e8] text-xs font-bold px-3 py-1 uppercase">
+                  Coming Soon
+                </div>
                 <h4 className="font-black uppercase text-[#1a2b4a] mb-2">
                   {resource.title}
                 </h4>
@@ -55,9 +59,35 @@ function CategorySection({ title, description, icon: Icon, resources }: Category
                     <span className="font-bold text-[#ff6b35]">{resource.potentialSavings}</span>
                   )}
                 </div>
+                <div className="mt-4 pt-4 border-t border-[#1a2b4a]/20">
+                  <div className="flex items-center gap-2 text-[#ff6b35]">
+                    <Clock className="w-4 h-4" />
+                    <span className="text-xs font-bold uppercase">In Development</span>
+                  </div>
+                </div>
               </div>
             </div>
-          </Link>
+          ) : (
+            <Link href={resource.link} key={idx}>
+              <div className="relative group h-full">
+                <div className="absolute -top-2 -left-2 w-full h-full border-2 border-[#4a90e2] group-hover:translate-x-1 group-hover:translate-y-1 transition-transform" />
+                <div className="relative bg-white border-2 border-[#1a2b4a] p-6 h-full hover:bg-[#f5f1e8] transition-colors">
+                  <h4 className="font-black uppercase text-[#1a2b4a] mb-2">
+                    {resource.title}
+                  </h4>
+                  <p className="text-sm text-[#1a2b4a]/70 mb-3">
+                    {resource.description}
+                  </p>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-[#4a90e2]">{resource.readTime} read</span>
+                    {resource.potentialSavings && (
+                      <span className="font-bold text-[#ff6b35]">{resource.potentialSavings}</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </Link>
+          )
         ))}
       </div>
     </div>
@@ -76,21 +106,24 @@ export default function ResourcesPage() {
           readTime: "8 min",
           potentialSavings: "£5,000+",
           description: "What to do when HMRC shows up unannounced",
-          link: "/resources/hmrc-dawn-raid"
+          link: "/resources/hmrc-dawn-raid",
+          isComingSoon: true
         },
         {
           title: "VAT Inspection Survival Kit",
           readTime: "12 min",
           potentialSavings: "£3,000+",
           description: "Your rights, their limits, and how to protect yourself",
-          link: "/resources/vat-inspection"
+          link: "/resources/vat-inspection",
+          isComingSoon: true
         },
         {
           title: "IR35 Reality Check",
           readTime: "15 min",
           potentialSavings: "£12,000+",
           description: "Cut through the BS and understand your real risk",
-          link: "/resources/ir35-guide"
+          link: "/resources/ir35-guide",
+          isComingSoon: true
         }
       ]
     },
@@ -104,21 +137,24 @@ export default function ResourcesPage() {
           readTime: "10 min",
           potentialSavings: "£8,000+",
           description: "37 legitimate deductions most accountants miss",
-          link: "/resources/tax-savings-checklist"
+          link: "/resources/tax-savings-checklist",
+          isComingSoon: true
         },
         {
           title: "Dividend vs Salary Calculator",
           readTime: "5 min",
           potentialSavings: "£4,000+",
           description: "Find your optimal pay structure in 2 minutes",
-          link: "/tools#dividend-calculator"
+          link: "/tools#dividend-calculator",
+          isComingSoon: true
         },
         {
           title: "R&D Tax Relief Demystified",
           readTime: "20 min",
           potentialSavings: "£25,000+",
           description: "You probably qualify and don't know it",
-          link: "/resources/rd-tax-relief"
+          link: "/resources/rd-tax-relief",
+          isComingSoon: true
         }
       ]
     },
@@ -131,19 +167,22 @@ export default function ResourcesPage() {
           title: "Cash Flow Crisis Toolkit",
           readTime: "15 min",
           description: "Turn around your cash flow in 30 days",
-          link: "/resources/cash-flow-toolkit"
+          link: "/resources/cash-flow-toolkit",
+          isComingSoon: true
         },
         {
           title: "The 4-Hour Finance Week",
           readTime: "18 min",
           description: "Automate 80% of your financial admin",
-          link: "/resources/4-hour-finance"
+          link: "/resources/4-hour-finance",
+          isComingSoon: true
         },
         {
           title: "Pricing Psychology That Works",
           readTime: "12 min",
           description: "How to raise prices without losing clients",
-          link: "/resources/pricing-psychology"
+          link: "/resources/pricing-psychology",
+          isComingSoon: true
         }
       ]
     },
@@ -156,19 +195,22 @@ export default function ResourcesPage() {
           title: "PE Term Sheet Decoder",
           readTime: "25 min",
           description: "What they're really saying (and hiding)",
-          link: "/resources/pe-term-sheet"
+          link: "/resources/pe-term-sheet",
+          isComingSoon: true
         },
         {
           title: "Due Diligence Prep Guide",
           readTime: "20 min",
           description: "Be ready before they knock",
-          link: "/resources/due-diligence"
+          link: "/resources/due-diligence",
+          isComingSoon: true
         },
         {
           title: "Exit Strategy Blueprint",
           readTime: "30 min",
           description: "Maximize value, minimize regret",
-          link: "/resources/exit-strategy"
+          link: "/resources/exit-strategy",
+          isComingSoon: true
         }
       ]
     }
@@ -201,6 +243,23 @@ export default function ResourcesPage() {
       {/* Resources Grid */}
       <section className="py-24 bg-[#f5f1e8]">
         <div className="container mx-auto px-4">
+          {/* Coming Soon Notice */}
+          <div className="max-w-4xl mx-auto mb-12">
+            <div className="bg-[#ff6b35] text-[#f5f1e8] p-6 border-2 border-[#1a2b4a] relative">
+              <div className="absolute -top-1 -left-1 w-full h-full border-2 border-[#1a2b4a]" />
+              <div className="relative flex items-center gap-4">
+                <Clock className="w-8 h-8 flex-shrink-0" />
+                <div>
+                  <h3 className="font-black uppercase text-lg mb-1">Resources Coming Soon</h3>
+                  <p className="text-[#f5f1e8]/90">
+                    We&apos;re creating battle-tested guides based on real client challenges. 
+                    Each resource is being carefully crafted to deliver actual value, not generic advice.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {categories.map((category) => (
             <CategorySection key={category.title} {...category} />
           ))}
@@ -211,15 +270,15 @@ export default function ResourcesPage() {
               <div className="absolute -top-2 -left-2 w-full h-full border-2 border-[#ff6b35] group-hover:translate-x-1 group-hover:translate-y-1 transition-transform" />
               <div className="relative bg-[#1a2b4a] border-2 border-[#ff6b35] p-8">
                 <h3 className="text-2xl font-black uppercase text-[#f5f1e8] mb-4">
-                  WANT SOMETHING SPECIFIC?
+                  RESOURCES IN DEVELOPMENT
                 </h3>
                 <p className="text-[#f5f1e8]/80 mb-6 max-w-xl">
-                  Tell us what you&apos;re struggling with. If it affects multiple clients, 
-                  we&apos;ll create a resource for it. That&apos;s how we roll.
+                  We&apos;re building these resources based on real client needs. 
+                  Want early access or have a specific request? Let us know.
                 </p>
                 <Link href="/contact">
                   <button className="bg-[#ff6b35] hover:bg-[#e55a2b] text-[#f5f1e8] font-black uppercase px-6 py-3 transition-all hover:translate-x-1">
-                    REQUEST A GUIDE →
+                    REQUEST EARLY ACCESS →
                   </button>
                 </Link>
               </div>
