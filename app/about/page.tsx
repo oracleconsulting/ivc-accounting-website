@@ -54,44 +54,83 @@ export default function AboutPage() {
       </section>
 
       {/* James's Story Section */}
-      <section className="py-24 bg-[#f5f1e8] relative overflow-hidden">
-        <div className="absolute inset-0 geometric-pattern" />
-        
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <div className="space-y-8">
-              <h2 className="text-4xl md:text-5xl font-black uppercase text-[#1a2b4a]">
-                THE JOURNEY THAT LED TO
-                <span className="block text-[#ff6b35]">IVC</span>
-              </h2>
+      <section className="py-24 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-4xl font-black uppercase text-[#1a2b4a] mb-8">
+              WHY I LEFT THE <span className="text-[#ff6b35]">PE MACHINE</span>
+            </h2>
+            
+            <div className="space-y-6 text-lg text-[#1a2b4a]">
+              <p className="font-bold text-xl">
+                The breaking point came during a Monday morning meeting.
+              </p>
               
-              <div className="space-y-6 text-lg text-[#1a2b4a] leading-relaxed">
-                <p>
-                  I&apos;m James Howard. For over 15 years, I&apos;ve worked in the trenches of UK accounting, 
-                  from small practices to being part of a firm that went through a PE acquisition.
-                </p>
-                
-                <div className="bg-[#ff6b35] p-8">
-                  <h3 className="text-2xl font-black uppercase text-[#f5f1e8] mb-4">THE PE EXIT THAT CHANGED EVERYTHING</h3>
-                  <p className="text-[#f5f1e8]">
-                    When private equity acquired the firm I was part of, I had a front-row seat to what happens 
-                    when profit becomes the only metric that matters. Client relationships became &ldquo;revenue streams.&rdquo; 
-                    Personal service became &ldquo;inefficiency.&rdquo; Quality became &ldquo;good enough.&rdquo;
-                  </p>
-                  <p className="text-[#f5f1e8] mt-4">
-                    I made the choice to exit. Not because it was easy, but because it was right. 
-                    I knew our clients deserved better than becoming line items in a portfolio.
+              <p>
+                We were discussing how to "optimize client touchpoints" - corporate speak 
+                for "talk to clients less." The PE partners wanted to increase each manager&apos;s 
+                client load from 80 to 120. Quality didn&apos;t matter. Relationships didn&apos;t matter. 
+                Just the metrics.
+              </p>
+              
+              <p>
+                I watched good accountants become metric machines. Clients became account 
+                numbers. Every decision filtered through quarterly targets set by people 
+                who&apos;d never met a single client.
+              </p>
+              
+              <div className="relative group">
+                <div className="absolute -top-2 -left-2 w-full h-full border-4 border-[#ff6b35] group-hover:translate-x-1 group-hover:translate-y-1 transition-transform" />
+                <div className="relative bg-[#f5f1e8] border-4 border-[#ff6b35] p-6 my-8">
+                  <p className="font-bold text-[#1a2b4a] text-xl">
+                    "That Tuesday, I handed in my notice. That Wednesday, I registered IVC. 
+                    That Thursday, I called my first client."
                   </p>
                 </div>
+              </div>
+              
+              <p>
+                Now I cap my practice at 50 clients. Not because I have to - because I 
+                choose to. Because knowing your business, your challenges, and yes, even 
+                your kids&apos; names, matters.
+              </p>
+              
+              <div className="grid md:grid-cols-2 gap-6 mt-12">
+                <div className="bg-[#1a2b4a] p-6">
+                  <h3 className="text-xl font-black uppercase text-[#ff6b35] mb-4">
+                    THE PE WAY
+                  </h3>
+                  <ul className="space-y-3 text-[#f5f1e8]">
+                    <li>• 120+ clients per manager</li>
+                    <li>• 10-minute allocated calls</li>
+                    <li>• Junior staff handling everything</li>
+                    <li>• Quarterly price increases</li>
+                    <li>• Zero personal connection</li>
+                  </ul>
+                </div>
                 
-                <p>
-                  That experience taught me something vital: The moment you lose sight of the people 
-                  behind the numbers, you&apos;ve lost what makes this work meaningful. It&apos;s why I founded 
-                  IVC with a different philosophy.
-                </p>
+                <div className="bg-[#ff6b35] p-6">
+                  <h3 className="text-xl font-black uppercase text-[#1a2b4a] mb-4">
+                    THE IVC WAY
+                  </h3>
+                  <ul className="space-y-3 text-[#f5f1e8]">
+                    <li>• 50 clients maximum</li>
+                    <li>• Unlimited access to James</li>
+                    <li>• Senior-level service only</li>
+                    <li>• 2-year price locks</li>
+                    <li>• We know your business</li>
+                  </ul>
+                </div>
               </div>
             </div>
-            
+          </div>
+        </div>
+      </section>
+
+      {/* Image Section */}
+      <section className="py-24 bg-[#f5f1e8]">
+        <div className="container mx-auto px-4">
+          <div className="grid lg:grid-cols-2 gap-16 items-center max-w-6xl mx-auto">
             <div className="relative">
               <div className="absolute -top-4 -left-4 w-full h-full border-2 border-[#ff6b35]" />
               <div className="relative bg-white p-2">
@@ -109,6 +148,30 @@ export default function AboutPage() {
                     &ldquo;I chose to build something where relationships matter more than revenue.&rdquo;
                   </p>
                 </div>
+              </div>
+            </div>
+            
+            <div className="space-y-8">
+              <h3 className="text-3xl font-black uppercase text-[#1a2b4a]">
+                15+ YEARS OF <span className="text-[#ff6b35]">BATTLE EXPERIENCE</span>
+              </h3>
+              
+              <div className="space-y-6 text-lg text-[#1a2b4a]">
+                <p>
+                  I&apos;m James Howard. I&apos;ve spent over 15 years in UK accounting, 
+                  from small practices to PE-backed firms. I&apos;ve seen what works, 
+                  what doesn&apos;t, and what actively harms business owners.
+                </p>
+                
+                <p>
+                  Through it all, one thing became clear: the best results come from 
+                  genuine relationships, not algorithms or efficiency metrics.
+                </p>
+                
+                <p>
+                  That&apos;s why IVC exists. To prove that accounting can be personal, 
+                  proactive, and powerful - without the corporate BS.
+                </p>
               </div>
             </div>
           </div>

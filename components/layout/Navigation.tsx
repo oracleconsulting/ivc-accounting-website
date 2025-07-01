@@ -1,114 +1,101 @@
 // components/layout/Navigation.tsx
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import { Menu, X } from 'lucide-react'
-import Button from '@/components/shared/Button'
 
 export default function Navigation() {
-  const [isScrolled, setIsScrolled] = useState(false)
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
+  const clientCount = 42 // This would come from your database
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20)
-    }
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
-
-  const navLinks = [
+  const navItems = [
     { href: '/', label: 'HOME' },
     { href: '/about', label: 'ABOUT' },
     { href: '/services', label: 'SERVICES' },
-    { href: '/team', label: 'TEAM' },
-    { href: '/contact', label: 'CONTACT' },
+    { href: '/pricing', label: 'PRICING' },
+    { href: '/resources', label: 'RESOURCES' },
+    { href: '/tools', label: 'TOOLS' },
+    { href: '/contact', label: 'CONTACT' }
   ]
 
   return (
-    <nav className={`fixed w-full z-50 nav-transition ${
-      isScrolled ? 'bg-[#1a2b4a] shadow-corporate' : 'bg-transparent'
-    }`}>
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+    <nav className="fixed w-full bg-[#1a2b4a] border-b-2 border-[#ff6b35] z-50">
+      <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
-          <div className="flex-shrink-0">
-            <Link href="/" className="flex items-center">
-              <div className="bg-[#ff6b35] px-4 py-2">
-                <span className="text-2xl font-black text-[#f5f1e8]">IVC</span>
-              </div>
-              <span className="ml-3 text-xl font-bold text-[#f5f1e8] hidden sm:block">ACCOUNTING</span>
-            </Link>
-          </div>
+          <Link href="/" className="flex items-center">
+            <span className="text-2xl font-black uppercase text-[#f5f1e8]">
+              IVC <span className="text-[#ff6b35]">ACCOUNTING</span>
+            </span>
+          </Link>
           
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center justify-center flex-1">
-            <div className="flex items-center space-x-8">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="text-[#f5f1e8] hover:text-[#ff6b35] transition-colors font-bold text-sm tracking-wider"
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </div>
-          </div>
-          
-          {/* Desktop CTA */}
-          <div className="hidden md:block flex-shrink-0">
-            <Button 
-              variant="primary" 
-              href="/contact" 
-              className="bg-[#ff6b35] hover:bg-[#e55a2b] text-[#f5f1e8] px-6 py-3 font-bold uppercase tracking-wide transition-all duration-300 btn-corporate"
-            >
-              BOOK A NO-BS CALL
-            </Button>
-          </div>
-          
-          {/* Mobile menu button */}
-          <div className="md:hidden">
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="p-2 text-[#f5f1e8] hover:text-[#ff6b35] transition-colors"
-              aria-label="Toggle menu"
-            >
-              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
-          </div>
-        </div>
-      </div>
-      
-      {/* Mobile menu */}
-      {isMobileMenuOpen && (
-        <div className="md:hidden bg-[#1a2b4a] border-t border-[#ff6b35]/20">
-          <div className="px-4 py-4 space-y-3">
-            {navLinks.map((link) => (
+          <div className="hidden lg:flex items-center gap-8">
+            {navItems.map((item) => (
               <Link
-                key={link.href}
-                href={link.href}
-                className="block px-4 py-3 text-[#f5f1e8] hover:text-[#ff6b35] hover:bg-[#f5f1e8]/5 font-bold uppercase tracking-wide transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
+                key={item.href}
+                href={item.href}
+                className="font-bold uppercase text-[#f5f1e8] hover:text-[#ff6b35] transition-colors"
               >
-                {link.label}
+                {item.label}
               </Link>
             ))}
-            <div className="pt-4">
-              <Button 
-                variant="primary" 
-                href="/contact" 
-                fullWidth
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="bg-[#ff6b35] hover:bg-[#e55a2b] text-[#f5f1e8] font-bold uppercase tracking-wide"
-              >
-                BOOK A NO-BS CALL
-              </Button>
+            
+            {/* Client Counter */}
+            <div className="bg-[#ff6b35] text-[#f5f1e8] px-3 py-1 font-bold">
+              {clientCount}/50 CLIENTS
             </div>
+            
+            {/* IVC Outreach Link */}
+            <a
+              href="http://localhost:3001/admin"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-[#4a90e2] hover:bg-[#3a7bc8] text-white px-4 py-2 font-bold uppercase transition-colors"
+            >
+              CLIENT LOGIN
+            </a>
           </div>
+          
+          {/* Mobile Menu Button */}
+          <button
+            className="lg:hidden text-[#f5f1e8]"
+            onClick={() => setIsOpen(!isOpen)}
+          >
+            {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
         </div>
-      )}
+        
+        {/* Mobile Navigation */}
+        {isOpen && (
+          <div className="lg:hidden bg-[#1a2b4a] border-t border-[#ff6b35]/20 py-4">
+            {navItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="block py-3 px-4 font-bold uppercase text-[#f5f1e8] hover:text-[#ff6b35] hover:bg-[#ff6b35]/10 transition-colors"
+                onClick={() => setIsOpen(false)}
+              >
+                {item.label}
+              </Link>
+            ))}
+            
+            <div className="mt-4 px-4 py-3 bg-[#ff6b35]/20 text-[#f5f1e8] font-bold">
+              {clientCount}/50 CLIENTS
+            </div>
+            
+            <a
+              href="http://localhost:3001/admin"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block mt-4 mx-4 text-center bg-[#4a90e2] hover:bg-[#3a7bc8] text-white px-4 py-2 font-bold uppercase transition-colors"
+            >
+              CLIENT LOGIN
+            </a>
+          </div>
+        )}
+      </div>
     </nav>
   )
 }
