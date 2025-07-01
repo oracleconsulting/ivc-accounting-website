@@ -13,8 +13,8 @@ export default function Navigation() {
     // Fetch client count from API
     const fetchClientCount = async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://oracle-api-server-production.up.railway.app';
-        const response = await fetch(`${apiUrl}/api/stats`);
+        // Fetch from local API route, not external API
+        const response = await fetch('/api/stats');
         if (response.ok) {
           const data = await response.json();
           setClientCount(data.current_clients);
