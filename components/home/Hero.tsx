@@ -72,7 +72,7 @@ export default function Hero() {
         
         <p className="text-xl md:text-2xl text-[#f5f1e8]/80 mb-8 leading-relaxed">
           50 clients. No investors. Just James Howard,<br />
-          your personal CPA who actually gives a damn.
+          your personal FCCA who actually gives a damn.
         </p>
         
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
