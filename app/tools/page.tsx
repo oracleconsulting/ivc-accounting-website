@@ -90,52 +90,66 @@ function TaxSavingsCalculator() {
 function PETranslator() {
   const [peText, setPeText] = useState('')
   const [translation, setTranslation] = useState('')
+  const [bsLevel, setBsLevel] = useState<string>('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
   
-  const translations: Record<string, string> = {
-    "synergies": "we're firing people",
-    "right-sizing": "we're firing people",
-    "optimization": "we're cutting costs and probably firing people",
-    "value creation": "squeeze more profit at any cost",
-    "strategic review": "looking for what to cut",
-    "efficiency gains": "do more with less people",
-    "scalable model": "replace humans with software",
-    "exit strategy": "cash out before it implodes",
-    "portfolio company": "our latest victim",
-    "add-on acquisition": "buy competitors to jack up prices",
-    "multiple arbitrage": "financial engineering BS",
-    "platform investment": "roll-up scheme",
-    "operational excellence": "work harder for less money",
-    "transformational": "we're changing everything and it'll be painful",
-    "best practices": "what everyone else is doing",
-    "low-hanging fruit": "the easy stuff we should have done already",
-    "bandwidth": "time (but we sound smarter)",
-    "circle back": "we'll forget about this",
-    "leverage": "use debt or exploit",
-    "streamline": "cut stuff out",
-    "blue sky thinking": "impractical ideas",
-    "paradigm shift": "big change (usually bad for employees)",
-    "move the needle": "make a tiny improvement",
-    "core competencies": "the few things we're not terrible at",
-    "disruptive": "we'll break things and hope it works out",
-    "thought leader": "someone who talks a lot",
-    "ecosystem": "other companies we work with",
-    "actionable insights": "obvious things we'll charge you for",
-    "deep dive": "actually look at something properly",
-    "organic growth": "growth without buying companies",
-    "runway": "how long until we run out of money",
-    "pivot": "our first idea failed",
-    "scale": "get bigger, usually worse",
-    "unlock value": "sell stuff or fire people"
+  const translatePE = async () => {
+    if (!peText.trim()) {
+      setError('Come on, paste some corporate BS in there!')
+      return
+    }
+    
+    setLoading(true)
+    setError('')
+    setTranslation('')
+    setBsLevel('')
+    
+    try {
+      // Use environment-based URL - falls back to production if not set
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://oracle-api-server-production.up.railway.app'
+      const response = await fetch(`${apiUrl}/api/translate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text: peText })
+      })
+      
+      if (!response.ok) {
+        throw new Error('Translation service is taking a coffee break')
+      }
+      
+      const data = await response.json()
+      setTranslation(data.translation)
+      setBsLevel(data.bs_level)
+    } catch (err) {
+      setError('Translation failed - even our BS detector is confused by this one!')
+      // Fallback to simple translation
+      setTranslation("Our AI is currently out fighting corporate BS elsewhere. Try again in a moment!")
+    } finally {
+      setLoading(false)
+    }
   }
   
-  const translatePE = () => {
-    let result = peText.toLowerCase()
-    
-    Object.entries(translations).forEach(([pe, real]) => {
-      result = result.replace(new RegExp(pe, 'g'), `**${real}**`)
-    })
-    
-    setTranslation(result || "No corporate BS detected. They might actually be honest!")
+  const getBsLevelColor = () => {
+    switch(bsLevel) {
+      case 'mild': return 'bg-yellow-500'
+      case 'moderate': return 'bg-orange-500'
+      case 'severe': return 'bg-red-500'
+      case 'terminal': return 'bg-purple-600'
+      default: return 'bg-gray-500'
+    }
+  }
+  
+  const getBsLevelText = () => {
+    switch(bsLevel) {
+      case 'mild': return 'MILD BS - Just a little corporate fluff'
+      case 'moderate': return 'MODERATE BS - Getting concerning'
+      case 'severe': return 'SEVERE BS - Red flags everywhere'
+      case 'terminal': return 'TERMINAL BS - Run for the hills!'
+      default: return ''
+    }
   }
   
   return (
@@ -158,17 +172,34 @@ function PETranslator() {
       
       <button
         onClick={translatePE}
-        className="w-full bg-[#4a90e2] hover:bg-[#3a7bc8] text-white font-black uppercase py-3 mb-6 transition-all hover:translate-x-1"
+        disabled={loading}
+        className={`w-full font-black uppercase py-3 mb-6 transition-all hover:translate-x-1 ${
+          loading 
+            ? 'bg-gray-400 cursor-wait text-white' 
+            : 'bg-[#4a90e2] hover:bg-[#3a7bc8] text-white'
+        }`}
       >
-        TRANSLATE TO REALITY →
+        {loading ? 'DECODING BS...' : 'TRANSLATE TO REALITY →'}
       </button>
       
+      {error && (
+        <div className="bg-red-100 border-2 border-red-500 text-red-700 p-4 mb-4">
+          <p className="font-bold">{error}</p>
+        </div>
+      )}
+      
       {translation && (
-        <div className="bg-[#1a2b4a] text-[#f5f1e8] p-6">
-          <p className="text-sm font-bold uppercase mb-2 text-[#ff6b35]">What They Really Mean:</p>
-          <p className="whitespace-pre-wrap" dangerouslySetInnerHTML={{ 
-            __html: translation.replace(/\*\*(.*?)\*\*/g, '<span class="text-[#ff6b35] font-bold">$1</span>')
-          }} />
+        <div className="space-y-4">
+          {bsLevel && (
+            <div className={`${getBsLevelColor()} text-white p-3 text-center`}>
+              <p className="font-black uppercase">{getBsLevelText()}</p>
+            </div>
+          )}
+          
+          <div className="bg-[#1a2b4a] text-[#f5f1e8] p-6">
+            <p className="text-sm font-bold uppercase mb-2 text-[#ff6b35]">What They Really Mean:</p>
+            <p className="text-lg">{translation}</p>
+          </div>
         </div>
       )}
     </div>
