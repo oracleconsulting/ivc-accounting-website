@@ -67,8 +67,8 @@ export default function AboutPage() {
               </p>
               
               <p>
-                We were discussing how to "optimize client touchpoints" - corporate speak 
-                for "talk to clients less." The PE partners wanted to increase each manager&apos;s 
+                We were discussing how to &ldquo;optimize client touchpoints&rdquo; - corporate speak 
+                for &ldquo;talk to clients less.&rdquo; The PE partners wanted to increase each manager&apos;s 
                 client load from 80 to 120. Quality didn&apos;t matter. Relationships didn&apos;t matter. 
                 Just the metrics.
               </p>
@@ -83,8 +83,8 @@ export default function AboutPage() {
                 <div className="absolute -top-2 -left-2 w-full h-full border-4 border-[#ff6b35] group-hover:translate-x-1 group-hover:translate-y-1 transition-transform" />
                 <div className="relative bg-[#f5f1e8] border-4 border-[#ff6b35] p-6 my-8">
                   <p className="font-bold text-[#1a2b4a] text-xl">
-                    "That Tuesday, I handed in my notice. That Wednesday, I registered IVC. 
-                    That Thursday, I called my first client."
+                    &ldquo;That Tuesday, I handed in my notice. That Wednesday, I registered IVC. 
+                    That Thursday, I called my first client.&rdquo;
                   </p>
                 </div>
               </div>
@@ -196,37 +196,37 @@ export default function AboutPage() {
               {
                 icon: Heart,
                 title: "QUALITY OVER QUANTITY",
-                description: "50 clients maximum. That's it. When you call, you get me. When you need advice, you get someone who knows your business inside out.",
+                description: "50 clients maximum. That&apos;s it. When you call, you get me. When you need advice, you get someone who knows your business inside out.",
                 highlight: "50 CLIENT LIMIT"
               },
               {
                 icon: Target,
                 title: "STRAIGHT TALK",
-                description: "No jargon. No hiding behind complexity. If something's wrong, we tell you. If there's an opportunity, we show you how to grab it.",
+                description: "No jargon. No hiding behind complexity. If something&apos;s wrong, we tell you. If there&apos;s an opportunity, we show you how to grab it.",
                 highlight: "NO BS POLICY"
               },
               {
                 icon: Users,
                 title: "PERSONAL SERVICE",
-                description: "You're not a number in a database. You're a business owner with dreams, challenges, and a family depending on you. We never forget that.",
+                description: "You&apos;re not a number in a database. You&apos;re a business owner with dreams, challenges, and a family depending on you. We never forget that.",
                 highlight: "DIRECT ACCESS"
               },
               {
                 icon: TrendingUp,
                 title: "PROACTIVE PROTECTION",
-                description: "We don't wait for problems to find you. We hunt them down first. Tax planning, compliance, growth strategy - we're always thinking ahead.",
+                description: "We don&apos;t wait for problems to find you. We hunt them down first. Tax planning, compliance, growth strategy - we&apos;re always thinking ahead.",
                 highlight: "ALWAYS FIGHTING"
               },
               {
                 icon: Award,
                 title: "EXPERIENCE THAT MATTERS",
-                description: "15+ years in the trenches. PE exits. HMRC battles. Growth scaling. We've been there, and we use that experience to protect you.",
+                description: "15+ years in the trenches. PE exits. HMRC battles. Growth scaling. We&apos;ve been there, and we use that experience to protect you.",
                 highlight: "BATTLE-TESTED"
               },
               {
                 icon: Briefcase,
                 title: "GROWTH PARTNERSHIP",
-                description: "We're not just here to file your returns. We're here to help you build something meaningful, sustainable, and valuable.",
+                description: "We&apos;re not just here to file your returns. We&apos;re here to help you build something meaningful, sustainable, and valuable.",
                 highlight: "BEYOND COMPLIANCE"
               }
             ].map((value, index) => (

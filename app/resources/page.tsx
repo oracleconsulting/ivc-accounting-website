@@ -1,5 +1,5 @@
 import { Metadata } from 'next'
-import { Shield, AlertCircle, Calculator, Users, FileText, TrendingUp } from 'lucide-react'
+import { Shield, AlertCircle, Calculator, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
@@ -18,7 +18,7 @@ interface Resource {
 interface Category {
   title: string
   description: string
-  icon: any
+  icon: React.ComponentType<{ className?: string }>
   resources: Resource[]
 }
 

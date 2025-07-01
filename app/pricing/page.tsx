@@ -1,5 +1,5 @@
 import { Metadata } from 'next'
-import { Check, X, Shield, TrendingUp, Users } from 'lucide-react'
+import { Check, X, Shield } from 'lucide-react'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
@@ -195,7 +195,7 @@ export default function PricingPage() {
                 </h3>
                 <p className="text-[#1a2b4a] max-w-2xl">
                   Your rate is locked for 2 years. No surprises, no annual increases, 
-                  no "market adjustments". The price you see is the price you pay.
+                  no &ldquo;market adjustments&rdquo;. The price you see is the price you pay.
                 </p>
               </div>
             </div>
@@ -209,19 +209,19 @@ export default function PricingPage() {
             <div className="grid md:grid-cols-2 gap-6 text-[#f5f1e8]">
               <div>
                 <h4 className="font-bold uppercase text-[#ff6b35] mb-2">NO JUNIOR STAFF</h4>
-                <p>Your accounts won't be handled by someone 6 months out of uni. James personally reviews every client.</p>
+                <p>Your accounts won&apos;t be handled by someone 6 months out of uni. James personally reviews every client.</p>
               </div>
               <div>
                 <h4 className="font-bold uppercase text-[#ff6b35] mb-2">NO SURPRISE BILLS</h4>
-                <p>That 5-minute phone call? Free. Quick tax question? Free. We don't nickel and dime our fighters.</p>
+                <p>That 5-minute phone call? Free. Quick tax question? Free. We don&apos;t nickel and dime our fighters.</p>
               </div>
               <div>
                 <h4 className="font-bold uppercase text-[#ff6b35] mb-2">NO CORPORATE BS</h4>
-                <p>No jargon, no 40-page reports nobody reads, no "circle back" or "synergies". Just straight talk.</p>
+                <p>No jargon, no 40-page reports nobody reads, no &ldquo;circle back&rdquo; or &ldquo;synergies&rdquo;. Just straight talk.</p>
               </div>
               <div>
                 <h4 className="font-bold uppercase text-[#ff6b35] mb-2">NO WAITING</h4>
-                <p>You won't wait 3 weeks for a callback. Our response times are measured in hours, not weeks.</p>
+                <p>You won&apos;t wait 3 weeks for a callback. Our response times are measured in hours, not weeks.</p>
               </div>
             </div>
           </div>

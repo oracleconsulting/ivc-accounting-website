@@ -1,11 +1,10 @@
 // components/home/Hero.tsx
 'use client'
 
-import { useState } from 'react';
 import Link from 'next/link';
 
 export default function Hero() {
-  const [clientCount, setClientCount] = useState(42); // This would come from your database
+  const clientCount = 42; // This would come from your database
   
   return (
     <section className="relative min-h-[80vh] bg-[#1a2b4a] flex items-center justify-center overflow-hidden pt-20">
