@@ -204,7 +204,7 @@ export default function PricingPage() {
           {/* What You WON'T Get */}
           <div className="mt-16 bg-[#1a2b4a] p-8 max-w-4xl mx-auto">
             <h3 className="text-2xl font-black uppercase text-[#f5f1e8] mb-6 text-center">
-              WHAT YOU <span className="text-[#ff6b35]">WON'T</span> GET
+              WHAT YOU <span className="text-[#ff6b35]">WON&apos;T</span> GET
             </h3>
             <div className="grid md:grid-cols-2 gap-6 text-[#f5f1e8]">
               <div>
