@@ -103,7 +103,29 @@ function PETranslator() {
     "portfolio company": "our latest victim",
     "add-on acquisition": "buy competitors to jack up prices",
     "multiple arbitrage": "financial engineering BS",
-    "platform investment": "roll-up scheme"
+    "platform investment": "roll-up scheme",
+    "operational excellence": "work harder for less money",
+    "transformational": "we're changing everything and it'll be painful",
+    "best practices": "what everyone else is doing",
+    "low-hanging fruit": "the easy stuff we should have done already",
+    "bandwidth": "time (but we sound smarter)",
+    "circle back": "we'll forget about this",
+    "leverage": "use debt or exploit",
+    "streamline": "cut stuff out",
+    "blue sky thinking": "impractical ideas",
+    "paradigm shift": "big change (usually bad for employees)",
+    "move the needle": "make a tiny improvement",
+    "core competencies": "the few things we're not terrible at",
+    "disruptive": "we'll break things and hope it works out",
+    "thought leader": "someone who talks a lot",
+    "ecosystem": "other companies we work with",
+    "actionable insights": "obvious things we'll charge you for",
+    "deep dive": "actually look at something properly",
+    "organic growth": "growth without buying companies",
+    "runway": "how long until we run out of money",
+    "pivot": "our first idea failed",
+    "scale": "get bigger, usually worse",
+    "unlock value": "sell stuff or fire people"
   }
   
   const translatePE = () => {
