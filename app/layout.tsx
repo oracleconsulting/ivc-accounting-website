@@ -279,13 +279,13 @@ export default function IVCLayout({
         <link rel="dns-prefetch" href="https://www.clarity.ms" />
         <link rel="dns-prefetch" href="https://client.crisp.chat" />
       </head>
-      <body className={`${inter.className} bg-oracle-cream text-oracle-navy min-h-screen`}>
+      <body className={`${inter.className} bg-oracle-cream text-oracle-navy`}>
         {/* Main App */}
         <GoogleTagManager />
         <OrganizationSchema />
         <Navigation />
         <SocialProofTicker />
-        <main className="min-h-screen">
+        <main>
           <GTMNoscript />
           {children}
         </main>
