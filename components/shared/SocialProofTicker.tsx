@@ -1,3 +1,5 @@
+'use client'
+
 import { useEffect, useState } from 'react'
 import { useAnalytics } from '@/hooks/useAnalytics'
 
