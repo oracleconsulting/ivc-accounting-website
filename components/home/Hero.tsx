@@ -1,77 +1,137 @@
 // components/home/Hero.tsx
 'use client'
 
-import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { ChevronDown, Zap, Award, Briefcase, Users, Heart, ArrowRight } from 'lucide-react';
+import Button from '@/components/shared/Button';
 
-const Hero = () => {
-  const [clientCount, setClientCount] = useState(42); // Default value
-  
+export default function Hero() {
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
   useEffect(() => {
-    // Fetch client count from API
-    const fetchClientCount = async () => {
-      try {
-        // Fetch from local API route, not external API
-        const response = await fetch('/api/stats');
-        if (response.ok) {
-          const data = await response.json();
-          setClientCount(data.current_clients);
-        }
-      } catch (error) {
-        console.error('Failed to fetch client count:', error);
-        // Keep default value if fetch fails
-      }
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePosition({ x: e.clientX, y: e.clientY });
     };
     
-    fetchClientCount();
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
-  
+
+  const parallaxStyle = {
+    transform: `translate(${mousePosition.x * 0.005}px, ${mousePosition.y * 0.005}px)`,
+  };
+
   return (
-    <section className="relative min-h-[80vh] bg-[#1a2b4a] flex items-center">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute inset-0 diagonal-pattern opacity-10"></div>
-        <svg className="absolute bottom-0 w-full" viewBox="0 0 1440 400">
-          <polygon points="0,400 480,200 960,100 1440,300 1440,400" 
-                   fill="#ff6b35" opacity="0.1" />
-          <polygon points="0,400 720,250 1440,150 1440,400" 
-                   fill="#4a90e2" opacity="0.05" />
-        </svg>
-      </div>
-
-      {/* Content */}
-      <div className="container-xl mx-auto px-4 relative z-10">
-        <div className="max-w-3xl">
-          <h1 className="text-hero mb-6 text-[#f5f1e8]">
-            CORPORATE STRENGTH
-            <span className="block text-[#ff6b35]">FIGHTING SPIRIT</span>
-          </h1>
-          <p className="text-[#f5f1e8] text-xl mb-8 max-w-2xl">
-            We're not just accountants. We're your strategic partners in growth, combining
-            professional expertise with a rebellious drive to fight for your success.
-          </p>
-          <div className="flex flex-wrap gap-4">
-            <Link href="/contact" className="btn-primary">
-              START YOUR JOURNEY
-            </Link>
-            <Link href="/services" className="btn-secondary">
-              EXPLORE SERVICES
-            </Link>
-          </div>
-
-          {/* Data Grid Decoration */}
-          <div className="absolute bottom-8 right-8 hidden lg:grid grid-cols-8 gap-1">
-            {[...Array(64)].map((_, i) => (
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#1a2b4a] pt-20">
+      {/* Geometric Background Pattern */}
+      <div className="absolute inset-0">
+        {/* Abstract Mountain Shapes */}
+        <div className="absolute bottom-0 left-0 w-full h-[70%]">
+          <svg viewBox="0 0 1440 800" className="w-full h-full">
+            <polygon points="0,800 480,400 720,300 960,450 1440,200 1440,800" fill="#ff6b35" opacity="0.1" />
+            <polygon points="0,800 360,500 600,400 840,550 1200,350 1440,450 1440,800" fill="#4a90e2" opacity="0.1" />
+            <polygon points="0,800 240,600 480,500 720,650 1080,450 1440,600 1440,800" fill="#f5f1e8" opacity="0.05" />
+          </svg>
+        </div>
+        
+        {/* Floating Data Points */}
+        <div className="absolute top-20 right-20 opacity-20" style={parallaxStyle}>
+          <div className="grid grid-cols-8 gap-1">
+            {[...Array(32)].map((_, i) => (
               <div 
                 key={i} 
-                className={`w-2 h-2 ${i % 3 === 0 ? 'bg-[#ff6b35]' : 'bg-[#4a90e2]'} opacity-20`}
+                className={`w-2 h-2 ${i % 3 === 0 ? 'bg-[#ff6b35]' : 'bg-[#4a90e2]'} ${i % 5 === 0 ? 'animate-pulse' : ''}`}
               />
             ))}
           </div>
         </div>
+        
+        {/* Grid Lines */}
+        <div className="absolute inset-0 opacity-5">
+          <div className="h-full w-full" style={{
+            backgroundImage: `linear-gradient(to right, #f5f1e8 1px, transparent 1px), linear-gradient(to bottom, #f5f1e8 1px, transparent 1px)`,
+            backgroundSize: '50px 50px'
+          }} />
+        </div>
+      </div>
+
+      {/* Hero Content */}
+      <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center max-w-6xl mx-auto">
+          {/* Badge */}
+          <div className="mb-8 animate-fade-in">
+            <span className="inline-flex items-center gap-2 px-6 py-3 bg-[#ff6b35] text-[#f5f1e8] rounded-none font-bold text-sm uppercase tracking-wider">
+              <Zap className="w-4 h-4" />
+              QUALITY OVER QUANTITY • 50 CLIENT LIMIT
+            </span>
+          </div>
+          
+          {/* Main Headline */}
+          <h1 className="mb-8 animate-fade-in-up">
+            <span className="block text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-black uppercase tracking-tight text-[#f5f1e8] mb-4">
+              OTHER ACCOUNTANTS
+            </span>
+            <span className="block text-6xl sm:text-7xl lg:text-8xl xl:text-9xl font-black uppercase tracking-tight text-[#ff6b35] mb-4">
+              FILE.
+            </span>
+            <span className="block text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-black uppercase tracking-tight text-[#f5f1e8]">
+              WE <span className="text-[#4a90e2]">FIGHT.</span>
+            </span>
+          </h1>
+          
+          <p className="text-xl md:text-2xl text-[#f5f1e8]/80 mb-12 max-w-3xl mx-auto animate-fade-in font-light">
+            We don&apos;t hide behind jargon or drown you in reports. 
+            We protect your business and help you build something real.
+          </p>
+          
+          {/* CTA Buttons */}
+          <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16 animate-fade-in">
+            <Link href="/contact">
+              <Button 
+                size="large" 
+                className="bg-[#ff6b35] hover:bg-[#e55a2b] text-[#f5f1e8] px-8 py-4 rounded-none font-bold text-lg uppercase tracking-wide transition-all duration-300 transform hover:scale-105 hover:shadow-2xl flex items-center justify-center gap-2 group"
+              >
+                Book a No-BS Call
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </Link>
+            <Link href="/about">
+              <Button 
+                variant="secondary" 
+                size="large"
+                className="border-2 border-[#f5f1e8] text-[#f5f1e8] hover:bg-[#f5f1e8] hover:text-[#1a2b4a] px-8 py-4 rounded-none font-bold text-lg uppercase tracking-wide transition-all duration-300"
+              >
+                Learn More
+              </Button>
+            </Link>
+          </div>
+          
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 animate-fade-in-up delay-300">
+            {[
+              { value: '15+', label: 'YEARS FIGHTING', icon: Award },
+              { value: '1', label: 'PE EXIT (BY CHOICE)', icon: Briefcase },
+              { value: '50', label: 'CLIENT LIMIT', icon: Users },
+              { value: '100%', label: 'PERSONAL SERVICE', icon: Heart }
+            ].map((stat, index) => (
+              <div key={index} className="group relative">
+                <div className="absolute inset-0 bg-[#ff6b35] opacity-0 group-hover:opacity-10 transition-opacity duration-500" />
+                <div className="relative bg-[#f5f1e8]/5 backdrop-blur-sm border border-[#f5f1e8]/20 p-6 hover:border-[#ff6b35]/50 transition-all duration-300">
+                  <stat.icon className="w-8 h-8 text-[#ff6b35] mx-auto mb-2" />
+                  <div className="text-3xl font-black text-[#ff6b35] mb-1">{stat.value}</div>
+                  <div className="text-xs font-bold text-[#f5f1e8]/60 uppercase tracking-wider">{stat.label}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      
+      {/* Scroll Indicator */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
+        <ChevronDown className="w-8 h-8 text-[#f5f1e8]/40" />
       </div>
     </section>
   );
-};
-
-export default Hero;
+}

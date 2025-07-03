@@ -16,42 +16,9 @@ export default function ContactPage() {
     { name: 'Contact', url: 'https://ivcaccounting.co.uk/ivc/contact' }
   ]
 
-  const contactSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'AccountingService',
-    name: 'IVC Accounting',
-    description: 'Personal accounting service limited to 50 clients, providing proactive financial guidance and tax strategy.',
-    url: 'https://ivcaccounting.co.uk',
-    email: 'james@ivcaccounting.co.uk',
-    openingHours: 'Mo-Fr 08:00-18:00',
-    founder: {
-      '@type': 'Person',
-      name: 'James Howard'
-    },
-    potentialAction: {
-      '@type': 'ReserveAction',
-      target: {
-        '@type': 'EntryPoint',
-        urlTemplate: 'https://calendly.com/james-ivc/consultation',
-        actionPlatform: [
-          'http://schema.org/DesktopWebPlatform',
-          'http://schema.org/MobileWebPlatform'
-        ]
-      },
-      result: {
-        '@type': 'Reservation',
-        name: 'Accounting Consultation'
-      }
-    }
-  }
-
   return (
     <>
       <BreadcrumbSchema items={breadcrumbs} />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(contactSchema) }}
-      />
       
       {/* Hero Section */}
       <section className="relative min-h-[50vh] flex items-center justify-center overflow-hidden bg-[#1a2b4a] pt-20">
