@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Calculator, Shield, AlertTriangle, Clock, TrendingUp, FileText } from 'lucide-react'
+import { useAnalytics } from '@/hooks/useAnalytics'
 
 // Tax Savings Calculator Component
 function TaxSavingsCalculator() {
@@ -9,6 +10,7 @@ function TaxSavingsCalculator() {
   const [expenses, setExpenses] = useState('')
   const [currentTax, setCurrentTax] = useState(0)
   const [optimizedTax, setOptimizedTax] = useState(0)
+  const { trackTool } = useAnalytics()
   
   const calculateSavings = () => {
     const rev = parseFloat(revenue) || 0
@@ -21,6 +23,7 @@ function TaxSavingsCalculator() {
     
     setCurrentTax(current)
     setOptimizedTax(optimized)
+    trackTool('tax_calculator_used')
   }
   
   return (
@@ -93,6 +96,7 @@ function PETranslator() {
   const [bsLevel, setBsLevel] = useState<string>('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const { trackTool } = useAnalytics()
   
   const translatePE = async () => {
     if (!peText.trim()) {
@@ -123,10 +127,12 @@ function PETranslator() {
       const data = await response.json()
       setTranslation(data.translation)
       setBsLevel(data.bs_level)
+      trackTool('pe_translator_used')
     } catch {
       setError('Translation failed - even our BS detector is confused by this one!')
       // Fallback to simple translation
       setTranslation("Our AI is currently out fighting corporate BS elsewhere. Try again in a moment!")
+      trackTool('pe_translator_error')
     } finally {
       setLoading(false)
     }
@@ -210,6 +216,7 @@ function PETranslator() {
 function FightAssessment() {
   const [answers, setAnswers] = useState<Record<string, boolean>>({})
   const [score, setScore] = useState<number | null>(null)
+  const { trackTool } = useAnalytics()
   
   const questions = [
     { id: 'q1', text: 'Does your accountant answer their own phone?' },
@@ -225,6 +232,7 @@ function FightAssessment() {
   const calculateScore = () => {
     const yesCount = Object.values(answers).filter(Boolean).length
     setScore(yesCount)
+    trackTool(`fight_assessment_score_${yesCount}`)
   }
   
   const getResult = () => {
@@ -295,6 +303,12 @@ function FightAssessment() {
 
 // Coming Soon Component
 function ComingSoon({ title, description }: { title: string; description: string }) {
+  const { trackTool } = useAnalytics()
+  
+  const handleContactClick = () => {
+    trackTool(`coming_soon_${title.toLowerCase().replace(/\s+/g, '_')}`)
+  }
+  
   return (
     <div className="bg-white border-2 border-[#1a2b4a] p-8 relative overflow-hidden">
       <div className="absolute inset-0 bg-[#1a2b4a]/5" />
@@ -316,7 +330,7 @@ function ComingSoon({ title, description }: { title: string; description: string
         
         <div className="mt-8 text-center">
           <p className="text-sm text-[#1a2b4a]/60">
-            Want this tool faster? <a href="/contact" className="text-[#ff6b35] font-bold underline">Let us know</a>
+            Want this tool faster? <a href="/contact" onClick={handleContactClick} className="text-[#ff6b35] font-bold underline">Let us know</a>
           </p>
         </div>
       </div>
@@ -326,6 +340,12 @@ function ComingSoon({ title, description }: { title: string; description: string
 
 export default function ToolsPage() {
   const [selectedTool, setSelectedTool] = useState('tax-savings')
+  const { trackTool } = useAnalytics()
+
+  const handleToolSelect = (toolId: string) => {
+    setSelectedTool(toolId)
+    trackTool(`tool_selected_${toolId}`)
+  }
 
   const tools = [
     {
@@ -383,7 +403,7 @@ export default function ToolsPage() {
             {tools.map((tool) => (
               <button
                 key={tool.id}
-                onClick={() => setSelectedTool(tool.id)}
+                onClick={() => handleToolSelect(tool.id)}
                 className={`px-6 py-3 font-bold uppercase transition-all relative ${
                   selectedTool === tool.id
                     ? 'bg-[#ff6b35] text-[#f5f1e8]'

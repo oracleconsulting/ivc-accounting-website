@@ -1,0 +1,14 @@
+# Allow all crawlers
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://ivcaccounting.co.uk/sitemap.xml
+
+# Disallow admin and api routes
+Disallow: /api/
+Disallow: /admin/
+Disallow: /_next/
+
+# Crawl-delay for all bots
+Crawl-delay: 1 

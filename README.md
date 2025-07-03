@@ -1,36 +1,124 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# IVC Accounting Website
 
-## Getting Started
+## Required Social Media Images
 
-First, run the development server:
+The following images need to be created and placed in `/public/images/`:
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+1. `og-image.jpg` (1200x630px)
+   - IVC logo
+   - Text: "Other Accountants File. We Fight."
+   - Dark background with orange accents (#1a2b4a background, #ff6b35 accents)
+   - High contrast for readability
+   - Include James Howard's photo if possible
+
+2. `twitter-card.jpg` (1200x600px)
+   - Same design as og-image.jpg but adjusted for Twitter's aspect ratio
+
+Design Guidelines:
+- Use brand colors: #1a2b4a (dark blue), #ff6b35 (orange), #f5f1e8 (off-white)
+- Maintain high contrast for text
+- Keep the design clean and professional
+- Ensure text is legible at smaller sizes
+
+## Environment Variables
+
+Copy `.env.template` to `.env.local` and fill in the following variables:
+
+```
+# Analytics and Tracking
+NEXT_PUBLIC_GTM_ID=GTM-XXXXXXX
+NEXT_PUBLIC_GA_ID=G-XXXXXXXXX
+NEXT_PUBLIC_CLARITY_ID=YOUR_CLARITY_ID
+NEXT_PUBLIC_CRISP_ID=YOUR_CRISP_ID
+
+# SEO and Verification
+NEXT_PUBLIC_GOOGLE_VERIFICATION=your-verification-code
+
+# API Configuration
+NEXT_PUBLIC_API_URL=https://ivc-api.yourdomain.com
+
+# Site Configuration
+NEXT_PUBLIC_SITE_URL=https://ivcaccounting.co.uk
+NEXT_PUBLIC_COMPANY_NAME="IVC Accounting"
+NEXT_PUBLIC_CONTACT_EMAIL=james@ivcaccounting.co.uk
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Development
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm install
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Build
 
-## Learn More
+```bash
+npm run build
+npm start
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Deployment
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The site is deployed on Railway. See `DEPLOYMENT.md` for details.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## SEO Optimization
 
-## Deploy on Vercel
+1. Each page includes:
+   - Semantic HTML structure
+   - Proper heading hierarchy
+   - Meta descriptions
+   - Schema markup
+   - Breadcrumb navigation
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+2. Technical SEO:
+   - Sitemap at `/public/sitemap.xml`
+   - Robots.txt at `/public/robots.txt`
+   - PWA support via `/public/site.webmanifest`
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+3. Performance:
+   - Images are optimized and served through Next.js Image component
+   - Fonts are preloaded with display swap
+   - Critical CSS is inlined
+   - Code splitting for optimal loading
+
+4. Analytics:
+   - Google Tag Manager for event tracking
+   - Microsoft Clarity for heatmaps
+   - Custom event tracking for key user actions
+
+## Content Guidelines
+
+1. Tone of Voice:
+   - Direct and confident
+   - Professional but not corporate
+   - Uses "fight" metaphors appropriately
+   - Emphasizes personal service
+
+2. Key Messages:
+   - 50 client limit
+   - Direct access to James
+   - No junior staff
+   - 2-year price lock
+   - Fighting for clients vs just filing
+
+3. Call to Actions:
+   - Primary: "Book Your No-BS Call"
+   - Secondary: "See How We Fight"
+   - Tertiary: "Learn More"
+
+## Maintenance
+
+1. Regular Updates:
+   - Check and update schema markup
+   - Verify all tracking is working
+   - Test contact forms and Calendly integration
+   - Update content for seasonal changes
+
+2. Performance Monitoring:
+   - Monthly Google Lighthouse audits
+   - Weekly analytics review
+   - Daily uptime monitoring
+
+## Support
+
+For technical support or content updates, contact the development team at dev@ivcaccounting.co.uk

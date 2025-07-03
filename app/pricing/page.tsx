@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import { Check, X, Shield } from 'lucide-react'
 import Link from 'next/link'
+import { useAnalytics } from '@/hooks/useAnalytics'
 
 export const metadata: Metadata = {
   title: 'Transparent Pricing - No Hidden Fees | IVC Accounting',
@@ -19,6 +20,13 @@ interface PricingTier {
 }
 
 function PricingCard({ tier, featured }: { tier: PricingTier; featured?: boolean }) {
+  const { trackPricing, trackBooking } = useAnalytics()
+
+  const handleClick = () => {
+    trackPricing(tier.name)
+    trackBooking(`pricing_${tier.name.toLowerCase().replace(/\s+/g, '_')}`)
+  }
+
   return (
     <div className={`relative group ${featured ? 'scale-105' : ''}`}>
       {featured && (
@@ -70,7 +78,7 @@ function PricingCard({ tier, featured }: { tier: PricingTier; featured?: boolean
           )}
         </div>
 
-        <Link href={tier.ctaLink}>
+        <Link href={tier.ctaLink} onClick={handleClick}>
           <button className={`w-full font-black uppercase px-6 py-4 text-lg transition-all hover:translate-x-1 ${
             featured 
               ? 'bg-[#ff6b35] hover:bg-[#e55a2b] text-[#f5f1e8]' 
@@ -155,8 +163,43 @@ export default function PricingPage() {
     }
   ]
 
+  const pricingSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    itemListElement: tiers.map((tier, index) => ({
+      '@type': 'Offer',
+      position: index + 1,
+      name: tier.name,
+      price: tier.price,
+      priceCurrency: 'GBP',
+      priceValidUntil: '2026-12-31',
+      itemOffered: {
+        '@type': 'Service',
+        name: `${tier.name} Accounting Package`,
+        description: tier.description,
+        offers: {
+          '@type': 'Offer',
+          price: tier.price,
+          priceCurrency: 'GBP',
+          priceValidUntil: '2026-12-31',
+          priceSpecification: {
+            '@type': 'PriceSpecification',
+            price: tier.price,
+            priceCurrency: 'GBP',
+            valueAddedTaxIncluded: true
+          }
+        }
+      }
+    }))
+  }
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(pricingSchema) }}
+      />
+      
       {/* Hero Section */}
       <section className="relative min-h-[40vh] bg-[#1a2b4a] pt-20 flex items-center justify-center">
         {/* Geometric Pattern */}

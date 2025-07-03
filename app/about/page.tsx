@@ -17,9 +17,31 @@ export default function AboutPage() {
     { name: 'About', url: 'https://ivcaccounting.co.uk/ivc/about' }
   ]
 
+  const personSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    name: 'James Howard',
+    jobTitle: 'Founder & CEO',
+    worksFor: {
+      '@type': 'Organization',
+      name: 'IVC Accounting',
+      url: 'https://ivcaccounting.co.uk'
+    },
+    description: '15+ years experience in UK accounting, from small practices to PE-backed firms. Founded IVC Accounting to provide personal, proactive service limited to 50 clients.',
+    image: 'https://ivcaccounting.co.uk/images/james-howard.jpg',
+    sameAs: [
+      'https://www.linkedin.com/in/jameshoward',
+      'https://twitter.com/jameshoward_ivc'
+    ]
+  }
+
   return (
     <>
       <BreadcrumbSchema items={breadcrumbs} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(personSchema) }}
+      />
       
       {/* Hero Section */}
       <section className="relative min-h-[60vh] flex items-center justify-center overflow-hidden bg-[#1a2b4a] pt-20">
