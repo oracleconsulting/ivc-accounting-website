@@ -5,21 +5,29 @@
 
 /* Oracle-Inspired Color Variables */
 :root {
-  --navy: #1a2b4a;
-  --cream: #f5f1e8;
-  --orange: #ff6b35;
-  --blue: #4a90e2;
-  --dark-blue: #0f1829;
+  --oracle-navy: #1a2b4a;
+  --oracle-cream: #f5f1e8;
+  --oracle-orange: #ff6b35;
+  --oracle-blue: #4a90e2;
+  --oracle-dark: #0f1829;
 }
 
 /* Typography */
 @layer base {
   body {
-    @apply font-sans antialiased;
+    @apply font-sans antialiased bg-oracle-cream text-oracle-navy;
   }
   
   h1, h2, h3, h4, h5, h6 {
-    @apply font-black uppercase tracking-tight;
+    @apply font-black uppercase tracking-tight text-oracle-navy;
+  }
+
+  a {
+    @apply text-oracle-orange hover:text-oracle-orange/90 transition-colors;
+  }
+
+  button {
+    @apply transition-all duration-200;
   }
 }
 
@@ -100,8 +108,8 @@
       45deg,
       transparent,
       transparent 35px,
-      rgba(255, 107, 53, 0.03) 35px,
-      rgba(255, 107, 53, 0.03) 70px
+      var(--oracle-orange) 35px,
+      var(--oracle-orange) 70px
     );
 }
 
@@ -119,12 +127,12 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--navy);
+  background: var(--oracle-navy);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--orange);
-  border: 2px solid var(--navy);
+  background: var(--oracle-orange);
+  border: 2px solid var(--oracle-navy);
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -133,24 +141,24 @@
 
 /* Selection Color */
 ::selection {
-  background: var(--orange);
-  color: var(--cream);
+  background: var(--oracle-orange);
+  color: var(--oracle-cream);
 }
 
 ::-moz-selection {
-  background: var(--orange);
-  color: var(--cream);
+  background: var(--oracle-orange);
+  color: var(--oracle-cream);
 }
 
 /* Focus States */
 :focus-visible {
-  outline: 2px solid var(--orange);
+  outline: 2px solid var(--oracle-orange);
   outline-offset: 2px;
 }
 
 /* Utility Classes */
 .text-gradient {
-  @apply bg-gradient-to-r from-[#ff6b35] to-[#4a90e2] bg-clip-text text-transparent;
+  @apply bg-gradient-to-r from-oracle-orange to-oracle-blue bg-clip-text text-transparent;
 }
 
 .shadow-corporate {
