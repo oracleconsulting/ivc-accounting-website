@@ -30,7 +30,6 @@ export default function Navigation() {
     { href: '/blog', label: 'BLOG' },
     { href: '/resources', label: 'RESOURCES' },
     { href: '/tools', label: 'TOOLS' },
-    { href: '/london-accountant', label: 'LONDON' },
   ]
 
   return (

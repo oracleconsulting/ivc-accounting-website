@@ -33,7 +33,8 @@ export default function ContactPage() {
         
         <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
           <h1 className="text-5xl md:text-6xl font-black uppercase mb-6">
-            LET&apos;S HAVE A <span className="text-[#ff6b35]">REAL CONVERSATION</span>
+            <span className="text-[#f5f1e8]">LET&apos;S HAVE A</span>{' '}
+            <span className="text-[#ff6b35]">REAL CONVERSATION</span>
           </h1>
           <p className="text-xl text-[#f5f1e8]/80">
             No gatekeepers, no runaround. Direct access to someone who actually gives a damn.

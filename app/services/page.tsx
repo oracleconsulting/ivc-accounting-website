@@ -151,7 +151,8 @@ export default function ServicesPage() {
         
         <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
           <h1 className="text-5xl md:text-6xl font-black uppercase mb-6">
-            THREE WAYS WE <span className="text-[#ff6b35]">FIGHT FOR YOU</span>
+            <span className="text-[#f5f1e8]">THREE WAYS WE</span>{' '}
+            <span className="text-[#ff6b35]">FIGHT FOR YOU</span>
           </h1>
           <p className="text-xl text-[#f5f1e8]/80">
             From essential compliance to strategic growth - always personal, always fighting for your success

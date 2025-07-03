@@ -1,3 +1,5 @@
+'use client'
+
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import Navigation from '@/components/layout/Navigation'
@@ -103,7 +105,6 @@ export default function IVCLayout({
         <GoogleTagManager />
         <OrganizationSchema />
         <Navigation />
-        <SocialProofTicker />
         <main>
           <GTMNoscript />
           {children}
