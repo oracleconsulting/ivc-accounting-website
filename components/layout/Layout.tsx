@@ -1,59 +1,124 @@
-import { ReactNode } from 'react';
-import Header from './Header';
+import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
+import Navigation from '@/components/layout/Navigation'
+import Footer from '@/components/layout/Footer'
+import { OrganizationSchema } from '@/components/seo/StructuredData'
+import CookieConsent from '@/components/analytics/CookieConsent'
+import GoogleTagManager, { GTMNoscript } from '@/components/analytics/GoogleTagManager'
+import Script from 'next/script'
+import Link from 'next/link'
+import dynamic from 'next/dynamic'
 
-interface LayoutProps {
-  children: ReactNode;
-}
+// Import SocialProofTicker with client-side only rendering
+const SocialProofTicker = dynamic(
+  () => import('@/components/shared/SocialProofTicker'),
+  { loading: () => null }
+)
 
-const Layout = ({ children }: LayoutProps) => {
+const inter = Inter({ 
+  subsets: ['latin'],
+  display: 'swap',
+  preload: true,
+  fallback: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+  adjustFontFallback: true,
+  variable: '--font-inter'
+})
+
+export default function IVCLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header />
-      <main className="flex-grow pt-20">
-        {children}
-      </main>
-      <footer className="bg-[#1a2b4a] text-[#f5f1e8] py-12">
-        <div className="container-xl mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <h3 className="text-subsection mb-4">IVC ACCOUNTING</h3>
-              <p className="text-small opacity-80">
-                Corporate strength with fighting spirit. We help businesses grow through strategic financial management.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-bold uppercase mb-4">Services</h4>
-              <ul className="space-y-2">
-                <li><a href="/services/accounting" className="hover:text-[#ff6b35] transition-colors">Accounting</a></li>
-                <li><a href="/services/tax" className="hover:text-[#ff6b35] transition-colors">Tax Planning</a></li>
-                <li><a href="/services/advisory" className="hover:text-[#ff6b35] transition-colors">Business Advisory</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold uppercase mb-4">Company</h4>
-              <ul className="space-y-2">
-                <li><a href="/about" className="hover:text-[#ff6b35] transition-colors">About Us</a></li>
-                <li><a href="/team" className="hover:text-[#ff6b35] transition-colors">Our Team</a></li>
-                <li><a href="/contact" className="hover:text-[#ff6b35] transition-colors">Contact</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold uppercase mb-4">Contact</h4>
-              <ul className="space-y-2 text-small">
-                <li>123 Business Street</li>
-                <li>London, UK</li>
-                <li>+44 (0) 123 456 789</li>
-                <li>contact@ivcaccounting.com</li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-[#f5f1e8]/20 mt-8 pt-8 text-small text-center">
-            © {new Date().getFullYear()} IVC Accounting. All rights reserved.
-          </div>
-        </div>
-      </footer>
-    </div>
-  );
-};
+    <html lang="en" className="dark">
+      <head>
+        {/* Google Analytics 4 */}
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=G-RNTGN1QG93`}
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-RNTGN1QG93', {
+              page_path: window.location.pathname,
+              cookie_flags: 'SameSite=None;Secure'
+            });
+          `}
+        </Script>
 
-export default Layout; 
+        {/* Microsoft Clarity */}
+        <Script id="microsoft-clarity" strategy="afterInteractive">
+          {`
+            (function(c,l,a,r,i,t,y){
+              c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+              t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+              y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+            })(window, document, "clarity", "script", "s94ljl596i");
+          `}
+        </Script>
+
+        {/* Crisp Chat */}
+        <Script id="crisp-chat" strategy="afterInteractive">
+          {`
+            window.$crisp=[];
+            window.CRISP_WEBSITE_ID="0a3a3039-81de-4e6d-80c3-e9ae95625d40";
+            (function(){
+              d=document;s=d.createElement("script");
+              s.src="https://client.crisp.chat/l.js";
+              s.async=1;d.getElementsByTagName("head")[0].appendChild(s);
+            })();
+            
+            // Customize Crisp appearance
+            window.CRISP_READY_TRIGGER = function() {
+              $crisp.push(["config", "color:theme", ["#1a2b4a", "#ff6b35"]]);
+              $crisp.push(["set", "message:text", ["Hey! James here. Got a quick accounting question? Fire away! 🔥"]]);
+            };
+          `}
+        </Script>
+        
+        {/* Favicons */}
+        <link rel="icon" href="/favicon.ico" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+        <link rel="manifest" href="/site.webmanifest" />
+        <meta name="theme-color" content="#ff6b35" />
+        
+        {/* Additional SEO Meta Tags */}
+        <meta name="author" content="James Howard, IVC Accounting" />
+        <meta property="og:locale:alternate" content="en_US" />
+        <meta name="twitter:site" content="@IVCAccounting" />
+        
+        {/* Preconnect to external domains for performance */}
+        <link rel="preconnect" href="https://www.googletagmanager.com" />
+        <link rel="preconnect" href="https://www.google-analytics.com" />
+        <link rel="dns-prefetch" href="https://www.clarity.ms" />
+        <link rel="dns-prefetch" href="https://client.crisp.chat" />
+      </head>
+      <body className={`${inter.className} bg-oracle-cream text-oracle-navy`}>
+        {/* Main App */}
+        <GoogleTagManager />
+        <OrganizationSchema />
+        <Navigation />
+        <SocialProofTicker />
+        <main>
+          <GTMNoscript />
+          {children}
+        </main>
+        
+        {/* Sticky CTA Bar */}
+        <div className="fixed bottom-0 left-0 right-0 bg-oracle-orange p-4 z-50 lg:hidden">
+          <Link href="/contact" className="block text-center text-oracle-cream font-bold">
+            Book Your Free Fight Assessment →
+          </Link>
+        </div>
+        
+        <Footer />
+        <CookieConsent />
+      </body>
+    </html>
+  )
+} 
