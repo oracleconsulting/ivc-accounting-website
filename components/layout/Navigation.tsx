@@ -18,12 +18,19 @@ export default function Navigation() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  const navLinks = [
+  const mainNavLinks = [
     { href: '/', label: 'HOME' },
     { href: '/about', label: 'ABOUT' },
     { href: '/services', label: 'SERVICES' },
     { href: '/team', label: 'TEAM' },
     { href: '/contact', label: 'CONTACT' },
+  ]
+
+  const resourceNavLinks = [
+    { href: '/blog', label: 'BLOG' },
+    { href: '/resources', label: 'RESOURCES' },
+    { href: '/tools', label: 'TOOLS' },
+    { href: '/london-accountant', label: 'LONDON' },
   ]
 
   return (
@@ -45,7 +52,17 @@ export default function Navigation() {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center justify-center flex-1">
             <div className="flex items-center space-x-8">
-              {navLinks.map((link) => (
+              {mainNavLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="text-[#f5f1e8] hover:text-[#ff6b35] transition-colors font-bold text-sm tracking-wider"
+                >
+                  {link.label}
+                </Link>
+              ))}
+              <div className="h-4 w-px bg-[#f5f1e8]/20" />
+              {resourceNavLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
@@ -85,7 +102,7 @@ export default function Navigation() {
       {isMobileMenuOpen && (
         <div className="md:hidden bg-[#1a2b4a] border-t border-[#ff6b35]/20">
           <div className="px-4 py-4 space-y-3">
-            {navLinks.map((link) => (
+            {[...mainNavLinks, ...resourceNavLinks].map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
