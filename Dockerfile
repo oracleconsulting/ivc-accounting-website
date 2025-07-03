@@ -6,7 +6,7 @@ FROM base AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Install dependencies with legacy peer deps
+# Install dependencies based on the preferred package manager
 COPY package.json package-lock.json* ./
 RUN npm ci --legacy-peer-deps
 
@@ -21,6 +21,10 @@ COPY . .
 # Uncomment the following line in case you want to disable telemetry during the build.
 ENV NEXT_TELEMETRY_DISABLED 1
 
+# Install additional build dependencies
+RUN npm install -D postcss-loader style-loader css-loader
+
+# Build the project
 RUN npm run build
 
 # Production image, copy all the files and run next
