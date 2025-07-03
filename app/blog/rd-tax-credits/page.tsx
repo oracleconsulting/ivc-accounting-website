@@ -1,24 +1,10 @@
 'use client'
 
-import { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import { BreadcrumbSchema } from '@/components/seo/StructuredData'
 import { useAnalytics } from '@/hooks/useAnalytics'
 import { useEffect } from 'react'
-
-export const metadata: Metadata = {
-  title: 'R&D Tax Credits for UK Tech Companies: The Complete Guide | IVC Accounting',
-  description: 'Everything UK tech companies need to know about R&D tax credits in 2025. Learn what qualifies, how to claim, and common mistakes to avoid.',
-  openGraph: {
-    title: 'R&D Tax Credits for UK Tech Companies: The Complete Guide',
-    description: 'Everything UK tech companies need to know about R&D tax credits in 2025. Learn what qualifies, how to claim, and common mistakes to avoid.',
-    type: 'article',
-    publishedTime: '2025-01-07T09:00:00.000Z',
-    authors: ['James Howard'],
-    tags: ['R&D Tax Credits', 'UK Tech', 'Tax Planning', 'Innovation Funding']
-  }
-}
 
 export default function RDTaxCreditsGuide() {
   const { trackDoc, trackBooking } = useAnalytics()

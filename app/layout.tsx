@@ -10,6 +10,12 @@ import "./globals.css"
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 
+// Import SocialProofTicker with client-side only rendering
+const SocialProofTicker = dynamic(
+  () => import('@/components/shared/SocialProofTicker'),
+  { loading: () => null }
+)
+
 const inter = Inter({ 
   subsets: ['latin'],
   display: 'swap',
@@ -17,10 +23,6 @@ const inter = Inter({
   fallback: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
   adjustFontFallback: true,
   variable: '--font-inter'
-})
-
-const SocialProofTicker = dynamic(() => import('@/components/shared/SocialProofTicker'), {
-  ssr: false
 })
 
 export const metadata: Metadata = {
@@ -205,6 +207,53 @@ export default function IVCLayout({
   return (
     <html lang="en" className="dark">
       <head>
+        {/* Google Analytics 4 */}
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=G-RNTGN1QG93`}
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-RNTGN1QG93', {
+              page_path: window.location.pathname,
+              cookie_flags: 'SameSite=None;Secure'
+            });
+          `}
+        </Script>
+
+        {/* Microsoft Clarity */}
+        <Script id="microsoft-clarity" strategy="afterInteractive">
+          {`
+            (function(c,l,a,r,i,t,y){
+              c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+              t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+              y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+            })(window, document, "clarity", "script", "s94ljl596i");
+          `}
+        </Script>
+
+        {/* Crisp Chat */}
+        <Script id="crisp-chat" strategy="afterInteractive">
+          {`
+            window.$crisp=[];
+            window.CRISP_WEBSITE_ID="0a3a3039-81de-4e6d-80c3-e9ae95625d40";
+            (function(){
+              d=document;s=d.createElement("script");
+              s.src="https://client.crisp.chat/l.js";
+              s.async=1;d.getElementsByTagName("head")[0].appendChild(s);
+            })();
+            
+            // Customize Crisp appearance
+            window.CRISP_READY_TRIGGER = function() {
+              $crisp.push(["config", "color:theme", ["#1a2b4a", "#ff6b35"]]);
+              $crisp.push(["set", "message:text", ["Hey! James here. Got a quick accounting question? Fire away! 🔥"]]);
+            };
+          `}
+        </Script>
+
         {/* JSON-LD Structured Data */}
         <script
           type="application/ld+json"
@@ -231,16 +280,6 @@ export default function IVCLayout({
         <link rel="dns-prefetch" href="https://client.crisp.chat" />
       </head>
       <body className={`${inter.className} bg-black text-white min-h-screen`}>
-        {/* Google Tag Manager (noscript) - Must be immediately after body tag */}
-        <noscript>
-          <iframe 
-            src={`https://www.googletagmanager.com/ns.html?id=${process.env.NEXT_PUBLIC_GTM_ID || 'GTM-XXXXXXX'}`}
-            height="0" 
-            width="0" 
-            style={{ display: 'none', visibility: 'hidden' }}
-          />
-        </noscript>
-        
         {/* Main App */}
         <GoogleTagManager />
         <OrganizationSchema />
@@ -260,106 +299,6 @@ export default function IVCLayout({
         
         <Footer />
         <CookieConsent />
-        
-        {/* Analytics Scripts */}
-        {/* Google Analytics 4 */}
-        <Script
-          src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID || 'G-XXXXXXXXX'}`}
-          strategy="afterInteractive"
-        />
-        <Script id="google-analytics" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', '${process.env.NEXT_PUBLIC_GA_ID || 'G-XXXXXXXXX'}', {
-              page_path: window.location.pathname,
-              cookie_flags: 'SameSite=None;Secure'
-            });
-          `}
-        </Script>
-        
-        {/* Microsoft Clarity */}
-        <Script id="microsoft-clarity" strategy="afterInteractive">
-          {`
-            (function(c,l,a,r,i,t,y){
-              c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-              t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-              y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-            })(window, document, "clarity", "script", "${process.env.NEXT_PUBLIC_CLARITY_ID || 'YOUR_CLARITY_ID'}");
-          `}
-        </Script>
-        
-        {/* Crisp Chat */}
-        <Script id="crisp-chat" strategy="afterInteractive">
-          {`
-            window.$crisp=[];
-            window.CRISP_WEBSITE_ID="${process.env.NEXT_PUBLIC_CRISP_ID || 'YOUR_CRISP_ID'}";
-            (function(){
-              d=document;s=d.createElement("script");
-              s.src="https://client.crisp.chat/l.js";
-              s.async=1;d.getElementsByTagName("head")[0].appendChild(s);
-            })();
-            
-            // Customize Crisp appearance
-            window.CRISP_READY_TRIGGER = function() {
-              $crisp.push(["config", "color:theme", ["black", "orange"]]);
-              $crisp.push(["set", "message:text", ["Hey! James here. Got a quick accounting question? Fire away! 🔥"]]);
-            };
-          `}
-        </Script>
-        
-        {/* Schema.org WebSite for sitelinks search box */}
-        <Script id="website-schema" type="application/ld+json">
-          {`
-            {
-              "@context": "https://schema.org",
-              "@type": "WebSite",
-              "url": "https://ivcaccounting.co.uk",
-              "potentialAction": {
-                "@type": "SearchAction",
-                "target": "https://ivcaccounting.co.uk/search?q={search_term_string}",
-                "query-input": "required name=search_term_string"
-              }
-            }
-          `}
-        </Script>
-        
-        {/* FAQ Schema (if you have an FAQ page) */}
-        <Script id="faq-schema" type="application/ld+json">
-          {`
-            {
-              "@context": "https://schema.org",
-              "@type": "FAQPage",
-              "mainEntity": [
-                {
-                  "@type": "Question",
-                  "name": "Why does IVC Accounting limit clients to 50?",
-                  "acceptedAnswer": {
-                    "@type": "Answer",
-                    "text": "We limit ourselves to 50 clients to ensure personalized service. When you call, you get James. When you need advice, you get someone who knows your business inside out. Quality beats quantity every time."
-                  }
-                },
-                {
-                  "@type": "Question",
-                  "name": "What makes IVC different from other accountants?",
-                  "acceptedAnswer": {
-                    "@type": "Answer",
-                    "text": "Other accountants file. We fight. We proactively look for tax savings, challenge HMRC when needed, and provide strategic advice based on 15+ years of experience including 3 PE exits. You get a partner, not just a service provider."
-                  }
-                },
-                {
-                  "@type": "Question",
-                  "name": "How much do IVC Accounting services cost?",
-                  "acceptedAnswer": {
-                    "@type": "Answer",
-                    "text": "Our services range from £500-£1,500 per month depending on your needs. We offer transparent, fixed-fee pricing with no hidden charges. Your rate is locked for 2 years - no surprises, no annual increases."
-                  }
-                }
-              ]
-            }
-          `}
-        </Script>
       </body>
     </html>
   )
