@@ -39,13 +39,13 @@ export default function Navigation() {
   ]
 
   return (
-    <nav className="fixed w-full bg-[#1a2b4a] border-b-2 border-[#ff6b35] z-50">
+    <nav className="fixed w-full bg-oracle-navy border-b-2 border-oracle-orange z-50">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <Link href="/" className="flex items-center">
-            <span className="text-2xl font-black uppercase text-[#f5f1e8]">
-              IVC <span className="text-[#ff6b35]">ACCOUNTING</span>
+            <span className="text-2xl font-black uppercase text-oracle-cream">
+              IVC <span className="text-oracle-orange">ACCOUNTING</span>
             </span>
           </Link>
           
@@ -55,14 +55,14 @@ export default function Navigation() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="font-bold uppercase text-[#f5f1e8] hover:text-[#ff6b35] transition-colors"
+                className="font-bold uppercase text-oracle-cream hover:text-oracle-orange transition-colors"
               >
                 {item.label}
               </Link>
             ))}
             
             {/* Client Counter */}
-            <div className="bg-[#ff6b35] text-[#f5f1e8] px-3 py-1 font-bold">
+            <div className="bg-oracle-orange text-oracle-cream px-3 py-1 font-bold">
               {clientCount}/50 CLIENTS
             </div>
             
@@ -71,7 +71,7 @@ export default function Navigation() {
               href="http://localhost:3001/admin"
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-[#4a90e2] hover:bg-[#3a7bc8] text-white px-4 py-2 font-bold uppercase transition-colors"
+              className="bg-oracle-blue hover:bg-oracle-blue/80 text-oracle-cream px-4 py-2 font-bold uppercase transition-colors"
             >
               CLIENT LOGIN
             </a>
@@ -79,7 +79,7 @@ export default function Navigation() {
           
           {/* Mobile Menu Button */}
           <button
-            className="lg:hidden text-[#f5f1e8]"
+            className="lg:hidden text-oracle-cream"
             onClick={() => setIsOpen(!isOpen)}
           >
             {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -88,19 +88,19 @@ export default function Navigation() {
         
         {/* Mobile Navigation */}
         {isOpen && (
-          <div className="lg:hidden bg-[#1a2b4a] border-t border-[#ff6b35]/20 py-4">
+          <div className="lg:hidden bg-oracle-navy border-t border-oracle-orange/20 py-4">
             {navItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className="block py-3 px-4 font-bold uppercase text-[#f5f1e8] hover:text-[#ff6b35] hover:bg-[#ff6b35]/10 transition-colors"
+                className="block py-3 px-4 font-bold uppercase text-oracle-cream hover:text-oracle-orange hover:bg-oracle-orange/10 transition-colors"
                 onClick={() => setIsOpen(false)}
               >
                 {item.label}
               </Link>
             ))}
             
-            <div className="mt-4 px-4 py-3 bg-[#ff6b35]/20 text-[#f5f1e8] font-bold">
+            <div className="mt-4 px-4 py-3 bg-oracle-orange/20 text-oracle-cream font-bold">
               {clientCount}/50 CLIENTS
             </div>
             
@@ -108,7 +108,7 @@ export default function Navigation() {
               href="http://localhost:3001/admin"
               target="_blank"
               rel="noopener noreferrer"
-              className="block mt-4 mx-4 text-center bg-[#4a90e2] hover:bg-[#3a7bc8] text-white px-4 py-2 font-bold uppercase transition-colors"
+              className="block mt-4 mx-4 text-center bg-oracle-blue hover:bg-oracle-blue/80 text-oracle-cream px-4 py-2 font-bold uppercase transition-colors"
             >
               CLIENT LOGIN
             </a>

@@ -279,20 +279,20 @@ export default function IVCLayout({
         <link rel="dns-prefetch" href="https://www.clarity.ms" />
         <link rel="dns-prefetch" href="https://client.crisp.chat" />
       </head>
-      <body className={`${inter.className} bg-black text-white min-h-screen`}>
+      <body className={`${inter.className} bg-oracle-cream text-oracle-navy min-h-screen`}>
         {/* Main App */}
         <GoogleTagManager />
         <OrganizationSchema />
         <Navigation />
         <SocialProofTicker />
-        <main className="pt-20">
+        <main className="min-h-screen">
           <GTMNoscript />
           {children}
         </main>
         
         {/* Sticky CTA Bar */}
-        <div className="fixed bottom-0 left-0 right-0 bg-[#ff6b35] p-4 z-50 lg:hidden">
-          <Link href="/contact" className="block text-center text-[#f5f1e8] font-bold">
+        <div className="fixed bottom-0 left-0 right-0 bg-oracle-orange p-4 z-50 lg:hidden">
+          <Link href="/contact" className="block text-center text-oracle-cream font-bold">
             Book Your Free Fight Assessment →
           </Link>
         </div>
