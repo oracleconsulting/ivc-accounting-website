@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 
-export default function Hero() {
+const Hero = () => {
   const [clientCount, setClientCount] = useState(42); // Default value
   
   useEffect(() => {
@@ -27,67 +27,51 @@ export default function Hero() {
   }, []);
   
   return (
-    <section className="relative min-h-[80vh] bg-oracle-navy flex items-center justify-center overflow-hidden pt-20">
-      {/* Geometric Pattern Background */}
-      <div className="absolute inset-0 opacity-10" style={{
-        backgroundImage: `repeating-linear-gradient(
-          45deg,
-          transparent,
-          transparent 40px,
-          var(--oracle-orange) 40px,
-          var(--oracle-orange) 41px
-        )`
-      }} />
-      
+    <section className="relative min-h-[80vh] bg-[#1a2b4a] flex items-center">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute inset-0 diagonal-pattern opacity-10"></div>
+        <svg className="absolute bottom-0 w-full" viewBox="0 0 1440 400">
+          <polygon points="0,400 480,200 960,100 1440,300 1440,400" 
+                   fill="#ff6b35" opacity="0.1" />
+          <polygon points="0,400 720,250 1440,150 1440,400" 
+                   fill="#4a90e2" opacity="0.05" />
+        </svg>
+      </div>
+
       {/* Content */}
-      <div className="relative z-10 text-center px-4 max-w-5xl mx-auto">
-        <h1 className="text-6xl md:text-7xl lg:text-8xl font-black uppercase mb-6">
-          <span className="text-oracle-cream">OTHER ACCOUNTANTS FILE.</span>
-          <span className="block text-oracle-orange mt-2">WE FIGHT.</span>
-        </h1>
-        
-        {/* Client Counter */}
-        <div className="mt-8 mb-12">
-          <div className="relative inline-block group">
-            <div className="absolute -top-2 -left-2 w-full h-full border-2 border-oracle-orange group-hover:translate-x-1 group-hover:translate-y-1 transition-transform" />
-            <div className="relative bg-oracle-navy border-2 border-oracle-orange p-6">
-              <div className="flex items-center gap-4">
-                <div className="text-oracle-cream">
-                  <div className="text-5xl font-black">{clientCount}/50</div>
-                  <div className="text-sm uppercase tracking-wider">Clients</div>
-                </div>
-                <div className="w-48 bg-oracle-navy h-4 border border-oracle-cream/20">
-                  <div 
-                    className="h-full bg-oracle-orange" 
-                    style={{ width: `${(clientCount/50)*100}%` }}
-                  />
-                </div>
-              </div>
-              <p className="text-oracle-orange font-bold mt-2">
-                {50 - clientCount} SPOTS LEFT
-              </p>
-            </div>
+      <div className="container-xl mx-auto px-4 relative z-10">
+        <div className="max-w-3xl">
+          <h1 className="text-hero mb-6 text-[#f5f1e8]">
+            CORPORATE STRENGTH
+            <span className="block text-[#ff6b35]">FIGHTING SPIRIT</span>
+          </h1>
+          <p className="text-[#f5f1e8] text-xl mb-8 max-w-2xl">
+            We're not just accountants. We're your strategic partners in growth, combining
+            professional expertise with a rebellious drive to fight for your success.
+          </p>
+          <div className="flex flex-wrap gap-4">
+            <Link href="/contact" className="btn-primary">
+              START YOUR JOURNEY
+            </Link>
+            <Link href="/services" className="btn-secondary">
+              EXPLORE SERVICES
+            </Link>
           </div>
-        </div>
-        
-        <p className="text-xl md:text-2xl text-oracle-cream/80 mb-8 leading-relaxed">
-          50 clients. No investors. Just James Howard,<br />
-          your personal FCCA who actually gives a damn.
-        </p>
-        
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link href="/contact">
-            <button className="bg-oracle-orange hover:bg-oracle-orange/90 text-oracle-cream font-black uppercase px-8 py-4 text-lg transition-all hover:translate-x-1">
-              BOOK A NO-BS CALL →
-            </button>
-          </Link>
-          <Link href="/pricing">
-            <button className="border-2 border-oracle-cream text-oracle-cream hover:bg-oracle-cream hover:text-oracle-navy font-black uppercase px-8 py-4 text-lg transition-all">
-              SEE IF WE&apos;RE FULL
-            </button>
-          </Link>
+
+          {/* Data Grid Decoration */}
+          <div className="absolute bottom-8 right-8 hidden lg:grid grid-cols-8 gap-1">
+            {[...Array(64)].map((_, i) => (
+              <div 
+                key={i} 
+                className={`w-2 h-2 ${i % 3 === 0 ? 'bg-[#ff6b35]' : 'bg-[#4a90e2]'} opacity-20`}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </section>
   );
-}
+};
+
+export default Hero;

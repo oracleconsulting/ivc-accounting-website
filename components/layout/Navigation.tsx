@@ -39,8 +39,8 @@ export default function Navigation() {
   ]
 
   return (
-    <nav className="fixed w-full bg-oracle-navy border-b-2 border-oracle-orange z-50">
-      <div className="container mx-auto px-4">
+    <header className="fixed w-full bg-oracle-navy border-b-2 border-oracle-orange z-50">
+      <nav className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <Link href="/" className="flex items-center">
@@ -66,21 +66,20 @@ export default function Navigation() {
               {clientCount}/50 CLIENTS
             </div>
             
-            {/* IVC Outreach Link */}
-            <a
-              href="http://localhost:3001/admin"
-              target="_blank"
-              rel="noopener noreferrer"
+            {/* Client Login */}
+            <Link
+              href="/client-login"
               className="bg-oracle-blue hover:bg-oracle-blue/80 text-oracle-cream px-4 py-2 font-bold uppercase transition-colors"
             >
               CLIENT LOGIN
-            </a>
+            </Link>
           </div>
           
           {/* Mobile Menu Button */}
           <button
             className="lg:hidden text-oracle-cream"
             onClick={() => setIsOpen(!isOpen)}
+            aria-label={isOpen ? 'Close menu' : 'Open menu'}
           >
             {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
@@ -104,17 +103,16 @@ export default function Navigation() {
               {clientCount}/50 CLIENTS
             </div>
             
-            <a
-              href="http://localhost:3001/admin"
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link
+              href="/client-login"
               className="block mt-4 mx-4 text-center bg-oracle-blue hover:bg-oracle-blue/80 text-oracle-cream px-4 py-2 font-bold uppercase transition-colors"
+              onClick={() => setIsOpen(false)}
             >
               CLIENT LOGIN
-            </a>
+            </Link>
           </div>
         )}
-      </div>
-    </nav>
+      </nav>
+    </header>
   )
 }

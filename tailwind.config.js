@@ -1,37 +1,39 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    "./app/**/*.{js,ts,jsx,tsx,mdx}",
-    "./components/**/*.{js,ts,jsx,tsx,mdx}"
+    './app/**/*.{js,ts,jsx,tsx,mdx}',
+    './components/**/*.{js,ts,jsx,tsx,mdx}',
   ],
-  darkMode: 'class',
   theme: {
     extend: {
       colors: {
-        'oracle-navy': '#1a2b4a',
-        'oracle-cream': '#f5f1e8',
-        'oracle-orange': '#ff6b35',
-        'oracle-blue': '#4a90e2',
-        'oracle-dark': '#0f1829',
-      },
-      animation: {
-        'gradient-shift': 'gradient-shift 15s ease infinite',
-        'float': 'float 6s ease-in-out infinite',
-        'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
-      },
-      backgroundImage: {
-        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-        'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
-        'geometric-pattern': `repeating-linear-gradient(
-          45deg,
-          transparent,
-          transparent 35px,
-          rgba(255, 107, 53, 0.03) 35px,
-          rgba(255, 107, 53, 0.03) 70px
-        )`,
+        navy: '#1a2b4a',
+        cream: '#f5f1e8',
+        orange: '#ff6b35',
+        blue: '#4a90e2',
+        'dark-navy': '#0f1829',
+        'dark-orange': '#e55a2b',
+        'dark-blue': '#3a7bc8',
       },
       fontFamily: {
-        sans: ['var(--font-inter)', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+        sans: ['system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
+      },
+      fontSize: {
+        'hero': ['5rem', { lineHeight: '1.1', letterSpacing: '-0.02em' }],
+        'section': ['3rem', { lineHeight: '1.2', letterSpacing: '-0.01em' }],
+        'subsection': ['1.5rem', { lineHeight: '1.3' }],
+      },
+      spacing: {
+        'section': '6rem',
+      },
+      backgroundImage: {
+        'diagonal-pattern': `repeating-linear-gradient(
+          45deg,
+          transparent,
+          transparent 40px,
+          #ff6b35 40px,
+          #ff6b35 41px
+        )`,
       },
     },
   },
