@@ -1,8 +1,7 @@
 import { Metadata } from 'next'
-import Image from 'next/image'
-import Link from 'next/link'
 import { BreadcrumbSchema } from '@/components/seo/StructuredData'
-import { useAnalytics } from '@/hooks/useAnalytics'
+import BlogPost from '@/components/blog/BlogPost'
+import NewsletterForm from '@/components/blog/NewsletterForm'
 
 export const metadata: Metadata = {
   title: 'Blog - IVC Accounting | UK Business & Tax Insights',
@@ -59,8 +58,6 @@ const blogPosts: BlogPost[] = [
 ]
 
 export default function BlogPage() {
-  const { trackDoc } = useAnalytics()
-
   const breadcrumbs = [
     { name: 'Home', url: 'https://ivcaccounting.co.uk' },
     { name: 'Blog', url: 'https://ivcaccounting.co.uk/blog' }
@@ -85,18 +82,6 @@ export default function BlogPage() {
         url: 'https://ivcaccounting.co.uk/images/ivc-logo.png'
       }
     }
-  }
-
-  const handlePostClick = (post: BlogPost) => {
-    if (post.date !== 'Coming Soon') {
-      trackDoc(`blog_post_${post.slug}`)
-    }
-  }
-
-  const handleNewsletterSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    trackDoc('newsletter_signup_blog')
-    // Add newsletter signup logic here
   }
 
   return (
@@ -135,96 +120,14 @@ export default function BlogPage() {
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
             {blogPosts.map((post) => (
-              <article key={post.slug} className="relative group">
-                {/* Offset Border */}
-                <div className="absolute -top-2 -left-2 w-full h-full border-2 border-[#ff6b35] group-hover:translate-x-1 group-hover:translate-y-1 transition-transform" />
-                
-                {/* Card Content */}
-                <div className="relative bg-white border-2 border-[#1a2b4a] overflow-hidden">
-                  {/* Image */}
-                  <div className="relative h-48 overflow-hidden">
-                    <div className="absolute inset-0 bg-[#1a2b4a]">
-                      <div className="absolute inset-0 opacity-20" style={{
-                        backgroundImage: `repeating-linear-gradient(
-                          45deg,
-                          transparent,
-                          transparent 20px,
-                          #ff6b35 20px,
-                          #ff6b35 21px
-                        )`
-                      }} />
-                    </div>
-                    <div className="absolute top-4 left-4">
-                      <span className="bg-[#ff6b35] text-[#f5f1e8] px-3 py-1 text-sm font-bold">
-                        {post.category}
-                      </span>
-                    </div>
-                  </div>
-                  
-                  {/* Content */}
-                  <div className="p-6">
-                    <div className="flex justify-between items-center text-sm text-[#1a2b4a]/60 mb-4">
-                      <span>{post.date}</span>
-                      <span>{post.readTime}</span>
-                    </div>
-                    
-                    <h2 className="text-2xl font-black text-[#1a2b4a] mb-4">
-                      {post.title}
-                    </h2>
-                    
-                    <p className="text-[#1a2b4a]/80 mb-6">
-                      {post.description}
-                    </p>
-                    
-                    {post.date === 'Coming Soon' ? (
-                      <span className="text-[#ff6b35] font-bold">Coming Soon →</span>
-                    ) : (
-                      <Link 
-                        href={`/blog/${post.slug}`}
-                        className="text-[#ff6b35] font-bold hover:text-[#e55a2b]"
-                        onClick={() => handlePostClick(post)}
-                      >
-                        Read More →
-                      </Link>
-                    )}
-                  </div>
-                </div>
-              </article>
+              <BlogPost key={post.slug} post={post} />
             ))}
           </div>
         </div>
       </section>
 
       {/* Newsletter Section */}
-      <section className="py-16 bg-[#1a2b4a]">
-        <div className="container mx-auto px-4 max-w-4xl text-center">
-          <h2 className="text-3xl font-black uppercase text-[#f5f1e8] mb-4">
-            GET INSIGHTS <span className="text-[#ff6b35]">FIRST</span>
-          </h2>
-          <p className="text-[#f5f1e8]/80 mb-8 max-w-2xl mx-auto">
-            Join our fight. Get expert insights and actionable advice delivered straight to your inbox.
-          </p>
-          
-          <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-4 justify-center">
-            <input
-              type="email"
-              placeholder="Your email address"
-              className="px-6 py-3 bg-white border-2 border-[#ff6b35] text-[#1a2b4a] placeholder-[#1a2b4a]/50 focus:outline-none focus:border-[#e55a2b] min-w-[300px]"
-              required
-            />
-            <button
-              type="submit"
-              className="bg-[#ff6b35] hover:bg-[#e55a2b] text-[#f5f1e8] font-black uppercase px-8 py-3 transition-all hover:translate-x-1"
-            >
-              JOIN THE FIGHT →
-            </button>
-          </form>
-          
-          <p className="text-[#f5f1e8]/60 text-sm mt-4">
-            No spam. No fluff. Unsubscribe anytime.
-          </p>
-        </div>
-      </section>
+      <NewsletterForm />
     </>
   )
 } 

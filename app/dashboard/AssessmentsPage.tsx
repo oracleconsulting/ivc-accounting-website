@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { useOracleData } from '../../contexts/OracleDataContext';
-import { useNavigate } from 'react-router-dom';
+import { useOracleData } from '@/src/contexts/OracleDataContext';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { CheckCircle } from 'lucide-react';
 
 export const AssessmentsPage = ({ isComplete }: { isComplete: boolean }) => {
   const { data } = useOracleData();
-  const navigate = useNavigate();
+  const router = useRouter();
 
   // Show fit message if Part 1 is complete but Part 2 is not
   if (data?.part1Complete && !data?.part2Complete && data?.fitMessage) {
@@ -59,7 +59,7 @@ export const AssessmentsPage = ({ isComplete }: { isComplete: boolean }) => {
                 <p className="text-teal-50">Let's dive deeper into your business and create your personalized roadmap.</p>
               </div>
               <button
-                onClick={() => navigate('/assessment/part2')}
+                onClick={() => router.push('/assessment/part2')}
                 className="bg-white text-teal-600 px-6 py-3 rounded-xl font-bold hover:bg-teal-50 transition-colors"
               >
                 Start Part 2 →
