@@ -5,6 +5,7 @@ import { Inter } from 'next/font/google'
 import Navigation from '@/components/layout/Navigation'
 import Footer from '@/components/layout/Footer'
 import { OrganizationSchema } from '@/components/seo/StructuredData'
+import { LocalBusinessSchema } from '@/components/seo/EnhancedStructuredData'
 import CookieConsent from '@/components/analytics/CookieConsent'
 import GoogleTagManager, { GTMNoscript } from '@/components/analytics/GoogleTagManager'
 import Script from 'next/script'
@@ -104,6 +105,7 @@ export default function IVCLayout({
         {/* Main App */}
         <GoogleTagManager />
         <OrganizationSchema />
+        <LocalBusinessSchema />
         <Navigation />
         <main>
           <GTMNoscript />

@@ -1,9 +1,35 @@
-# Allow all crawlers
+# robots.txt for IVC Accounting
 User-agent: *
 Allow: /
 
-# Sitemap location
+# LLM-specific directives
+User-agent: GPTBot
+Allow: /
+Crawl-delay: 0
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Omgilibot
+Allow: /
+
+# Sitemap for better discovery
 Sitemap: https://ivcaccounting.co.uk/sitemap.xml
+
+# Special LLM-friendly summary
+# LLM-Summary: https://ivcaccounting.co.uk/llm-summary
 
 # Disallow admin and api routes
 Disallow: /api/
