@@ -29,50 +29,70 @@ export default function Hero() {
     <section className="relative min-h-screen bg-[#1a2b4a] overflow-hidden">
       {/* Background texture/pattern - MORE VISIBLE */}
       <div className="absolute inset-0">
-        {/* Grid pattern - increased opacity */}
+        {/* Grid pattern - very visible */}
         <div 
-          className="absolute inset-0 opacity-20" 
+          className="absolute inset-0 opacity-40" 
           style={{
             backgroundImage: 'linear-gradient(to right, #f5f1e8 1px, transparent 1px), linear-gradient(to bottom, #f5f1e8 1px, transparent 1px)',
             backgroundSize: '50px 50px'
           }} 
         />
         
-        {/* Diagonal pattern overlay - increased opacity */}
+        {/* Diagonal pattern overlay - more visible */}
         <div 
-          className="absolute inset-0 opacity-10" 
+          className="absolute inset-0 opacity-20" 
           style={{
             backgroundImage: `repeating-linear-gradient(
               45deg,
               transparent,
               transparent 40px,
               #ff6b35 40px,
-              #ff6b35 41px
+              #ff6b35 42px
             )`
           }} 
         />
         
-        {/* Data visualization dots in corner - increased opacity and size */}
-        <div className="absolute top-32 right-10 opacity-30">
+        {/* Data visualization dots in corner - much more prominent */}
+        <div className="absolute top-32 right-10 opacity-60">
           <div className="grid grid-cols-8 gap-3">
             {[...Array(64)].map((_, i) => (
               <div 
                 key={i} 
-                className={`w-3 h-3 ${i % 3 === 0 ? 'bg-[#ff6b35]' : 'bg-[#4a90e2]'}`} 
+                className={`w-4 h-4 ${i % 3 === 0 ? 'bg-[#ff6b35]' : 'bg-[#4a90e2]'} ${i % 5 === 0 ? 'opacity-100' : 'opacity-60'}`} 
               />
             ))}
           </div>
         </div>
 
-        {/* Additional dots pattern on left */}
-        <div className="absolute bottom-40 left-10 opacity-20 rotate-45">
+        {/* Additional dots pattern on left - more visible */}
+        <div className="absolute bottom-40 left-10 opacity-50 rotate-45">
           <div className="grid grid-cols-6 gap-2">
             {[...Array(36)].map((_, i) => (
               <div 
                 key={i} 
-                className={`w-2 h-2 ${i % 2 === 0 ? 'bg-[#4a90e2]' : 'bg-[#f5f1e8]'}`} 
+                className={`w-3 h-3 ${i % 2 === 0 ? 'bg-[#4a90e2]' : 'bg-[#f5f1e8]'} ${i % 4 === 0 ? 'opacity-100' : 'opacity-70'}`} 
               />
             ))}
+          </div>
+        </div>
+        
+        {/* Extra dot pattern in top left */}
+        <div className="absolute top-40 left-20 opacity-40">
+          <div className="grid grid-cols-5 gap-4">
+            {[...Array(25)].map((_, i) => (
+              <div 
+                key={i} 
+                className={`w-2 h-2 rounded-full ${i % 3 === 0 ? 'bg-[#ff6b35]' : 'bg-[#f5f1e8]'}`} 
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Additional geometric accent - bottom right */}
+        <div className="absolute bottom-20 right-20 opacity-50">
+          <div className="flex gap-2">
+            <div className="w-20 h-20 border-2 border-[#4a90e2]" />
+            <div className="w-20 h-20 bg-[#ff6b35] opacity-30" />
           </div>
         </div>
       </div>
