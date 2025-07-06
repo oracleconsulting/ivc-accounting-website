@@ -1,120 +1,179 @@
-import { Metadata } from 'next'
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
-import { BreadcrumbSchema } from '@/components/seo/StructuredData'
-import BlogPost from '@/components/blog/BlogPost'
-import NewsletterForm from '@/components/blog/NewsletterForm'
-import { formatDistanceToNow } from 'date-fns';
+import { Suspense } from 'react';
+import { createClient } from '@supabase/supabase-js';
+import { Metadata } from 'next';
+import BlogList from '@/components/blog/BlogList';
+import BlogFilters from '@/components/blog/BlogFilters';
+import BlogSearch from '@/components/blog/BlogSearch';
+import { Post, Category, Tag } from '@/lib/types/blog';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export const metadata: Metadata = {
-  title: 'Blog - IVC Accounting | UK Business & Tax Insights',
-  description: 'Expert insights on UK business accounting, tax strategy, and fighting for what you deserve. No jargon, just straight talk from James Howard.',
+  title: 'Blog | IVC Accounting - Latest Insights & Tips',
+  description: 'Stay updated with the latest accounting insights, tax tips, and business advice from IVC Accounting. Expert guidance for businesses and individuals.',
+  keywords: 'accounting blog, tax tips, business advice, IVC Accounting, Essex accountant',
+  openGraph: {
+    title: 'Blog | IVC Accounting',
+    description: 'Latest insights, tips, and updates from IVC Accounting',
+    type: 'website',
+    url: 'https://ivcaccounting.co.uk/blog',
+  },
+};
+
+interface BlogPageProps {
+  searchParams: {
+    category?: string;
+    tag?: string;
+    search?: string;
+    page?: string;
+  };
 }
 
-export default async function BlogPage() {
-  const supabase = createServerComponentClient({ cookies });
-  
-  // Fetch published posts from database
-  const { data: posts } = await supabase
+async function getBlogData(searchParams: BlogPageProps['searchParams']) {
+  const page = parseInt(searchParams.page || '1');
+  const limit = 12;
+  const offset = (page - 1) * limit;
+
+  let query = supabase
     .from('posts')
     .select(`
       *,
-      categories:post_categories(category:categories(*)),
-      tags:post_tags(tag:tags(*))
+      author:profiles!posts_author_id_fkey(name),
+      categories:post_categories(category:categories(name, slug)),
+      tags:post_tags(tag:tags(name, slug))
     `)
     .eq('status', 'published')
     .order('published_at', { ascending: false });
 
-  // Transform database posts to match existing BlogPost interface
-  const blogPosts = posts?.map(post => ({
-    slug: post.slug,
-    title: post.title,
-    description: post.excerpt || post.content_text?.substring(0, 150) + '...',
-    date: post.published_at ? formatDistanceToNow(new Date(post.published_at), { addSuffix: true }) : 'Recently',
-    readTime: `${post.read_time || 5} min read`,
-    image: post.featured_image || '/images/default-blog-image.jpg',
-    category: post.categories?.[0]?.category?.name || 'Business'
-  })) || [];
-
-  const breadcrumbs = [
-    { name: 'Home', url: 'https://ivcaccounting.co.uk' },
-    { name: 'Blog', url: 'https://ivcaccounting.co.uk/blog' }
-  ]
-
-  const blogSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'Blog',
-    name: 'IVC Accounting Blog',
-    description: 'Expert insights on UK business accounting, tax strategy, and fighting for what you deserve.',
-    url: 'https://ivcaccounting.co.uk/blog',
-    author: {
-      '@type': 'Person',
-      name: 'James Howard',
-      url: 'https://ivcaccounting.co.uk/team'
-    },
-    publisher: {
-      '@type': 'Organization',
-      name: 'IVC Accounting',
-      logo: {
-        '@type': 'ImageObject',
-        url: 'https://ivcaccounting.co.uk/images/ivc-logo.png'
-      }
-    }
+  // Apply filters
+  if (searchParams.category) {
+    query = query.eq('post_categories.category.slug', searchParams.category);
   }
 
+  if (searchParams.tag) {
+    query = query.eq('post_tags.tag.slug', searchParams.tag);
+  }
+
+  if (searchParams.search) {
+    query = query.or(`title.ilike.%${searchParams.search}%,content_text.ilike.%${searchParams.search}%`);
+  }
+
+  const { data: posts, count } = await query
+    .range(offset, offset + limit - 1);
+
+  // Get categories and tags for filters
+  const { data: categories } = await supabase
+    .from('categories')
+    .select('*')
+    .order('name');
+
+  const { data: tags } = await supabase
+    .from('tags')
+    .select('*')
+    .order('name');
+
+  return {
+    posts: posts || [],
+    categories: categories || [],
+    tags: tags || [],
+    totalCount: count || 0,
+    currentPage: page,
+    totalPages: Math.ceil((count || 0) / limit),
+  };
+}
+
+export default async function BlogPage({ searchParams }: BlogPageProps) {
+  const { posts, categories, tags, totalCount, currentPage, totalPages } = await getBlogData(searchParams);
+
   return (
-    <>
-      <BreadcrumbSchema items={breadcrumbs} />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(blogSchema) }}
-      />
-
+    <div className="min-h-screen bg-oracle-cream">
       {/* Hero Section */}
-      <section className="relative min-h-[40vh] bg-[#1a2b4a] pt-20 flex items-center justify-center">
-        <div className="absolute inset-0 opacity-20" style={{
-          backgroundImage: `repeating-linear-gradient(
-            45deg,
-            transparent,
-            transparent 40px,
-            #ff6b35 40px,
-            #ff6b35 41px
-          )`
-        }} />
-        
-        <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-black uppercase mb-6">
-            <span className="text-[#f5f1e8]">INSIGHTS THAT</span>{' '}
-            <span className="text-[#ff6b35]">FIGHT FOR YOU</span>
-          </h1>
-          <p className="text-xl text-[#f5f1e8]/80 max-w-2xl mx-auto">
-            No corporate jargon. No fluff. Just actionable advice to help your business win.
-          </p>
-        </div>
-      </section>
-
-      {/* Blog Posts Grid */}
-      <section className="py-16 bg-[#f5f1e8]">
+      <div className="bg-gradient-to-br from-oracle-navy to-oracle-blue text-white py-16">
         <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
-            {blogPosts.map((post) => (
-              <BlogPost key={post.slug} post={post} />
-            ))}
-          </div>
-          
-          {blogPosts.length === 0 && (
-            <div className="text-center py-20">
-              <h3 className="text-2xl font-bold text-[#1a2b4a] mb-4">Coming Soon</h3>
-              <p className="text-gray-600 max-w-md mx-auto">
-                We're working on some killer content. Check back soon for expert insights on accounting, tax strategy, and business growth.
-              </p>
+          <div className="max-w-4xl mx-auto text-center">
+            <h1 className="text-5xl font-black mb-6">
+              IVC Accounting Blog
+            </h1>
+            <p className="text-xl mb-8 text-oracle-cream/90">
+              Expert insights, practical tips, and the latest updates to help your business thrive
+            </p>
+            
+            {/* Search Bar */}
+            <div className="max-w-2xl mx-auto">
+              <BlogSearch initialSearch={searchParams.search} />
             </div>
-          )}
+          </div>
         </div>
-      </section>
+      </div>
 
-      {/* Newsletter Section */}
-      <NewsletterForm />
-    </>
-  )
+      <div className="container mx-auto px-4 py-12">
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Sidebar Filters */}
+          <div className="lg:w-1/4">
+            <div className="sticky top-8">
+              <BlogFilters
+                categories={categories}
+                tags={tags}
+                selectedCategory={searchParams.category}
+                selectedTag={searchParams.tag}
+                totalPosts={totalCount}
+              />
+            </div>
+          </div>
+
+          {/* Main Content */}
+          <div className="lg:w-3/4">
+            {/* Results Header */}
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-2xl font-bold text-oracle-navy">
+                  {searchParams.search && `Search results for "${searchParams.search}"`}
+                  {searchParams.category && `Category: ${categories.find(c => c.slug === searchParams.category)?.name}`}
+                  {searchParams.tag && `Tag: ${tags.find(t => t.slug === searchParams.tag)?.name}`}
+                  {!searchParams.search && !searchParams.category && !searchParams.tag && 'Latest Posts'}
+                </h2>
+                <span className="text-gray-600">
+                  {totalCount} post{totalCount !== 1 ? 's' : ''}
+                </span>
+              </div>
+              
+              {/* Active Filters */}
+              {(searchParams.category || searchParams.tag || searchParams.search) && (
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {searchParams.category && (
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-oracle-orange text-white">
+                      Category: {categories.find(c => c.slug === searchParams.category)?.name}
+                    </span>
+                  )}
+                  {searchParams.tag && (
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-oracle-blue text-white">
+                      Tag: {tags.find(t => t.slug === searchParams.tag)?.name}
+                    </span>
+                  )}
+                  {searchParams.search && (
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-600 text-white">
+                      Search: "{searchParams.search}"
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Blog Posts Grid */}
+            <Suspense fallback={<div>Loading posts...</div>}>
+              <BlogList 
+                posts={posts} 
+                currentPage={currentPage}
+                totalPages={totalPages}
+                searchParams={searchParams}
+              />
+            </Suspense>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 } 

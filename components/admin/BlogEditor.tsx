@@ -14,6 +14,9 @@ import { common, createLowlight } from 'lowlight';
 import EditorToolbar from './EditorToolbar';
 import SEOPanel from './SEOPanel';
 import AIAssistant from './AIAssistant';
+import CategorySelector from './CategorySelector';
+import TagSelector from './TagSelector';
+import ImageUpload from './ImageUpload';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { generateSlug, calculateReadTime } from '@/lib/utils/blog';
 import { uploadImage } from '@/lib/utils/storage';
@@ -33,8 +36,8 @@ export default function BlogEditor({ post, onSave, onPublish }: BlogEditorProps)
   const [slug, setSlug] = useState(post?.slug || '');
   const [excerpt, setExcerpt] = useState(post?.excerpt || '');
   const [featuredImage, setFeaturedImage] = useState(post?.featured_image || '');
-  const [categories, setCategories] = useState<string[]>([]);
-  const [tags, setTags] = useState<string[]>([]);
+  const [categories, setCategories] = useState<string[]>(post?.categories?.map(c => c.id) || []);
+  const [tags, setTags] = useState<string[]>(post?.tags?.map(t => t.id) || []);
   const [seoData, setSeoData] = useState({
     seo_title: post?.seo_title || '',
     seo_description: post?.seo_description || '',
@@ -112,7 +115,9 @@ export default function BlogEditor({ post, onSave, onPublish }: BlogEditorProps)
         featured_image: featuredImage,
         read_time,
         ...seoData,
-        status: 'draft'
+        status: 'draft',
+        category_ids: categories,
+        tag_ids: tags
       });
       
       setAutoSaveStatus('saved');
@@ -168,7 +173,9 @@ export default function BlogEditor({ post, onSave, onPublish }: BlogEditorProps)
       read_time,
       ...finalSeoData,
       status: 'published',
-      published_at: new Date().toISOString()
+      published_at: new Date().toISOString(),
+      category_ids: categories,
+      tag_ids: tags
     });
   };
 
@@ -245,27 +252,24 @@ export default function BlogEditor({ post, onSave, onPublish }: BlogEditorProps)
 
           {/* Categories & Tags */}
           <div className="mt-6 space-y-4">
-            <div>
-              <label className="block text-sm font-bold text-[#1a2b4a] mb-2">
-                Categories
-              </label>
-              {/* Category selector component */}
-            </div>
+            <CategorySelector
+              selectedCategories={categories}
+              onChange={setCategories}
+            />
             
-            <div>
-              <label className="block text-sm font-bold text-[#1a2b4a] mb-2">
-                Tags
-              </label>
-              {/* Tag selector component */}
-            </div>
+            <TagSelector
+              selectedTags={tags}
+              onChange={setTags}
+            />
           </div>
 
           {/* Featured Image */}
           <div className="mt-6">
-            <label className="block text-sm font-bold text-[#1a2b4a] mb-2">
-              Featured Image
-            </label>
-            {/* Image upload component */}
+            <ImageUpload
+              value={featuredImage}
+              onChange={setFeaturedImage}
+              onRemove={() => setFeaturedImage('')}
+            />
           </div>
         </div>
 

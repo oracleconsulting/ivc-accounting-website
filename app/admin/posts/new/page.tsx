@@ -18,10 +18,13 @@ export default function NewPostPage() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
+      // Extract category and tag IDs
+      const { category_ids, tag_ids, ...postFields } = postData;
+      
       const { data, error } = await supabase
         .from('posts')
         .insert([{
-          ...postData,
+          ...postFields,
           author_id: user?.id,
           view_count: 0
         }])
@@ -29,6 +32,30 @@ export default function NewPostPage() {
         .single();
 
       if (error) throw error;
+      
+      // Handle category relationships
+      if (category_ids && category_ids.length > 0) {
+        const categoryRelations = category_ids.map(categoryId => ({
+          post_id: data.id,
+          category_id: categoryId
+        }));
+        
+        await supabase
+          .from('post_categories')
+          .insert(categoryRelations);
+      }
+      
+      // Handle tag relationships
+      if (tag_ids && tag_ids.length > 0) {
+        const tagRelations = tag_ids.map(tagId => ({
+          post_id: data.id,
+          tag_id: tagId
+        }));
+        
+        await supabase
+          .from('post_tags')
+          .insert(tagRelations);
+      }
       
       toast.success('Draft saved successfully');
       return data;
@@ -46,10 +73,13 @@ export default function NewPostPage() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
+      // Extract category and tag IDs
+      const { category_ids, tag_ids, ...postFields } = postData;
+      
       const { data, error } = await supabase
         .from('posts')
         .insert([{
-          ...postData,
+          ...postFields,
           author_id: user?.id,
           view_count: 0,
           status: 'published',
@@ -59,6 +89,30 @@ export default function NewPostPage() {
         .single();
 
       if (error) throw error;
+      
+      // Handle category relationships
+      if (category_ids && category_ids.length > 0) {
+        const categoryRelations = category_ids.map(categoryId => ({
+          post_id: data.id,
+          category_id: categoryId
+        }));
+        
+        await supabase
+          .from('post_categories')
+          .insert(categoryRelations);
+      }
+      
+      // Handle tag relationships
+      if (tag_ids && tag_ids.length > 0) {
+        const tagRelations = tag_ids.map(tagId => ({
+          post_id: data.id,
+          tag_id: tagId
+        }));
+        
+        await supabase
+          .from('post_tags')
+          .insert(tagRelations);
+      }
       
       toast.success('Post published successfully!');
       router.push('/admin/posts');

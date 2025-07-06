@@ -21,6 +21,18 @@ export interface Post {
   read_time: number;
   categories?: Category[];
   tags?: Tag[];
+  category_ids?: string[];
+  tag_ids?: string[];
+  author?: {
+    name: string;
+    email: string;
+  };
+  post_categories?: Array<{
+    category: Category;
+  }>;
+  post_tags?: Array<{
+    tag: Tag;
+  }>;
 }
 
 export interface Category {
