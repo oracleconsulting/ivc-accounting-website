@@ -3,7 +3,7 @@ import { Metadata } from 'next'
 import { Phone, Mail, Calendar, Clock } from 'lucide-react'
 import Button from '@/components/shared/Button'
 import Link from 'next/link'
-import { BreadcrumbSchema } from '@/components/seo/StructuredData'
+import { BreadcrumbStructuredData } from '@/components/seo/StructuredData'
 
 export const metadata: Metadata = {
   title: 'Contact IVC Accounting - Book a No-BS Call with James',
@@ -18,7 +18,7 @@ export default function ContactPage() {
 
   return (
     <>
-      <BreadcrumbSchema items={breadcrumbs} />
+      <BreadcrumbStructuredData items={breadcrumbs} />
       
       {/* Hero Section */}
       <section className="relative min-h-[50vh] flex items-center justify-center overflow-hidden bg-[#1a2b4a] pt-20">

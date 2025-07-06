@@ -3,7 +3,7 @@ import { Metadata } from 'next'
 import Image from 'next/image'
 import { Award, Briefcase, Shield, Target, Heart, Users, Calendar, GraduationCap, Building, Rocket } from 'lucide-react'
 import Button from '@/components/shared/Button'
-import { BreadcrumbSchema } from '@/components/seo/StructuredData'
+import { BreadcrumbStructuredData } from '@/components/seo/StructuredData'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
@@ -19,7 +19,7 @@ export default function TeamPage() {
 
   return (
     <>
-      <BreadcrumbSchema items={breadcrumbs} />
+      <BreadcrumbStructuredData items={breadcrumbs} />
       
       {/* Hero Section */}
       <section className="relative min-h-[60vh] flex items-center justify-center overflow-hidden bg-[#1a2b4a] pt-20">

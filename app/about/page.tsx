@@ -4,7 +4,7 @@ import Image from 'next/image'
 import { TrendingUp, Users, Target, Award, Heart, Briefcase } from 'lucide-react'
 import Button from '@/components/shared/Button'
 import Link from 'next/link'
-import { BreadcrumbSchema } from '@/components/seo/StructuredData'
+import { BreadcrumbStructuredData } from '@/components/seo/StructuredData'
 
 export const metadata: Metadata = {
   title: 'About IVC Accounting - Our Story & Values',
@@ -37,7 +37,7 @@ export default function AboutPage() {
 
   return (
     <>
-      <BreadcrumbSchema items={breadcrumbs} />
+      <BreadcrumbStructuredData items={breadcrumbs} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(personSchema) }}

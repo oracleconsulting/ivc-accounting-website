@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { BreadcrumbSchema } from '@/components/seo/StructuredData'
+import { BreadcrumbStructuredData } from '@/components/seo/StructuredData'
 import { useAnalytics } from '@/hooks/useAnalytics'
 import { useEffect } from 'react'
 
@@ -63,7 +63,7 @@ export default function LondonAccountantPage() {
 
   return (
     <>
-      <BreadcrumbSchema items={breadcrumbs} />
+      <BreadcrumbStructuredData items={breadcrumbs} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }}

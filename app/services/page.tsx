@@ -3,7 +3,7 @@ import { Metadata } from 'next'
 import { Shield, Target, TrendingUp } from 'lucide-react'
 import Button from '@/components/shared/Button'
 import Link from 'next/link'
-import { BreadcrumbSchema, ServiceSchema } from '@/components/seo/StructuredData'
+import { BreadcrumbStructuredData, ServiceStructuredData } from '@/components/seo/StructuredData'
 
 export const metadata: Metadata = {
   title: 'Services - Essential Compliance, Strategic Advisory & Growth',
@@ -138,7 +138,7 @@ export default function ServicesPage() {
 
   return (
     <>
-      <BreadcrumbSchema items={breadcrumbs} />
+      <BreadcrumbStructuredData items={breadcrumbs} />
       
       {/* Hero Section */}
       <section className="relative min-h-[50vh] flex items-center justify-center overflow-hidden bg-[#1a2b4a] pt-20">
@@ -170,7 +170,7 @@ export default function ServicesPage() {
             id={service.id}
             className={`py-20 px-4 ${index % 2 === 0 ? 'bg-[#f5f1e8]' : 'bg-white'}`}
           >
-            <ServiceSchema
+            <ServiceStructuredData
               serviceName={service.name}
               description={service.longDescription || service.description}
               provider="IVC Accounting"
