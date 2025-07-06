@@ -16,7 +16,7 @@ import {
   BarChart3
 } from 'lucide-react';
 
-export default function AdminSidebar() {
+export default function AdminSidebarV2() {
   const router = useRouter();
   const pathname = usePathname();
 

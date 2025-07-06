@@ -1,7 +1,7 @@
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import AdminSidebar from '@/components/admin/AdminSidebar';
+import AdminSidebarV2 from '@/components/admin/AdminSidebarV2';
 import AdminHeader from '@/components/admin/AdminHeader';
 
 export default async function AdminLayout({
@@ -42,7 +42,7 @@ export default async function AdminLayout({
     <div className="min-h-screen bg-[#f5f1e8]">
       <AdminHeader />
       <div className="flex">
-        <AdminSidebar />
+        <AdminSidebarV2 key="v2" />
         <main className="flex-1 p-8">
           {children}
         </main>
