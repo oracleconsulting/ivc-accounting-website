@@ -117,6 +117,25 @@ export default function Footer() {
             </div>
           </div>
         </div>
+        
+        {/* Add new location section */}
+        <div className="border-t border-[#f5f1e8]/20 mt-8 pt-8">
+          <div className="text-center">
+            <h3 className="font-bold text-[#ff6b35] mb-4">
+              CHARTERED ACCOUNTANTS IN HALSTEAD, ESSEX
+            </h3>
+            <address className="text-[#f5f1e8]/60 not-italic">
+              IVC Accounting<br />
+              [Your Street Address]<br />
+              Halstead, Essex CO9 [Postcode]<br />
+              Tel: [Your Phone Number]<br />
+              Email: james@ivcaccounting.co.uk
+            </address>
+            <p className="text-sm text-[#f5f1e8]/40 mt-4">
+              Serving Halstead, Braintree, Colchester, Chelmsford, and all of Essex
+            </p>
+          </div>
+        </div>
       </div>
     </footer>
   )

@@ -3,6 +3,7 @@ const nextConfig = {
   output: 'standalone',
   compress: true,
   poweredByHeader: false,
+  swcMinify: true,
   
   // Enhanced image optimization
   images: {
@@ -10,6 +11,7 @@ const nextConfig = {
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    minimumCacheTTL: 60,
     remotePatterns: [
       {
         protocol: 'https',
@@ -20,9 +22,13 @@ const nextConfig = {
     ],
   },
   
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
+  
   // Enable ISR for better performance
   experimental: {
-    isrMemoryCacheSize: 50,
+    optimizeCss: true,
   },
   
   // Security and performance headers
@@ -36,6 +42,10 @@ const nextConfig = {
             value: 'on'
           },
           {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=31536000; includeSubDomains'
+          },
+          {
             key: 'X-Frame-Options',
             value: 'SAMEORIGIN'
           },
@@ -45,11 +55,11 @@ const nextConfig = {
           },
           {
             key: 'Referrer-Policy',
-            value: 'strict-origin-when-cross-origin'
+            value: 'origin-when-cross-origin'
           },
           {
-            key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=()'
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
           }
         ],
       },

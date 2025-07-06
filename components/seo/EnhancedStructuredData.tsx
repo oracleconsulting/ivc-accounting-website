@@ -8,27 +8,65 @@ export function LocalBusinessSchema() {
           "@type": "AccountingService",
           "@id": "https://ivcaccounting.co.uk/#organization",
           "name": "IVC Accounting",
-          "alternateName": "IVC",
+          "alternateName": "IVC Chartered Accountants Halstead",
+          "description": "Personal chartered accountants in Halstead, Essex with a 50-client limit",
           "url": "https://ivcaccounting.co.uk",
           "logo": "https://ivcaccounting.co.uk/images/ivc-logo.png",
           "image": [
-            "https://ivcaccounting.co.uk/images/office-1x1.jpg",
-            "https://ivcaccounting.co.uk/images/office-4x3.jpg",
-            "https://ivcaccounting.co.uk/images/office-16x9.jpg"
+            "https://ivcaccounting.co.uk/images/james-howard.jpg",
+            "https://ivcaccounting.co.uk/images/ivc-logo.png"
           ],
-          "description": "Personal UK accounting services with a 50-client limit. Other accountants file. We fight.",
-          "slogan": "Other Accountants File. We Fight.",
-          "foundingDate": "2021",
           "founder": {
             "@type": "Person",
             "name": "James Howard",
-            "jobTitle": "Founder & CPA",
-            "image": "https://ivcaccounting.co.uk/images/james-howard.jpg"
+            "jobTitle": "Chartered Accountant & Founder",
+            "alumniOf": "ACCA"
           },
-          "areaServed": {
-            "@type": "Country",
-            "name": "United Kingdom"
+          "foundingDate": "2021",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "[ADD YOUR STREET ADDRESS]",
+            "addressLocality": "Halstead",
+            "addressRegion": "Essex",
+            "postalCode": "[ADD YOUR POSTCODE]",
+            "addressCountry": "GB"
           },
+          "geo": {
+            "@type": "GeoCoordinates",
+            "latitude": 51.9456,
+            "longitude": 0.6309
+          },
+          "telephone": "[ADD YOUR PHONE]",
+          "email": "james@ivcaccounting.co.uk",
+          "priceRange": "£500-£1250",
+          "openingHoursSpecification": [{
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+            "opens": "09:00",
+            "closes": "17:00"
+          }],
+          "areaServed": [
+            {
+              "@type": "City",
+              "name": "Halstead",
+              "@id": "https://www.wikidata.org/wiki/Q1571915"
+            },
+            {
+              "@type": "City", 
+              "name": "Braintree",
+              "@id": "https://www.wikidata.org/wiki/Q894094"
+            },
+            {
+              "@type": "City",
+              "name": "Colchester",
+              "@id": "https://www.wikidata.org/wiki/Q184775"
+            },
+            {
+              "@type": "AdministrativeArea",
+              "name": "Essex",
+              "@id": "https://www.wikidata.org/wiki/Q23240"
+            }
+          ],
           "hasOfferCatalog": {
             "@type": "OfferCatalog",
             "name": "Accounting Services",
@@ -38,8 +76,8 @@ export function LocalBusinessSchema() {
                 "itemOffered": {
                   "@type": "Service",
                   "name": "Essential Fighter",
-                  "description": "Complete compliance and strategic advisory",
-                  "price": "500",
+                  "description": "Complete compliance and monthly strategic guidance for Essex businesses",
+                  "price": "500.00",
                   "priceCurrency": "GBP"
                 }
               },
@@ -48,8 +86,8 @@ export function LocalBusinessSchema() {
                 "itemOffered": {
                   "@type": "Service",
                   "name": "Growth Warrior",
-                  "description": "Enhanced strategic support and forecasting",
-                  "price": "750",
+                  "description": "Enhanced support for scaling Essex companies",
+                  "price": "750.00",
                   "priceCurrency": "GBP"
                 }
               },
@@ -58,45 +96,24 @@ export function LocalBusinessSchema() {
                 "itemOffered": {
                   "@type": "Service",
                   "name": "Scale Champion",
-                  "description": "Comprehensive business support and board attendance",
-                  "price": "1250",
+                  "description": "Comprehensive business support for established Essex companies",
+                  "price": "1250.00",
                   "priceCurrency": "GBP"
                 }
               }
             ]
           },
-          "address": {
-            "@type": "PostalAddress",
-            "addressCountry": "GB",
-            "addressRegion": "England"
-          },
-          "contactPoint": {
-            "@type": "ContactPoint",
-            "contactType": "Sales",
-            "telephone": "+44-xxx-xxx-xxxx",
-            "email": "james@ivcaccounting.co.uk",
-            "availableLanguage": "English"
+          "slogan": "Other Accountants File. We Fight.",
+          "knowsAbout": ["UK Tax Law", "HMRC Compliance", "Small Business Accounting", "VAT Returns", "Payroll", "R&D Tax Credits"],
+          "memberOf": {
+            "@type": "Organization",
+            "name": "ACCA",
+            "description": "Association of Chartered Certified Accountants"
           },
           "sameAs": [
             "https://www.linkedin.com/company/ivc-accounting",
             "https://twitter.com/ivcaccounting"
-          ],
-          "knowsAbout": [
-            "UK Tax Law",
-            "Business Strategy",
-            "Financial Planning",
-            "HMRC Compliance",
-            "Small Business Accounting"
-          ],
-          "hasCredential": {
-            "@type": "EducationalOccupationalCredential",
-            "credentialCategory": "Professional Certification",
-            "name": "Chartered Certified Accountant",
-            "issuedBy": {
-              "@type": "Organization",
-              "name": "ACCA"
-            }
-          }
+          ]
         })
       }}
     />
