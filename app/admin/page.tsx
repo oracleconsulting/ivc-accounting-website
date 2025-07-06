@@ -8,7 +8,14 @@ import {
   TrendingUp,
   Plus,
   Edit,
-  Calendar
+  Calendar,
+  Share2,
+  Rss,
+  BarChart3,
+  Database,
+  Settings,
+  Mail,
+  Key
 } from 'lucide-react';
 
 export default async function AdminDashboard() {
@@ -130,6 +137,59 @@ export default async function AdminDashboard() {
             {(!recentPosts || recentPosts.length === 0) && (
               <p className="text-gray-500 text-center py-4">No posts yet</p>
             )}
+          </div>
+        </div>
+      </div>
+
+      {/* Comprehensive Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="bg-white p-6 rounded-lg shadow-lg">
+          <h3 className="font-semibold mb-4">Content Management</h3>
+          <div className="space-y-2">
+            <Link href="/admin/posts/new" className="flex items-center gap-2 text-blue-600 hover:underline">
+              <Plus className="h-4 w-4" />
+              Create New Post
+            </Link>
+            <Link href="/admin/social" className="flex items-center gap-2 text-blue-600 hover:underline">
+              <Share2 className="h-4 w-4" />
+              Schedule Social Media
+            </Link>
+            <Link href="/admin/news" className="flex items-center gap-2 text-blue-600 hover:underline">
+              <Rss className="h-4 w-4" />
+              Monitor RSS Feeds
+            </Link>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-lg shadow-lg">
+          <h3 className="font-semibold mb-4">Analytics & Reports</h3>
+          <div className="space-y-2">
+            <Link href="/admin/analytics" className="flex items-center gap-2 text-blue-600 hover:underline">
+              <BarChart3 className="h-4 w-4" />
+              View Analytics
+            </Link>
+            <Link href="/admin/database" className="flex items-center gap-2 text-blue-600 hover:underline">
+              <Database className="h-4 w-4" />
+              Database Management
+            </Link>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-lg shadow-lg">
+          <h3 className="font-semibold mb-4">Configuration</h3>
+          <div className="space-y-2">
+            <Link href="/admin/settings" className="flex items-center gap-2 text-blue-600 hover:underline">
+              <Settings className="h-4 w-4" />
+              General Settings
+            </Link>
+            <Link href="/admin/settings/email" className="flex items-center gap-2 text-blue-600 hover:underline">
+              <Mail className="h-4 w-4" />
+              Email Configuration
+            </Link>
+            <Link href="/admin/settings/api-keys" className="flex items-center gap-2 text-blue-600 hover:underline">
+              <Key className="h-4 w-4" />
+              API Keys
+            </Link>
           </div>
         </div>
       </div>

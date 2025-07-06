@@ -3,105 +3,62 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
+  LayoutDashboard, 
   FileText, 
   Plus, 
-  Settings, 
-  BarChart3, 
+  FolderOpen, 
+  Tag, 
   Users, 
-  Tag,
-  FolderOpen,
+  Settings,
   Share2,
   Rss,
   Database,
-  Activity
+  BarChart3,
+  Mail
 } from 'lucide-react';
 
 export default function AdminSidebar() {
   const pathname = usePathname();
 
-  const navItems = [
-    {
-      href: '/admin',
-      label: 'Dashboard',
-      icon: BarChart3
-    },
-    {
-      href: '/admin/posts',
-      label: 'All Posts',
-      icon: FileText
-    },
-    {
-      href: '/admin/posts/new',
-      label: 'New Post',
-      icon: Plus
-    },
-    {
-      href: '/admin/categories',
-      label: 'Categories',
-      icon: FolderOpen
-    },
-    {
-      href: '/admin/tags',
-      label: 'Tags',
-      icon: Tag
-    },
-    {
-      href: '/admin/users',
-      label: 'Users',
-      icon: Users
-    },
-    {
-      href: '/admin/settings',
-      label: 'Settings',
-      icon: Settings
-    },
-    {
-      href: '/admin/social',
-      label: 'Social Media',
-      icon: Share2
-    },
-    {
-      href: '/admin/rss',
-      label: 'RSS Feeds',
-      icon: Rss
-    },
-    {
-      href: '/admin/database',
-      label: 'Database',
-      icon: Database
-    },
-    {
-      href: '/admin/analytics',
-      label: 'Analytics',
-      icon: Activity
-    }
+  const navigation = [
+    { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
+    { name: 'All Posts', href: '/admin/posts', icon: FileText },
+    { name: 'New Post', href: '/admin/posts/new', icon: Plus },
+    { name: 'Categories', href: '/admin/categories', icon: FolderOpen },
+    { name: 'Tags', href: '/admin/tags', icon: Tag },
+    { name: 'Users', href: '/admin/users', icon: Users },
+    { name: 'Social Media', href: '/admin/social', icon: Share2 },
+    { name: 'RSS/News', href: '/admin/news', icon: Rss },
+    { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
+    { name: 'Database', href: '/admin/database', icon: Database },
+    { name: 'Settings', href: '/admin/settings', icon: Settings },
   ];
 
+  const isActive = (href: string) => {
+    if (href === '/admin') return pathname === href;
+    return pathname.startsWith(href);
+  };
+
   return (
-    <aside className="w-64 bg-white shadow-lg min-h-screen">
-      <nav className="p-4">
-        <ul className="space-y-2">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = pathname === item.href;
-            
-            return (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                    isActive 
-                      ? 'bg-[#ff6b35] text-white' 
-                      : 'text-[#1a2b4a] hover:bg-[#f5f1e8]'
-                  }`}
-                >
-                  <Icon className="w-5 h-5" />
-                  <span className="font-medium">{item.label}</span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
+    <aside className="w-64 bg-white shadow-md">
+      <nav className="p-4 space-y-1">
+        {navigation.map((item) => {
+          const active = isActive(item.href);
+          return (
+            <Link
+              key={item.name}
+              href={item.href}
+              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                active
+                  ? 'bg-[#ff6b35] text-white'
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <item.icon className="h-5 w-5" />
+              <span>{item.name}</span>
+            </Link>
+          );
+        })}
       </nav>
     </aside>
   );
