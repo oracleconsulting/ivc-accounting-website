@@ -24,6 +24,14 @@ ENV NEXT_TELEMETRY_DISABLED 1
 # Install additional build dependencies
 RUN npm install -D postcss-loader style-loader css-loader
 
+# IMPORTANT: Add build-time arguments for Supabase
+ARG NEXT_PUBLIC_SUPABASE_URL
+ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+# Set them as environment variables for the build
+ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
+ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
+
 # Build the project
 RUN npm run build
 
@@ -55,4 +63,4 @@ EXPOSE 3000
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
 
-CMD ["node", "server.js"] 
+CMD ["node", "server.js"]
