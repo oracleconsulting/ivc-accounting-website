@@ -2,26 +2,43 @@ import { Pinecone } from '@pinecone-database/pinecone';
 import { OpenAI } from 'openai';
 
 export class PineconeService {
-  private pinecone: Pinecone;
-  private openai: OpenAI;
+  private pinecone: Pinecone | null = null;
+  private openai: OpenAI | null = null;
   private indexName: string;
 
   constructor() {
-    this.pinecone = new Pinecone({
-      apiKey: process.env.PINECONE_API_KEY!
-    });
-    
-    this.openai = new OpenAI({
-      apiKey: process.env.OPENROUTER_API_KEY!,
-      baseURL: 'https://openrouter.ai/api/v1'
-    });
-    
+    // Don't initialize here - wait until first use
     this.indexName = process.env.PINECONE_INDEX_NAME || 'ivc-blog-embeddings';
   }
 
+  // Lazy initialization
+  private async getClients() {
+    if (!this.pinecone) {
+      // Only initialize when actually needed
+      const apiKey = process.env.PINECONE_API_KEY;
+      
+      if (!apiKey) {
+        throw new Error('PINECONE_API_KEY is not configured');
+      }
+
+      this.pinecone = new Pinecone({
+        apiKey: apiKey
+      });
+
+      this.openai = new OpenAI({
+        apiKey: process.env.OPENROUTER_API_KEY!,
+        baseURL: 'https://openrouter.ai/api/v1'
+      });
+    }
+
+    return { pinecone: this.pinecone, openai: this.openai! };
+  }
+
   async createEmbedding(text: string): Promise<number[]> {
+    const { openai } = await this.getClients();
+    
     try {
-      const response = await this.openai.embeddings.create({
+      const response = await openai.embeddings.create({
         model: 'text-embedding-ada-002',
         input: text,
       });
@@ -40,12 +57,14 @@ export class PineconeService {
     type: 'blog' | 'knowledge' | 'document';
     metadata?: any;
   }) {
+    const { pinecone } = await this.getClients();
+    
     try {
       const embedding = await this.createEmbedding(
         `${doc.title}\n\n${doc.content}`
       );
       
-      const index = this.pinecone.index(this.indexName);
+      const index = pinecone.index(this.indexName);
       
       await index.upsert([{
         id: doc.id,
@@ -66,9 +85,11 @@ export class PineconeService {
   }
 
   async searchSimilar(query: string, topK: number = 10, filter?: any) {
+    const { pinecone } = await this.getClients();
+    
     try {
       const queryEmbedding = await this.createEmbedding(query);
-      const index = this.pinecone.index(this.indexName);
+      const index = pinecone.index(this.indexName);
       
       const results = await index.query({
         vector: queryEmbedding,
@@ -77,7 +98,7 @@ export class PineconeService {
         filter
       });
       
-      return results.matches;
+      return results.matches || [];
     } catch (error) {
       console.error('Error searching similar documents:', error);
       throw new Error('Failed to search documents');
@@ -96,8 +117,10 @@ export class PineconeService {
   }
 
   async deleteDocument(id: string) {
+    const { pinecone } = await this.getClients();
+    
     try {
-      const index = this.pinecone.index(this.indexName);
+      const index = pinecone.index(this.indexName);
       await index.deleteOne(id);
       console.log(`Deleted document: ${id}`);
     } catch (error) {
@@ -124,8 +147,10 @@ export class PineconeService {
   }
 
   async getIndexStats() {
+    const { pinecone } = await this.getClients();
+    
     try {
-      const index = this.pinecone.index(this.indexName);
+      const index = pinecone.index(this.indexName);
       const stats = await index.describeIndexStats();
       return stats;
     } catch (error) {
@@ -135,5 +160,5 @@ export class PineconeService {
   }
 }
 
-// Export singleton instance
+// Export singleton instance - but it won't initialize until first use
 export const pineconeService = new PineconeService(); 

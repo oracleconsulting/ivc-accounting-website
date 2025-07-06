@@ -6,11 +6,13 @@ import { Calendar, Clock, ArrowRight, Tag } from 'lucide-react';
 import { format } from 'date-fns';
 import { OrganizationStructuredData, BreadcrumbStructuredData } from '@/components/seo/StructuredData';
 
-// Initialize Supabase client
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// Initialize Supabase client with fallback
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+const supabase = supabaseUrl && supabaseServiceKey 
+  ? createClient(supabaseUrl, supabaseServiceKey)
+  : null;
 
 export const metadata: Metadata = {
   title: 'Blog | IVC Accounting - Tax Tips & Business Insights',
@@ -68,6 +70,11 @@ interface BlogPost {
 }
 
 async function getBlogPosts(): Promise<BlogPost[]> {
+  if (!supabase) {
+    console.warn('Supabase not configured, returning empty blog posts');
+    return [];
+  }
+
   const { data: posts, error } = await supabase
     .from('posts')
     .select(`
@@ -113,6 +120,11 @@ async function getBlogPosts(): Promise<BlogPost[]> {
 }
 
 async function getFeaturedPost(): Promise<BlogPost | null> {
+  if (!supabase) {
+    console.warn('Supabase not configured, returning null featured post');
+    return null;
+  }
+
   const { data: post, error } = await supabase
     .from('posts')
     .select(`

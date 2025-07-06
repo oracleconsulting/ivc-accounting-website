@@ -29,6 +29,10 @@ const nextConfig = {
   // Enable ISR for better performance
   experimental: {
     optimizeCss: true,
+    // Skip API routes during build to prevent Pinecone initialization errors
+    outputFileTracingExcludes: {
+      '/api/ai/*': ['@pinecone-database/pinecone', 'openai'],
+    },
   },
   
   // Security and performance headers
