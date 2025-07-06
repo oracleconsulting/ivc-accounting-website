@@ -1,63 +1,41 @@
 import { Metadata } from 'next'
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
 import { BreadcrumbSchema } from '@/components/seo/StructuredData'
 import BlogPost from '@/components/blog/BlogPost'
 import NewsletterForm from '@/components/blog/NewsletterForm'
+import { formatDistanceToNow } from 'date-fns';
 
 export const metadata: Metadata = {
   title: 'Blog - IVC Accounting | UK Business & Tax Insights',
   description: 'Expert insights on UK business accounting, tax strategy, and fighting for what you deserve. No jargon, just straight talk from James Howard.',
 }
 
-interface BlogPost {
-  slug: string
-  title: string
-  description: string
-  date: string
-  readTime: string
-  image: string
-  category: string
-}
+export default async function BlogPage() {
+  const supabase = createServerComponentClient({ cookies });
+  
+  // Fetch published posts from database
+  const { data: posts } = await supabase
+    .from('posts')
+    .select(`
+      *,
+      categories:post_categories(category:categories(*)),
+      tags:post_tags(tag:tags(*))
+    `)
+    .eq('status', 'published')
+    .order('published_at', { ascending: false });
 
-const blogPosts: BlogPost[] = [
-  {
-    slug: 'rd-tax-credits',
-    title: 'R&D Tax Credits for UK Tech Companies: The Complete Guide',
-    description: 'Everything UK tech companies need to know about R&D tax credits in 2025. Learn what qualifies, how to claim, and common mistakes to avoid.',
-    date: 'January 7, 2025',
-    readTime: '15 min read',
-    image: '/images/rd-tax-credits-guide.jpg',
-    category: 'Tax Strategy'
-  },
-  {
-    slug: 'pe-buys-accountant',
-    title: 'What Happens When PE Buys Your Accountant?',
-    description: 'A founder\'s guide to navigating the changes when private equity acquires your accounting firm. Real stories, real consequences.',
-    date: 'Coming Soon',
-    readTime: '12 min read',
-    image: '/images/pe-acquisition-guide.jpg',
-    category: 'Industry Insights'
-  },
-  {
-    slug: 'cheap-accounting-cost',
-    title: 'The True Cost of Cheap Accounting',
-    description: '5 UK business horror stories that show why the cheapest option often becomes the most expensive mistake.',
-    date: 'Coming Soon',
-    readTime: '10 min read',
-    image: '/images/accounting-mistakes.jpg',
-    category: 'Business Strategy'
-  },
-  {
-    slug: '50-client-limit',
-    title: 'Why We Turn Away £500k in Revenue Annually',
-    description: 'The business case for our 50-client limit, and why it actually makes us more money in the long run.',
-    date: 'Coming Soon',
-    readTime: '8 min read',
-    image: '/images/client-limit.jpg',
-    category: 'Company Culture'
-  }
-]
+  // Transform database posts to match existing BlogPost interface
+  const blogPosts = posts?.map(post => ({
+    slug: post.slug,
+    title: post.title,
+    description: post.excerpt || post.content_text?.substring(0, 150) + '...',
+    date: post.published_at ? formatDistanceToNow(new Date(post.published_at), { addSuffix: true }) : 'Recently',
+    readTime: `${post.read_time || 5} min read`,
+    image: post.featured_image || '/images/default-blog-image.jpg',
+    category: post.categories?.[0]?.category?.name || 'Business'
+  })) || [];
 
-export default function BlogPage() {
   const breadcrumbs = [
     { name: 'Home', url: 'https://ivcaccounting.co.uk' },
     { name: 'Blog', url: 'https://ivcaccounting.co.uk/blog' }
@@ -123,6 +101,15 @@ export default function BlogPage() {
               <BlogPost key={post.slug} post={post} />
             ))}
           </div>
+          
+          {blogPosts.length === 0 && (
+            <div className="text-center py-20">
+              <h3 className="text-2xl font-bold text-[#1a2b4a] mb-4">Coming Soon</h3>
+              <p className="text-gray-600 max-w-md mx-auto">
+                We're working on some killer content. Check back soon for expert insights on accounting, tax strategy, and business growth.
+              </p>
+            </div>
+          )}
         </div>
       </section>
 
