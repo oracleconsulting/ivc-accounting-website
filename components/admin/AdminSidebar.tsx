@@ -9,7 +9,11 @@ import {
   BarChart3, 
   Users, 
   Tag,
-  FolderOpen
+  FolderOpen,
+  Share2,
+  Rss,
+  Database,
+  Activity
 } from 'lucide-react';
 
 export default function AdminSidebar() {
@@ -50,6 +54,26 @@ export default function AdminSidebar() {
       href: '/admin/settings',
       label: 'Settings',
       icon: Settings
+    },
+    {
+      href: '/admin/social',
+      label: 'Social Media',
+      icon: Share2
+    },
+    {
+      href: '/admin/rss',
+      label: 'RSS Feeds',
+      icon: Rss
+    },
+    {
+      href: '/admin/database',
+      label: 'Database',
+      icon: Database
+    },
+    {
+      href: '/admin/analytics',
+      label: 'Analytics',
+      icon: Activity
     }
   ];
 
