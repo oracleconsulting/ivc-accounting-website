@@ -18,7 +18,7 @@ export class ResendEmailService {
         subject: options.subject,
         html: options.html,
         text: options.text,
-        reply_to: options.replyTo || 'james@ivcaccounting.co.uk'
+        replyTo: options.replyTo || 'james@ivcaccounting.co.uk'
       });
 
       if (error) {

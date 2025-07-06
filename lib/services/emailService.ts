@@ -35,7 +35,7 @@ export class EmailService {
         sgMail.setApiKey(this.config.sendgrid.apiKey);
         break;
       case 'smtp':
-        this.transporter = nodemailer.createTransporter({
+        this.transporter = nodemailer.createTransport({
           host: this.config.smtp.host,
           port: this.config.smtp.port,
           secure: this.config.smtp.secure,
@@ -78,13 +78,18 @@ export class EmailService {
   }
 
   private async sendViaSendGrid(options: EmailOptions, fromEmail: string, fromName: string): Promise<boolean> {
-    const msg = {
+    const msg: any = {
       to: options.to,
       from: `${fromName} <${fromEmail}>`,
-      subject: options.subject,
-      html: options.html,
-      text: options.text
+      subject: options.subject
     };
+
+    if (options.html) {
+      msg.html = options.html;
+    }
+    if (options.text) {
+      msg.text = options.text;
+    }
 
     await sgMail.send(msg);
     return true;
