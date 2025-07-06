@@ -1,15 +1,17 @@
 'use client';
 
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabaseClient';
 import { LogOut, User } from 'lucide-react';
 
 export default function AdminHeader() {
+  const supabase = createClientComponentClient();
   const router = useRouter();
 
-  const handleSignOut = async () => {
+  const handleLogout = async () => {
     await supabase.auth.signOut();
-    router.push('/');
+    router.push('/login');
+    router.refresh();
   };
 
   return (
@@ -27,11 +29,11 @@ export default function AdminHeader() {
           </div>
           
           <button
-            onClick={handleSignOut}
+            onClick={handleLogout}
             className="flex items-center gap-2 px-4 py-2 bg-[#ff6b35] hover:bg-[#e55a2b] transition-colors rounded"
           >
             <LogOut className="w-4 h-4" />
-            Sign Out
+            Logout
           </button>
         </div>
       </div>

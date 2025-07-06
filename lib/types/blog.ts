@@ -62,4 +62,21 @@ export interface BlogPost {
   readTime: string;
   image: string;
   category: string;
+}
+
+// Database table types for authentication
+export interface AdminUser {
+  id: string;
+  email: string;
+  role: 'super_admin' | 'admin' | 'editor';
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Profile {
+  id: string;
+  email: string;
+  is_admin: boolean;
+  created_at: string;
+  updated_at: string;
 } 

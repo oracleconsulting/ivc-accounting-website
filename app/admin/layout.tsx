@@ -17,15 +17,25 @@ export default async function AdminLayout({
     redirect('/login');
   }
   
-  // Check if user is admin
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
+  // Check if user is admin using existing tables
+  // First check admin_users table
+  const { data: adminUser } = await supabase
+    .from('admin_users')
+    .select('*')
+    .eq('email', user.email)
     .single();
     
-  if (profile?.role !== 'admin') {
-    redirect('/');
+  // If not in admin_users, check profiles table
+  if (!adminUser) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('is_admin')
+      .eq('email', user.email)
+      .single();
+      
+    if (!profile?.is_admin) {
+      redirect('/unauthorized');
+    }
   }
 
   return (

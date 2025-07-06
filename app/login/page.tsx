@@ -26,20 +26,36 @@ export default function LoginPage() {
 
       if (error) throw error;
 
-      // Check if user is admin
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', data.user.id)
+      // Check if user is admin using existing tables
+      // First check admin_users table
+      const { data: adminUser } = await supabase
+        .from('admin_users')
+        .select('*')
+        .eq('email', email)
         .single();
-
-      if (profile?.role === 'admin') {
+        
+      // If not in admin_users, check profiles table
+      if (!adminUser) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('is_admin')
+          .eq('email', email)
+          .single();
+          
+        if (profile?.is_admin) {
+          toast.success('Welcome back!');
+          router.push('/admin');
+        } else {
+          toast.error('Access denied. Admin privileges required.');
+          await supabase.auth.signOut();
+        }
+      } else {
+        // User is in admin_users table (super admin)
         toast.success('Welcome back!');
         router.push('/admin');
-      } else {
-        toast.error('Access denied. Admin privileges required.');
-        await supabase.auth.signOut();
       }
+      
+      router.refresh();
     } catch (error) {
       console.error('Login error:', error);
       toast.error('Login failed. Please check your credentials.');
@@ -73,7 +89,7 @@ export default function LoginPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#4a90e2]"
-                  placeholder="admin@ivcaccounting.co.uk"
+                  placeholder="james@ivcaccounting.co.uk"
                 />
               </div>
             </div>
