@@ -12,13 +12,19 @@ import { Mail, Send, Settings, FileText, TestTube } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface EmailConfig {
-  provider: 'sendgrid' | 'mailgun' | 'aws-ses' | 'smtp';
+  provider: 'resend' | 'sendgrid' | 'mailgun' | 'aws-ses' | 'smtp';
   smtp: {
     host: string;
     port: number;
     secure: boolean;
     username: string;
     password: string;
+  };
+  resend: {
+    apiKey: string;
+    domain: string;
+    fromEmail: string;
+    fromName: string;
   };
   sendgrid: {
     apiKey: string;
@@ -55,13 +61,19 @@ interface EmailConfig {
 
 export default function EmailSettingsPage() {
   const [emailConfig, setEmailConfig] = useState<EmailConfig>({
-    provider: 'sendgrid',
+    provider: 'resend',
     smtp: {
       host: '',
       port: 587,
       secure: true,
       username: '',
       password: ''
+    },
+    resend: {
+      apiKey: '',
+      domain: 'ivcaccounting.co.uk',
+      fromEmail: 'hello@ivcaccounting.co.uk',
+      fromName: 'IVC Accounting'
     },
     sendgrid: {
       apiKey: '',
@@ -155,8 +167,8 @@ export default function EmailSettingsPage() {
         const error = await response.json();
         throw new Error(error.message || 'Test failed');
       }
-    } catch (error) {
-      toast.error(`Test failed: ${error.message}`);
+    } catch (error: any) {
+      toast.error(`Test failed: ${error?.message || 'Unknown error'}`);
     } finally {
       setTesting(false);
     }
@@ -237,12 +249,66 @@ export default function EmailSettingsPage() {
                 onChange={(e) => updateConfig('provider', e.target.value)}
                 className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#ff6b35] focus:border-transparent"
               >
+                <option value="resend">Resend (Recommended)</option>
                 <option value="sendgrid">SendGrid</option>
                 <option value="mailgun">Mailgun</option>
                 <option value="aws-ses">AWS SES</option>
                 <option value="smtp">Custom SMTP</option>
               </select>
             </div>
+
+            {/* Resend Configuration */}
+            {emailConfig.provider === 'resend' && (
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="resend-api-key">API Key</Label>
+                  <Input
+                    id="resend-api-key"
+                    type="password"
+                    value={emailConfig.resend.apiKey}
+                    onChange={(e) => updateConfig('resend.apiKey', e.target.value)}
+                    placeholder="re_xxxxxxxxxxxxx"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="resend-domain">Domain</Label>
+                  <Input
+                    id="resend-domain"
+                    value={emailConfig.resend.domain}
+                    onChange={(e) => updateConfig('resend.domain', e.target.value)}
+                    placeholder="ivcaccounting.co.uk"
+                  />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="resend-from-email">From Email</Label>
+                    <Input
+                      id="resend-from-email"
+                      type="email"
+                      value={emailConfig.resend.fromEmail}
+                      onChange={(e) => updateConfig('resend.fromEmail', e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="resend-from-name">From Name</Label>
+                    <Input
+                      id="resend-from-name"
+                      value={emailConfig.resend.fromName}
+                      onChange={(e) => updateConfig('resend.fromName', e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="bg-blue-50 p-4 rounded">
+                  <p className="text-sm">
+                    <strong>Setup Instructions:</strong><br />
+                    1. Sign up at <a href="https://resend.com" target="_blank" className="text-blue-600 underline">resend.com</a><br />
+                    2. Verify your domain (ivcaccounting.co.uk)<br />
+                    3. Create an API key and paste it above<br />
+                    4. Test the configuration with the button below
+                  </p>
+                </div>
+              </div>
+            )}
 
             {/* SendGrid Configuration */}
             {emailConfig.provider === 'sendgrid' && (

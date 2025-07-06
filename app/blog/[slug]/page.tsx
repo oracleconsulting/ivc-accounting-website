@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { format } from 'date-fns';
 import { Calendar, Clock, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import { NewsletterSignup } from '@/components/NewsletterSignup';
 
 interface BlogPostPageProps {
   params: { slug: string };
@@ -212,26 +213,8 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
             {/* Sidebar */}
             <aside className="lg:col-span-1 space-y-8">
-              {/* Newsletter CTA */}
-              <div className="bg-white p-6 shadow-lg">
-                <h3 className="text-xl font-bold text-[#1a2b4a] mb-4">Stay Updated</h3>
-                <p className="text-gray-600 mb-4">
-                  Get the latest insights delivered to your inbox. No spam, just value.
-                </p>
-                <form className="space-y-3">
-                  <input
-                    type="email"
-                    placeholder="Your email address"
-                    className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-[#4a90e2]"
-                  />
-                  <button
-                    type="submit"
-                    className="w-full px-4 py-2 bg-[#ff6b35] text-white font-bold hover:bg-[#e55a2b] transition-colors"
-                  >
-                    Subscribe
-                  </button>
-                </form>
-              </div>
+              {/* Newsletter Signup */}
+              <NewsletterSignup variant="sidebar" />
 
               {/* Related Posts */}
               <div className="bg-white p-6 shadow-lg">

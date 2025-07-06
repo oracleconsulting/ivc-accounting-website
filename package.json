@@ -41,6 +41,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hot-toast": "^2.5.2",
+    "resend": "^4.6.0",
     "sharp": "^0.34.2",
     "sharp-cli": "^5.2.0",
     "tailwind-merge": "^3.3.1"

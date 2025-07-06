@@ -6,6 +6,7 @@ import ServicesGrid from '@/components/home/ServicesGrid';
 import FAQSection from '@/components/home/FAQSection';
 import ContactSection from '@/components/home/ContactSection';
 import TrustIndicators from '@/components/home/TrustIndicators';
+import { NewsletterSignup } from '@/components/NewsletterSignup';
 
 export const metadata: Metadata = {
   title: 'IVC Accounting - Other Accountants File. We Fight. | Chartered Accountants Halstead Essex',
@@ -26,6 +27,21 @@ export default function HomePage() {
       <ServicesGrid />
       <FAQSection />
       <ContactSection />
+      {/* Newsletter Section */}
+      <section className="py-16 bg-[#f5f1e8]">
+        <div className="container mx-auto px-4">
+          <div className="max-w-2xl mx-auto text-center">
+            <h2 className="text-3xl font-bold mb-4">
+              Join Our Newsletter
+            </h2>
+            <p className="text-lg text-gray-700 mb-8">
+              Get weekly tax tips, accounting insights, and updates that help Essex businesses thrive. 
+              We fight for your financial success!
+            </p>
+            <NewsletterSignup variant="inline" />
+          </div>
+        </div>
+      </section>
     </>
   );
 }
