@@ -4,8 +4,9 @@ import { XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 
-export default function NewsletterErrorPage() {
+function NewsletterErrorContent() {
   const searchParams = useSearchParams();
   const error = searchParams.get('error');
 
@@ -38,5 +39,26 @@ export default function NewsletterErrorPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function NewsletterErrorPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
+          <div className="animate-pulse">
+            <div className="h-16 w-16 bg-gray-300 rounded-full mx-auto mb-4"></div>
+            <div className="h-8 bg-gray-300 rounded mb-2"></div>
+            <div className="h-4 bg-gray-300 rounded mb-6"></div>
+            <div className="space-y-4">
+              <div className="h-10 bg-gray-300 rounded"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    }>
+      <NewsletterErrorContent />
+    </Suspense>
   );
 } 

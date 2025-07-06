@@ -3,10 +3,16 @@ import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { ResendEmailService } from '@/lib/services/resendEmailService';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+function getSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Supabase URL and service role key are required');
+  }
+  
+  return createClient(supabaseUrl, supabaseKey);
+}
 
 export async function POST(request: Request) {
   try {
@@ -18,6 +24,8 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+
+    const supabase = getSupabaseClient();
 
     // Check if already subscribed
     const { data: existing } = await supabase
@@ -67,7 +75,16 @@ export async function POST(request: Request) {
       if (error) throw error;
 
       // Send confirmation email via Resend
-      await sendConfirmationEmail(email, confirmationToken);
+      try {
+        if (process.env.RESEND_API_KEY) {
+          await sendConfirmationEmail(email, confirmationToken);
+        } else {
+          console.log('Email sending skipped - no RESEND_API_KEY');
+        }
+      } catch (error) {
+        console.error('Failed to send email:', error);
+        // Don't fail the subscription - continue anyway
+      }
     }
 
     return NextResponse.json({
@@ -86,11 +103,16 @@ export async function POST(request: Request) {
 async function sendConfirmationEmail(email: string, token: string) {
   const confirmUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/api/newsletter/confirm?token=${token}`;
   
-  try {
-    const emailService = new ResendEmailService();
-    await emailService.sendNewsletterConfirmation(email, confirmUrl);
-  } catch (error) {
-    console.error('Failed to send confirmation email:', error);
-    // Don't throw error to avoid breaking the subscription flow
+  // Only send email if API key is available
+  if (process.env.RESEND_API_KEY) {
+    try {
+      const emailService = new ResendEmailService();
+      await emailService.sendNewsletterConfirmation(email, confirmUrl);
+    } catch (error) {
+      console.error('Failed to send confirmation email:', error);
+      // Don't throw error to avoid breaking the subscription flow
+    }
+  } else {
+    console.log('RESEND_API_KEY not set. Would send confirmation email to:', email, 'with URL:', confirmUrl);
   }
 } 

@@ -2,10 +2,16 @@ import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 import { ResendEmailService } from '@/lib/services/resendEmailService';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+function getSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Supabase URL and service role key are required');
+  }
+  
+  return createClient(supabaseUrl, supabaseKey);
+}
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -18,6 +24,8 @@ export async function GET(request: Request) {
   }
 
   try {
+    const supabase = getSupabaseClient();
+    
     // Find subscriber by token
     const { data: subscriber, error } = await supabase
       .from('newsletter_subscribers')
@@ -50,7 +58,16 @@ export async function GET(request: Request) {
     if (updateError) throw updateError;
 
     // Send welcome email
-    await sendWelcomeEmail(subscriber.email);
+    try {
+      if (process.env.RESEND_API_KEY) {
+        await sendWelcomeEmail(subscriber.email);
+      } else {
+        console.log('Email sending skipped - no RESEND_API_KEY');
+      }
+    } catch (error) {
+      console.error('Failed to send welcome email:', error);
+      // Don't fail the confirmation - continue anyway
+    }
 
     return NextResponse.redirect(
       `${process.env.NEXT_PUBLIC_SITE_URL}/newsletter-success`
@@ -64,11 +81,16 @@ export async function GET(request: Request) {
 }
 
 async function sendWelcomeEmail(email: string) {
-  try {
-    const emailService = new ResendEmailService();
-    await emailService.sendNewsletterWelcome(email);
-  } catch (error) {
-    console.error('Failed to send welcome email:', error);
-    // Don't throw error to avoid breaking the confirmation flow
+  // Only send email if API key is available
+  if (process.env.RESEND_API_KEY) {
+    try {
+      const emailService = new ResendEmailService();
+      await emailService.sendNewsletterWelcome(email);
+    } catch (error) {
+      console.error('Failed to send welcome email:', error);
+      // Don't throw error to avoid breaking the confirmation flow
+    }
+  } else {
+    console.log('RESEND_API_KEY not set. Would send welcome email to:', email);
   }
 } 

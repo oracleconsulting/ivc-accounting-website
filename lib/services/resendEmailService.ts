@@ -1,8 +1,19 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 export class ResendEmailService {
+  private resend: Resend | null = null;
+
+  private getResendClient(): Resend {
+    if (!this.resend) {
+      const apiKey = process.env.RESEND_API_KEY;
+      if (!apiKey) {
+        throw new Error('RESEND_API_KEY is not set in environment variables');
+      }
+      this.resend = new Resend(apiKey);
+    }
+    return this.resend;
+  }
+
   async sendEmail(options: {
     to: string | string[];
     subject: string;
@@ -12,6 +23,7 @@ export class ResendEmailService {
     replyTo?: string;
   }) {
     try {
+      const resend = this.getResendClient();
       const { data, error } = await resend.emails.send({
         from: options.from || 'IVC Accounting <hello@ivcaccounting.co.uk>',
         to: options.to,
@@ -37,6 +49,7 @@ export class ResendEmailService {
     html: string;
     text?: string;
   }) {
+    const resend = this.getResendClient();
     // Resend supports batch sending
     const batches = this.chunkArray(recipients, 100); // Resend limit
     const results = [];
