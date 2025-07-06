@@ -514,7 +514,7 @@ export default function EmailSettingsPage() {
                   placeholder="<h1>IVC Accounting Newsletter</h1><p>Hello {{name}},</p><p>{{content}}</p><p>Best regards,<br>The IVC Team</p>"
                 />
                 <p className="text-sm text-gray-500 mt-1">
-                  Available variables: {{name}}, {{email}}, {{content}}, {{date}}
+                Available variables: {`{{name}}, {{email}}, {{content}}, {{date}}`}
                 </p>
               </div>
 
