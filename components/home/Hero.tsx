@@ -4,10 +4,9 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ChevronDown, Zap, Award, Briefcase, Users, Heart, ArrowRight } from 'lucide-react';
+import { ChevronDown, Award, Users, Heart } from 'lucide-react';
 import Button from '@/components/shared/Button';
 
-// Blur placeholder for hero image
 const blurDataURL = "data:image/jpeg;base64,/9j/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAKAAoDASIAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAABAMG/8QAIxAAAQIFAwUAAAAAAAAAAAAAAgEDAAQVERIGE2EiJTFRcf/EABUBAQEAAAAAAAAAAAAAAAAAAAQF/8QAGxEAAgIDAQAAAAAAAAAAAAAAAQIDBAAFEQb/2gAMAwEAAhEDEQA/AMXoVmTvMDUmhKXcbVGz5gTtEY3TxMsbrb5CaGnb204iBkWZdS+fcOr6WB41ZiekZPsegspIyqBwHP/Z";
 
 export default function Hero() {
@@ -23,18 +22,43 @@ export default function Hero() {
   }, []);
 
   const parallaxStyle = {
-    transform: `translate(${mousePosition.x * 0.005}px, ${mousePosition.y * 0.005}px)`,
+    transform: `translate(${mousePosition.x * 0.01}px, ${mousePosition.y * 0.01}px)`,
   };
 
   return (
-    <section className="relative min-h-screen bg-black overflow-hidden">
-      {/* Animated gradient orbs */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-gradient-to-br from-purple-600/20 to-pink-600/20 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-gradient-to-br from-blue-600/20 to-purple-600/20 rounded-full blur-3xl animate-pulse animation-delay-2000" />
+    <section className="relative min-h-screen bg-[#1a2b4a] overflow-hidden">
+      {/* Fixed header spacer */}
+      <div className="h-20"></div>
+      
+      {/* Orange quality banner */}
+      <div className="bg-[#ff6b35] py-2 text-center relative z-50">
+        <p className="text-[#f5f1e8] font-bold uppercase tracking-wider text-sm">
+          ✨ QUALITY OVER QUANTITY • 50 CLIENT LIMIT • 47/50 CAPACITY
+        </p>
       </div>
 
-      {/* Background with parallax */}
+      {/* Geometric pattern overlay */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `repeating-linear-gradient(
+            45deg,
+            transparent,
+            transparent 40px,
+            #ff6b35 40px,
+            #ff6b35 41px
+          )`
+        }} />
+      </div>
+
+      {/* Mountain/data shapes */}
+      <div className="absolute bottom-0 left-0 w-full h-[60%] opacity-10">
+        <svg viewBox="0 0 1440 400" className="w-full h-full">
+          <polygon points="0,400 480,200 960,100 1440,300 1440,400" fill="#ff6b35" />
+          <polygon points="0,400 720,250 1440,150 1440,400" fill="#4a90e2" />
+        </svg>
+      </div>
+
+      {/* Background image with parallax */}
       <div className="absolute inset-0" style={parallaxStyle}>
         <Image
           src="/images/james-howard.jpg"
@@ -42,101 +66,85 @@ export default function Hero() {
           fill
           priority
           quality={85}
-          className="object-cover opacity-30"
+          className="object-cover opacity-20"
           placeholder="blur"
           blurDataURL={blurDataURL}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/80 to-black" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#1a2b4a]/80 to-[#1a2b4a]" />
       </div>
 
       {/* Content */}
-      <div className="relative z-10 min-h-screen flex flex-col">
-        {/* Fixed header spacer */}
-        <div className="h-20"></div>
-        
-        {/* Quality banner - smaller, integrated style */}
-        <div className="bg-gradient-to-r from-orange-500 to-orange-600 py-2 px-4 text-center">
-          <p className="text-white text-sm font-semibold tracking-wider">
-            ✨ QUALITY OVER QUANTITY • 50 CLIENT LIMIT • 47/50 CAPACITY
-          </p>
-        </div>
-
-        {/* Main content */}
-        <div className="flex-1 flex items-center justify-center px-4">
-          <div className="max-w-5xl mx-auto text-center">
-            {/* SEO text - subtle */}
-            <p className="text-orange-500 text-sm uppercase tracking-wider mb-6 font-medium">
-              Chartered Accountants in Halstead, Essex
+      <div className="relative z-10 min-h-[calc(100vh-8rem)] flex items-center">
+        <div className="container mx-auto px-4">
+          <div className="max-w-5xl">
+            {/* Small SEO text */}
+            <p className="text-[#ff6b35] uppercase tracking-wider text-sm font-bold mb-6">
+              CHARTERED ACCOUNTANTS IN HALSTEAD, ESSEX
             </p>
             
-            {/* Main heading with shimmer effect */}
+            {/* Main heading - using Oracle style */}
             <h1 className="mb-8">
-              <span className="block text-5xl md:text-6xl lg:text-7xl font-black text-white mb-2">
+              <span className="block text-5xl md:text-6xl lg:text-7xl font-black uppercase text-[#f5f1e8] mb-4">
                 OTHER ACCOUNTANTS
               </span>
-              <span className="block text-6xl md:text-7xl lg:text-8xl font-black bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent mb-4 animate-shimmer">
+              <span className="block text-6xl md:text-7xl lg:text-8xl font-black uppercase text-[#4a90e2] mb-4">
                 FILE.
               </span>
-              <span className="block text-5xl md:text-6xl lg:text-7xl font-black text-white mb-2">
+              <span className="block text-5xl md:text-6xl lg:text-7xl font-black uppercase text-[#f5f1e8] mb-4">
                 WE
               </span>
-              <span className="block text-6xl md:text-7xl lg:text-8xl font-black bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent animate-shimmer">
+              <span className="block text-6xl md:text-7xl lg:text-8xl font-black uppercase text-[#ff6b35]">
                 FIGHT.
               </span>
             </h1>
 
             {/* Supporting text */}
-            <p className="text-xl md:text-2xl text-gray-300 mb-4 max-w-3xl mx-auto">
+            <p className="text-xl md:text-2xl text-[#f5f1e8]/80 mb-4 max-w-3xl">
               We don&apos;t hide behind jargon or drown you in reports. We protect your business 
               and help you build something real.
             </p>
 
             {/* Location text - subtle */}
-            <p className="text-gray-400 text-sm mb-12">
+            <p className="text-[#f5f1e8]/60 text-sm mb-12">
               Proudly serving Halstead, Braintree, Colchester, Chelmsford & all of Essex
             </p>
 
-            {/* CTAs - your original button style */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            {/* CTAs - Oracle style (no rounded corners) */}
+            <div className="flex flex-col sm:flex-row gap-4">
               <Link href="/contact">
-                <Button 
-                  className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-8 py-4 rounded-full font-bold text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-2xl flex items-center gap-2 group"
-                >
-                  Book a No-BS Call
-                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </Button>
+                <button className="bg-[#ff6b35] hover:bg-[#e55a2b] text-[#f5f1e8] font-black uppercase px-8 py-4 text-lg transition-all duration-300 transform hover:scale-105">
+                  BOOK A NO-BS CALL →
+                </button>
               </Link>
               <Link href="/about">
-                <Button 
-                  className="border-2 border-white/30 text-white hover:bg-white hover:text-black px-8 py-4 rounded-full font-bold text-lg transition-all duration-300 backdrop-blur-sm"
-                >
-                  Learn More
-                </Button>
+                <button className="border-2 border-[#f5f1e8] text-[#f5f1e8] hover:bg-[#f5f1e8] hover:text-[#1a2b4a] font-black uppercase px-8 py-4 text-lg transition-all duration-300">
+                  LEARN MORE
+                </button>
               </Link>
             </div>
 
             {/* Trust indicators */}
-            <div className="mt-16 flex flex-wrap justify-center gap-8 text-gray-400">
+            <div className="mt-16 flex flex-wrap gap-8 text-[#f5f1e8]/60">
               <div className="flex items-center gap-2">
-                <Award className="w-5 h-5 text-orange-500" />
-                <span className="text-sm">15+ Years Experience</span>
+                <Award className="w-5 h-5 text-[#ff6b35]" />
+                <span className="text-sm uppercase">15+ Years Experience</span>
               </div>
               <div className="flex items-center gap-2">
-                <Users className="w-5 h-5 text-orange-500" />
-                <span className="text-sm">50 Client Limit</span>
+                <Users className="w-5 h-5 text-[#ff6b35]" />
+                <span className="text-sm uppercase">50 Client Limit</span>
               </div>
               <div className="flex items-center gap-2">
-                <Heart className="w-5 h-5 text-orange-500" />
-                <span className="text-sm">1 PE Exit (By Choice)</span>
+                <Heart className="w-5 h-5 text-[#ff6b35]" />
+                <span className="text-sm uppercase">1 PE Exit (By Choice)</span>
               </div>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
-          <ChevronDown className="w-8 h-8 text-white/40" />
-        </div>
+      {/* Scroll indicator */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
+        <ChevronDown className="w-8 h-8 text-[#f5f1e8]/40" />
       </div>
     </section>
   );
