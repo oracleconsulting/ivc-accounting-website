@@ -8,70 +8,93 @@ const supabase = createClient(
 
 export async function GET(request: NextRequest) {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://ivcaccounting.co.uk';
-    
-    // Get published posts with author and category information
-    const { data: posts } = await supabase
+    // Fetch published blog posts
+    const { data: posts, error } = await supabase
       .from('posts')
       .select(`
-        *,
-        author:profiles!posts_author_id_fkey(name, email),
-        categories:post_categories(category:categories(name, slug)),
-        tags:post_tags(tag:tags(name, slug))
+        id,
+        title,
+        slug,
+        content,
+        excerpt,
+        published_at,
+        updated_at,
+        author_id,
+        featured_image,
+        post_categories (
+          categories (
+            name,
+            slug
+          )
+        ),
+        post_tags (
+          tags (
+            name,
+            slug
+          )
+        )
       `)
       .eq('status', 'published')
       .order('published_at', { ascending: false })
       .limit(50);
 
-    const rss = `<?xml version="1.0" encoding="UTF-8"?>
+    if (error) {
+      console.error('Error fetching posts for RSS:', error);
+      return new Response('Error generating RSS feed', { status: 500 });
+    }
+
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.ivcaccounting.co.uk';
+    const siteName = 'IVC Accounting';
+    const siteDescription = 'Expert chartered accountants serving Essex businesses. Specializing in tax planning, business growth, and financial strategy.';
+
+    // Generate RSS XML
+    const rssXml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:wfw="http://wellformedweb.org/CommentAPI/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:sy="http://purl.org/rss/1.0/modules/syndication/" xmlns:slash="http://purl.org/rss/1.0/modules/slash/">
   <channel>
-    <title>IVC Accounting Blog</title>
+    <title>${siteName} Blog</title>
     <atom:link href="${baseUrl}/feed.xml" rel="self" type="application/rss+xml" />
     <link>${baseUrl}/blog</link>
-    <description>Latest insights, tips, and updates from IVC Accounting - your trusted partner for all things accounting and tax.</description>
+    <description>${siteDescription}</description>
     <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
     <language>en-GB</language>
     <sy:updatePeriod>daily</sy:updatePeriod>
     <sy:updateFrequency>1</sy:updateFrequency>
-    ${(posts || []).map(post => {
-      const authorName = post.author?.name || 'IVC Accounting';
-      const authorEmail = post.author?.email || 'james@ivcaccounting.co.uk';
-      const categories = post.categories?.map((c: any) => c.category?.name).filter(Boolean).join(', ') || '';
-      const tags = post.tags?.map((t: any) => t.tag?.name).filter(Boolean).join(', ') || '';
-      
-      // Clean content for RSS
-      const content = post.content_html
-        ?.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '') // Remove scripts
-        ?.replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '') // Remove styles
-        ?.replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '') // Remove iframes
-        || post.content_text || '';
+    <image>
+      <url>${baseUrl}/logo.png</url>
+      <title>${siteName}</title>
+      <link>${baseUrl}</link>
+    </image>
+    ${posts?.map(post => {
+      const categories = post.post_categories?.map((pc: any) => pc.categories.name).join(', ') || '';
+      const tags = post.post_tags?.map((pt: any) => pt.tags.name).join(', ') || '';
+      const pubDate = new Date(post.published_at).toUTCString();
+      const postUrl = `${baseUrl}/blog/${post.slug}`;
       
       return `
     <item>
       <title><![CDATA[${post.title}]]></title>
-      <link>${baseUrl}/blog/${post.slug}</link>
-      <pubDate>${new Date(post.published_at!).toUTCString()}</pubDate>
-      <dc:creator><![CDATA[${authorName}]]></dc:creator>
+      <link>${postUrl}</link>
+      <pubDate>${pubDate}</pubDate>
+      <dc:creator><![CDATA[IVC Accounting Team]]></dc:creator>
       <category><![CDATA[${categories}]]></category>
-      <guid isPermaLink="true">${baseUrl}/blog/${post.slug}</guid>
-      <description><![CDATA[${post.excerpt || post.content_text?.substring(0, 200) + '...'}]]></description>
-      <content:encoded><![CDATA[${content}]]></content:encoded>
+      <guid isPermaLink="true">${postUrl}</guid>
+      <description><![CDATA[${post.excerpt}]]></description>
+      <content:encoded><![CDATA[${post.content}]]></content:encoded>
       ${post.featured_image ? `<enclosure url="${post.featured_image}" type="image/jpeg" />` : ''}
-      ${tags ? `<category><![CDATA[${tags}]]></category>` : ''}
+      <slash:comments>0</slash:comments>
     </item>`;
-    }).join('')}
+    }).join('') || ''}
   </channel>
 </rss>`;
 
-    return new Response(rss, {
+    return new Response(rssXml, {
       headers: {
-        'Content-Type': 'application/xml; charset=utf-8',
+        'Content-Type': 'application/rss+xml; charset=utf-8',
         'Cache-Control': 'public, max-age=3600, s-maxage=3600', // Cache for 1 hour
       },
     });
   } catch (error) {
-    console.error('RSS feed error:', error);
+    console.error('Error generating RSS feed:', error);
     return new Response('Error generating RSS feed', { status: 500 });
   }
 } 

@@ -11,6 +11,7 @@ import Underline from '@tiptap/extension-underline';
 import Strike from '@tiptap/extension-strike';
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 import { common, createLowlight } from 'lowlight';
+import { Upload } from 'lucide-react';
 import EditorToolbar from './EditorToolbar';
 import SEOPanel from './SEOPanel';
 import AIAssistant from './AIAssistant';
@@ -59,7 +60,7 @@ export default function BlogEditor({ post, onSave, onPublish }: BlogEditorProps)
       Strike,
       Image.configure({
         HTMLAttributes: {
-          class: 'rounded-lg shadow-lg',
+          class: 'rounded-lg shadow-lg max-w-full',
         },
       }),
       Link.configure({
@@ -82,6 +83,20 @@ export default function BlogEditor({ post, onSave, onPublish }: BlogEditorProps)
     editorProps: {
       attributes: {
         class: 'prose prose-lg max-w-none focus:outline-none min-h-[500px]',
+      },
+      handlePaste: (view, event, slice) => {
+        const items = Array.from(event.clipboardData?.items || []);
+        const imageItem = items.find(item => item.type.startsWith('image/'));
+        
+        if (imageItem) {
+          event.preventDefault();
+          const file = imageItem.getAsFile();
+          if (file) {
+            handleEditorImageUpload(file);
+          }
+          return true;
+        }
+        return false;
       },
     },
   });
@@ -134,6 +149,17 @@ export default function BlogEditor({ post, onSave, onPublish }: BlogEditorProps)
 
   // Handle image upload
   const handleImageUpload = async (file: File) => {
+    try {
+      const url = await uploadImage(file, 'blog-images');
+      editor?.chain().focus().setImage({ src: url }).run();
+      toast.success('Image uploaded successfully');
+    } catch (error) {
+      toast.error('Failed to upload image');
+    }
+  };
+
+  // Handle image upload from editor toolbar
+  const handleEditorImageUpload = async (file: File) => {
     try {
       const url = await uploadImage(file, 'blog-images');
       editor?.chain().focus().setImage({ src: url }).run();
@@ -213,11 +239,40 @@ export default function BlogEditor({ post, onSave, onPublish }: BlogEditorProps)
         />
 
         {/* Editor Toolbar */}
-        <EditorToolbar editor={editor} onImageUpload={handleImageUpload} />
+        <EditorToolbar editor={editor} onImageUpload={handleEditorImageUpload} />
         
         {/* Editor Content */}
-        <div className="border border-gray-300 p-4 min-h-[500px]">
+        <div 
+          className="border border-gray-300 p-4 min-h-[500px] relative group"
+          onDragOver={(e) => {
+            e.preventDefault();
+            e.currentTarget.classList.add('border-oracle-orange', 'bg-oracle-orange/5');
+          }}
+          onDragLeave={(e) => {
+            e.preventDefault();
+            e.currentTarget.classList.remove('border-oracle-orange', 'bg-oracle-orange/5');
+          }}
+          onDrop={(e) => {
+            e.preventDefault();
+            e.currentTarget.classList.remove('border-oracle-orange', 'bg-oracle-orange/5');
+            
+            const files = Array.from(e.dataTransfer.files);
+            const imageFile = files.find(file => file.type.startsWith('image/'));
+            
+            if (imageFile) {
+              handleEditorImageUpload(imageFile);
+            }
+          }}
+        >
           <EditorContent editor={editor} />
+          
+          {/* Drag overlay */}
+          <div className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+            <div className="bg-oracle-orange/10 border-2 border-dashed border-oracle-orange rounded-lg p-8 text-center">
+              <Upload className="w-12 h-12 text-oracle-orange mx-auto mb-4" />
+              <p className="text-oracle-orange font-bold">Drop image here to upload</p>
+            </div>
+          </div>
         </div>
 
         {/* Auto-save status */}

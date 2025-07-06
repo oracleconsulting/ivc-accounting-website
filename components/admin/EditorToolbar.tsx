@@ -16,7 +16,8 @@ import {
   Link,
   Image,
   Undo,
-  Redo
+  Redo,
+  Upload
 } from 'lucide-react';
 
 interface EditorToolbarProps {
@@ -31,6 +32,7 @@ export default function EditorToolbar({ editor, onImageUpload }: EditorToolbarPr
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
+    input.multiple = false;
     input.onchange = (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
@@ -38,6 +40,28 @@ export default function EditorToolbar({ editor, onImageUpload }: EditorToolbarPr
       }
     };
     input.click();
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.currentTarget.classList.add('bg-oracle-orange/10');
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.currentTarget.classList.remove('bg-oracle-orange/10');
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.currentTarget.classList.remove('bg-oracle-orange/10');
+    
+    const files = Array.from(e.dataTransfer.files);
+    const imageFile = files.find(file => file.type.startsWith('image/'));
+    
+    if (imageFile) {
+      onImageUpload(imageFile);
+    }
   };
 
   const setLink = () => {
@@ -162,10 +186,13 @@ export default function EditorToolbar({ editor, onImageUpload }: EditorToolbarPr
           
           <button
             onClick={addImage}
-            className="p-2 rounded hover:bg-gray-200"
-            title="Add Image"
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            className="p-2 rounded hover:bg-gray-200 transition-colors"
+            title="Add Image (or drag & drop)"
           >
-            <Image className="w-4 h-4" />
+            <Upload className="w-4 h-4" />
           </button>
         </div>
 

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Globe, Search, Bot, Bell, Image, Database, Key, Save } from 'lucide-react';
+import AIPromptSettings from '@/components/admin/AIPromptSettings';
 
 interface SettingsSection {
   id: string;
@@ -51,6 +52,12 @@ export default function SettingsPage() {
       title: 'AI Integration',
       icon: <Bot className="w-5 h-5" />,
       description: 'OpenRouter and Pinecone configuration'
+    },
+    {
+      id: 'ai-prompts',
+      title: 'AI Prompts',
+      icon: <Bot className="w-5 h-5" />,
+      description: 'Configure AI agent prompts and behavior'
     },
     {
       id: 'email',
@@ -305,6 +312,8 @@ export default function SettingsPage() {
         return renderSeoSettings();
       case 'ai':
         return renderComingSoon('AI Integration Settings');
+      case 'ai-prompts':
+        return <AIPromptSettings />;
       case 'email':
         return renderComingSoon('Email Settings');
       case 'media':

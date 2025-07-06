@@ -170,7 +170,19 @@ export default function ServicesPage() {
             id={service.id}
             className={`py-20 px-4 ${index % 2 === 0 ? 'bg-[#f5f1e8]' : 'bg-white'}`}
           >
-            <ServiceSchema service={service} />
+            <ServiceSchema
+              serviceName={service.name}
+              description={service.longDescription || service.description}
+              provider="IVC Accounting"
+              areaServed={["Halstead", "Essex", "East of England"]}
+              hasOfferCatalog={{
+                name: service.name,
+                itemListElement: service.features.map((f: { title: string; description: string }) => ({
+                  name: f.title,
+                  description: f.description
+                }))
+              }}
+            />
             <div className="container mx-auto">
               <div className="grid md:grid-cols-2 gap-12 items-start">
                 <div className={`${index % 2 === 1 ? 'md:order-2' : ''}`}>

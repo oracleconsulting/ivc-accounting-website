@@ -6,161 +6,165 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
+type ChangeFrequency = 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never'
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://ivcaccounting.co.uk'
   
-  // Static pages
-  const staticPages = [
+  // Static pages with their priorities and change frequencies
+  const staticPages: MetadataRoute.Sitemap = [
     {
       url: baseUrl,
       lastModified: new Date(),
-      changeFrequency: 'daily' as const,
-      priority: 1,
+      changeFrequency: 'monthly' as ChangeFrequency,
+      priority: 1.0,
     },
     {
       url: `${baseUrl}/about`,
       lastModified: new Date(),
-      changeFrequency: 'monthly' as const,
+      changeFrequency: 'monthly' as ChangeFrequency,
       priority: 0.8,
     },
     {
       url: `${baseUrl}/services`,
       lastModified: new Date(),
-      changeFrequency: 'monthly' as const,
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/pricing`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly' as const,
-      priority: 0.8,
+      changeFrequency: 'monthly' as ChangeFrequency,
+      priority: 0.9,
     },
     {
       url: `${baseUrl}/contact`,
       lastModified: new Date(),
-      changeFrequency: 'monthly' as const,
+      changeFrequency: 'yearly' as ChangeFrequency,
       priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/team`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly' as const,
-      priority: 0.6,
     },
     {
       url: `${baseUrl}/blog`,
       lastModified: new Date(),
-      changeFrequency: 'daily' as const,
-      priority: 0.9,
-    },
-    // New SEO-optimized pages
-    {
-      url: `${baseUrl}/llm-summary`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly' as const,
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/questions`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly' as const,
+      changeFrequency: 'daily' as ChangeFrequency,
       priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/accountant-sold-to-pe`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly' as const,
-      priority: 0.8,
-    },
-    // Location pages
-    {
-      url: `${baseUrl}/locations/london`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly' as const,
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/locations/chelmsford`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly' as const,
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/locations/colchester`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly' as const,
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/locations/essex`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly' as const,
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/locations/braintree`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly' as const,
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/locations/halstead`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly' as const,
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/locations/ipswich`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly' as const,
-      priority: 0.7,
-    },
-    // API endpoints for LLMs
-    {
-      url: `${baseUrl}/api/llm`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly' as const,
-      priority: 0.5,
     },
   ]
 
-  // Get published blog posts
-  const { data: posts } = await supabase
-    .from('posts')
-    .select('slug, updated_at, published_at')
-    .eq('status', 'published')
-    .order('published_at', { ascending: false })
+  try {
+    // Fetch all published blog posts
+    const { data: posts, error: postsError } = await supabase
+      .from('posts')
+      .select('slug, updated_at')
+      .eq('status', 'published')
+      .order('created_at', { ascending: false })
 
-  const blogPosts = (posts || []).map((post) => ({
-    url: `${baseUrl}/blog/${post.slug}`,
-    lastModified: new Date(post.updated_at || post.published_at!),
-    changeFrequency: 'weekly' as const,
-    priority: 0.7,
-  }))
+    if (postsError) {
+      console.error('Error fetching posts for sitemap:', postsError)
+      return staticPages
+    }
 
-  // Get categories
-  const { data: categories } = await supabase
-    .from('categories')
-    .select('slug, updated_at')
+    // Fetch all categories
+    const { data: categories, error: categoriesError } = await supabase
+      .from('categories')
+      .select('slug, updated_at')
+      .order('name')
 
-  const categoryPages = (categories || []).map((category) => ({
-    url: `${baseUrl}/blog/category/${category.slug}`,
-    lastModified: new Date(category.updated_at),
-    changeFrequency: 'weekly' as const,
-    priority: 0.6,
-  }))
+    if (categoriesError) {
+      console.error('Error fetching categories for sitemap:', categoriesError)
+    }
 
-  // Get tags
-  const { data: tags } = await supabase
-    .from('tags')
-    .select('slug, updated_at')
+    // Fetch all tags with at least one post
+    const { data: tags, error: tagsError } = await supabase
+      .from('tags')
+      .select(`
+        slug,
+        created_at,
+        post_tags!inner(post_id)
+      `)
+      .order('name')
 
-  const tagPages = (tags || []).map((tag) => ({
-    url: `${baseUrl}/blog/tag/${tag.slug}`,
-    lastModified: new Date(tag.updated_at),
-    changeFrequency: 'weekly' as const,
-    priority: 0.5,
-  }))
+    if (tagsError) {
+      console.error('Error fetching tags for sitemap:', tagsError)
+    }
 
-  return [...staticPages, ...blogPosts, ...categoryPages, ...tagPages]
+    // Generate blog post URLs
+    const postUrls: MetadataRoute.Sitemap = posts?.map((post) => ({
+      url: `${baseUrl}/blog/${post.slug}`,
+      lastModified: new Date(post.updated_at),
+      changeFrequency: 'weekly' as ChangeFrequency,
+      priority: 0.6,
+    })) || []
+
+    // Generate category archive URLs
+    const categoryUrls: MetadataRoute.Sitemap = categories?.map((category) => ({
+      url: `${baseUrl}/blog/category/${category.slug}`,
+      lastModified: new Date(category.updated_at || new Date()),
+      changeFrequency: 'weekly' as ChangeFrequency,
+      priority: 0.5,
+    })) || []
+
+    // Generate tag archive URLs (only for tags with posts)
+    const uniqueTags = tags?.filter((tag, index, self) => 
+      index === self.findIndex((t) => t.slug === tag.slug)
+    ) || []
+    
+    const tagUrls: MetadataRoute.Sitemap = uniqueTags.map((tag) => ({
+      url: `${baseUrl}/blog/tag/${tag.slug}`,
+      lastModified: new Date(tag.created_at),
+      changeFrequency: 'monthly' as ChangeFrequency,
+      priority: 0.4,
+    }))
+
+    // Service-specific pages (for accounting services)
+    const servicePages: MetadataRoute.Sitemap = [
+      {
+        url: `${baseUrl}/services/tax-planning`,
+        lastModified: new Date(),
+        changeFrequency: 'monthly' as ChangeFrequency,
+        priority: 0.8,
+      },
+      {
+        url: `${baseUrl}/services/business-accounting`,
+        lastModified: new Date(),
+        changeFrequency: 'monthly' as ChangeFrequency,
+        priority: 0.8,
+      },
+      {
+        url: `${baseUrl}/services/vat-returns`,
+        lastModified: new Date(),
+        changeFrequency: 'monthly' as ChangeFrequency,
+        priority: 0.7,
+      },
+      {
+        url: `${baseUrl}/services/payroll`,
+        lastModified: new Date(),
+        changeFrequency: 'monthly' as ChangeFrequency,
+        priority: 0.7,
+      },
+    ]
+
+    // Combine all URLs
+    return [
+      ...staticPages,
+      ...postUrls,
+      ...categoryUrls,
+      ...tagUrls,
+      ...servicePages,
+    ]
+  } catch (error) {
+    console.error('Error generating sitemap:', error)
+    // Return at least the static pages if there's an error
+    return staticPages
+  }
+}
+
+// Optional: robots.txt configuration
+export async function robots(): Promise<MetadataRoute.Robots> {
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://ivcaccounting.co.uk'
+  
+  return {
+    rules: [
+      {
+        userAgent: '*',
+        allow: '/',
+        disallow: ['/admin/', '/api/', '/auth/'],
+      },
+    ],
+    sitemap: `${baseUrl}/sitemap.xml`,
+  }
 } 

@@ -4,7 +4,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import Navigation from '@/components/layout/Navigation'
 import Footer from '@/components/layout/Footer'
-import { OrganizationSchema } from '@/components/seo/StructuredData'
+import { OrganizationStructuredData } from '@/components/seo/StructuredData'
 import { LocalBusinessSchema } from '@/components/seo/EnhancedStructuredData'
 import CookieConsent from '@/components/analytics/CookieConsent'
 import GoogleTagManager, { GTMNoscript } from '@/components/analytics/GoogleTagManager'
@@ -104,7 +104,7 @@ export default function IVCLayout({
       <body className={`${inter.className} bg-oracle-cream text-oracle-navy`}>
         {/* Main App */}
         <GoogleTagManager />
-        <OrganizationSchema />
+        <OrganizationStructuredData />
         <LocalBusinessSchema />
         <Navigation />
         <main>
