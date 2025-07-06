@@ -186,6 +186,19 @@
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Hero Title Effects */
+.hero-title {
+  text-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* Optional: Gradient text for extra impact */
+.gradient-text {
+  background: linear-gradient(135deg, #ff6b35 0%, #4a90e2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
 /* Button Hover Effects */
 .btn-corporate {
   position: relative;
