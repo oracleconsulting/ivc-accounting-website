@@ -27,19 +27,16 @@ export default function Hero() {
 
   return (
     <section className="relative min-h-screen bg-[#1a2b4a] overflow-hidden">
-      {/* Fixed header spacer */}
-      <div className="h-20"></div>
-      
-      {/* Orange quality banner */}
-      <div className="bg-[#ff6b35] py-2 text-center relative z-50">
-        <p className="text-[#f5f1e8] font-bold uppercase tracking-wider text-sm">
-          ✨ QUALITY OVER QUANTITY • 50 CLIENT LIMIT • 47/50 CAPACITY
-        </p>
-      </div>
-
-      {/* Geometric pattern overlay */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute inset-0" style={{
+      {/* Background texture/pattern - dynamic grid */}
+      <div className="absolute inset-0">
+        {/* Grid pattern */}
+        <div className="absolute inset-0 opacity-5" style={{
+          backgroundImage: 'linear-gradient(to right, #f5f1e8 1px, transparent 1px), linear-gradient(to bottom, #f5f1e8 1px, transparent 1px)',
+          backgroundSize: '50px 50px'
+        }} />
+        
+        {/* Diagonal pattern overlay */}
+        <div className="absolute inset-0 opacity-5" style={{
           backgroundImage: `repeating-linear-gradient(
             45deg,
             transparent,
@@ -48,6 +45,15 @@ export default function Hero() {
             #ff6b35 41px
           )`
         }} />
+        
+        {/* Data visualization dots in corner */}
+        <div className="absolute top-20 right-20 opacity-10">
+          <div className="grid grid-cols-8 gap-2">
+            {[...Array(64)].map((_, i) => (
+              <div key={i} className={`w-2 h-2 ${i % 3 === 0 ? 'bg-[#ff6b35]' : 'bg-[#4a90e2]'}`} />
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Mountain/data shapes */}
@@ -66,28 +72,41 @@ export default function Hero() {
           fill
           priority
           quality={85}
-          className="object-cover opacity-20"
+          className="object-cover opacity-30"
           placeholder="blur"
           blurDataURL={blurDataURL}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#1a2b4a]/80 to-[#1a2b4a]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#1a2b4a]/80 via-[#1a2b4a]/90 to-[#1a2b4a]" />
       </div>
 
       {/* Content */}
-      <div className="relative z-10 min-h-[calc(100vh-8rem)] flex items-center">
-        <div className="container mx-auto px-4">
-          <div className="max-w-5xl">
+      <div className="relative z-10 min-h-screen flex flex-col">
+        {/* Fixed header spacer */}
+        <div className="h-20"></div>
+        
+        {/* Orange quality banner - as a centered badge */}
+        <div className="flex justify-center mt-4 mb-8">
+          <div className="bg-[#ff6b35] py-2 px-6 inline-flex items-center gap-2">
+            <span className="text-[#f5f1e8] font-bold uppercase tracking-wider text-sm">
+              ✨ QUALITY OVER QUANTITY • 50 CLIENT LIMIT • 47/50 CAPACITY
+            </span>
+          </div>
+        </div>
+
+        {/* Main content - centered */}
+        <div className="flex-1 flex items-center justify-center px-4">
+          <div className="text-center max-w-5xl mx-auto">
             {/* Small SEO text */}
-            <p className="text-[#ff6b35] uppercase tracking-wider text-sm font-bold mb-6">
+            <p className="text-[#ff6b35] uppercase tracking-wider text-sm font-bold mb-8">
               CHARTERED ACCOUNTANTS IN HALSTEAD, ESSEX
             </p>
             
-            {/* Main heading - using Oracle style */}
+            {/* Main heading - centered */}
             <h1 className="mb-8">
               <span className="block text-5xl md:text-6xl lg:text-7xl font-black uppercase text-[#f5f1e8] mb-4">
                 OTHER ACCOUNTANTS
               </span>
-              <span className="block text-6xl md:text-7xl lg:text-8xl font-black uppercase text-[#4a90e2] mb-4">
+              <span className="block text-6xl md:text-7xl lg:text-8xl font-black uppercase text-[#4a90e2] mb-6">
                 FILE.
               </span>
               <span className="block text-5xl md:text-6xl lg:text-7xl font-black uppercase text-[#f5f1e8] mb-4">
@@ -98,19 +117,19 @@ export default function Hero() {
               </span>
             </h1>
 
-            {/* Supporting text */}
-            <p className="text-xl md:text-2xl text-[#f5f1e8]/80 mb-4 max-w-3xl">
+            {/* Supporting text - centered */}
+            <p className="text-xl md:text-2xl text-[#f5f1e8]/80 mb-6 max-w-3xl mx-auto">
               We don&apos;t hide behind jargon or drown you in reports. We protect your business 
               and help you build something real.
             </p>
 
             {/* Location text - subtle */}
-            <p className="text-[#f5f1e8]/60 text-sm mb-12">
+            <p className="text-[#f5f1e8]/60 text-base mb-12">
               Proudly serving Halstead, Braintree, Colchester, Chelmsford & all of Essex
             </p>
 
-            {/* CTAs - Oracle style (no rounded corners) */}
-            <div className="flex flex-col sm:flex-row gap-4">
+            {/* CTAs - centered */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/contact">
                 <button className="bg-[#ff6b35] hover:bg-[#e55a2b] text-[#f5f1e8] font-black uppercase px-8 py-4 text-lg transition-all duration-300 transform hover:scale-105">
                   BOOK A NO-BS CALL →
@@ -123,8 +142,8 @@ export default function Hero() {
               </Link>
             </div>
 
-            {/* Trust indicators */}
-            <div className="mt-16 flex flex-wrap gap-8 text-[#f5f1e8]/60">
+            {/* Trust indicators - centered */}
+            <div className="mt-16 flex flex-wrap justify-center gap-8 text-[#f5f1e8]/60">
               <div className="flex items-center gap-2">
                 <Award className="w-5 h-5 text-[#ff6b35]" />
                 <span className="text-sm uppercase">15+ Years Experience</span>
@@ -140,11 +159,11 @@ export default function Hero() {
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Scroll indicator */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
-        <ChevronDown className="w-8 h-8 text-[#f5f1e8]/40" />
+        {/* Scroll indicator */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
+          <ChevronDown className="w-8 h-8 text-[#f5f1e8]/40" />
+        </div>
       </div>
     </section>
   );
