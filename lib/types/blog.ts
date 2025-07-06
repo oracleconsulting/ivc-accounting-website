@@ -1,52 +1,90 @@
-export interface Post {
+export interface Author {
   id: string;
-  title: string;
-  slug: string;
-  content: any; // TipTap JSON
-  content_text: string;
-  content_html: string;
-  excerpt: string;
-  featured_image?: string;
-  author_id: string;
-  status: 'draft' | 'published' | 'scheduled' | 'archived';
-  seo_title?: string;
-  seo_description?: string;
-  seo_keywords?: string[];
-  og_image?: string;
-  published_at?: string;
-  scheduled_for?: string;
-  created_at: string;
-  updated_at: string;
-  view_count: number;
-  read_time: number;
-  categories?: Category[];
-  tags?: Tag[];
-  category_ids?: string[];
-  tag_ids?: string[];
-  author?: {
-    name: string;
-    email: string;
-  };
-  post_categories?: Array<{
-    category: Category;
-  }>;
-  post_tags?: Array<{
-    tag: Tag;
-  }>;
+  full_name: string | null;
+  email: string;
+  avatar_url: string | null;
 }
 
 export interface Category {
   id: string;
   name: string;
   slug: string;
-  description?: string;
-  parent_id?: string;
+  description: string | null;
+  parent_id: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Tag {
   id: string;
   name: string;
   slug: string;
+  created_at: string;
+}
+
+export interface PostCategory {
+  category: Category;
+}
+
+export interface PostTag {
+  tag: Tag;
+}
+
+export interface Post {
+  id: string;
+  title: string;
+  slug: string;
+  content: any; // JSON content from Tiptap
+  content_text: string; // Plain text version
+  content_html: string; // HTML version
+  excerpt: string | null;
+  featured_image: string | null;
+  status: 'draft' | 'published' | 'scheduled';
+  author_id: string;
+  author?: Author;
+  published_at: string | null;
+  scheduled_for: string | null;
+  seo_title: string;
+  seo_description: string;
+  seo_keywords: string[];
+  read_time: number;
+  view_count: number;
+  created_at: string;
+  updated_at: string;
+  categories?: PostCategory[];
+  tags?: PostTag[];
+  category_ids?: string[];
+  tag_ids?: string[];
+}
+
+export interface PostFilters {
+  search?: string;
+  status?: 'all' | 'published' | 'draft' | 'scheduled';
+  category?: string;
+  tag?: string;
+  author?: string;
+  dateFrom?: string;
+  dateTo?: string;
+}
+
+export interface PostStats {
+  total: number;
+  published: number;
+  draft: number;
+  scheduled: number;
+}
+
+export interface PaginationInfo {
+  page: number;
+  perPage: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface PostsResponse {
+  posts: Post[];
+  pagination: PaginationInfo;
+  stats: PostStats;
 }
 
 export interface PostVersion {

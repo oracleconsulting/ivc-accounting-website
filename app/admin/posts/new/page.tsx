@@ -1,154 +1,100 @@
 'use client';
 
-import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { ArrowLeft } from 'lucide-react';
 import BlogEditor from '@/components/admin/BlogEditor';
-import { Post } from '@/lib/types/blog';
 import toast from 'react-hot-toast';
+import { Post } from '@/lib/types/blog';
 
 export default function NewPostPage() {
-  const [isSaving, setIsSaving] = useState(false);
-  const [isPublishing, setIsPublishing] = useState(false);
   const router = useRouter();
-  const supabase = createClientComponentClient();
 
   const handleSave = async (postData: Partial<Post>) => {
-    setIsSaving(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      // Extract category and tag IDs
-      const { category_ids, tag_ids, ...postFields } = postData;
-      
-      const { data, error } = await supabase
-        .from('posts')
-        .insert([{
-          ...postFields,
-          author_id: user?.id,
-          view_count: 0
-        }])
-        .select()
-        .single();
+      const response = await fetch('/api/admin/posts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...postData,
+          status: 'draft'
+        }),
+      });
 
-      if (error) throw error;
-      
-      // Handle category relationships
-      if (category_ids && category_ids.length > 0) {
-        const categoryRelations = category_ids.map(categoryId => ({
-          post_id: data.id,
-          category_id: categoryId
-        }));
-        
-        await supabase
-          .from('post_categories')
-          .insert(categoryRelations);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to save post');
       }
+
+      const savedPost = await response.json();
+      toast.success('Post saved as draft');
       
-      // Handle tag relationships
-      if (tag_ids && tag_ids.length > 0) {
-        const tagRelations = tag_ids.map(tagId => ({
-          post_id: data.id,
-          tag_id: tagId
-        }));
-        
-        await supabase
-          .from('post_tags')
-          .insert(tagRelations);
-      }
-      
-      toast.success('Draft saved successfully');
-      return data;
+      // Redirect to edit page
+      router.push(`/admin/posts/${savedPost.post.id}/edit`);
     } catch (error) {
-      console.error('Save error:', error);
-      toast.error('Failed to save draft');
+      console.error('Error saving post:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to save post');
       throw error;
-    } finally {
-      setIsSaving(false);
     }
   };
 
   const handlePublish = async (postData: Partial<Post>) => {
-    setIsPublishing(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      // Extract category and tag IDs
-      const { category_ids, tag_ids, ...postFields } = postData;
-      
-      const { data, error } = await supabase
-        .from('posts')
-        .insert([{
-          ...postFields,
-          author_id: user?.id,
-          view_count: 0,
+      const response = await fetch('/api/admin/posts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...postData,
           status: 'published',
           published_at: new Date().toISOString()
-        }])
-        .select()
-        .single();
+        }),
+      });
 
-      if (error) throw error;
-      
-      // Handle category relationships
-      if (category_ids && category_ids.length > 0) {
-        const categoryRelations = category_ids.map(categoryId => ({
-          post_id: data.id,
-          category_id: categoryId
-        }));
-        
-        await supabase
-          .from('post_categories')
-          .insert(categoryRelations);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to publish post');
       }
-      
-      // Handle tag relationships
-      if (tag_ids && tag_ids.length > 0) {
-        const tagRelations = tag_ids.map(tagId => ({
-          post_id: data.id,
-          tag_id: tagId
-        }));
-        
-        await supabase
-          .from('post_tags')
-          .insert(tagRelations);
-      }
-      
-      toast.success('Post published successfully!');
+
+      toast.success('Post published successfully');
       router.push('/admin/posts');
     } catch (error) {
-      console.error('Publish error:', error);
-      toast.error('Failed to publish post');
+      console.error('Error publishing post:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to publish post');
       throw error;
-    } finally {
-      setIsPublishing(false);
     }
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-black text-[#1a2b4a] mb-2">Create New Post</h1>
-        <p className="text-gray-600">Write and publish your next blog post</p>
-      </div>
-
-      <BlogEditor
-        onSave={handleSave}
-        onPublish={handlePublish}
-      />
-
-      {(isSaving || isPublishing) && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg">
-            <div className="flex items-center gap-3">
-              <div className="animate-spin w-6 h-6 border-2 border-[#ff6b35] border-t-transparent rounded-full" />
-              <span className="text-lg font-medium">
-                {isSaving ? 'Saving...' : 'Publishing...'}
-              </span>
-            </div>
+    <div className="min-h-screen bg-[#f5f1e8]">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 px-6 py-4">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => router.push('/admin/posts')}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          
+          <div>
+            <h1 className="text-2xl font-black text-[#1a2b4a]">Create New Post</h1>
+            <p className="text-sm text-gray-600 mt-1">
+              Write and publish your next blog post
+            </p>
           </div>
         </div>
-      )}
+      </div>
+
+      {/* Editor */}
+      <div className="p-6">
+        <BlogEditor
+          onSave={handleSave}
+          onPublish={handlePublish}
+        />
+      </div>
     </div>
   );
 } 

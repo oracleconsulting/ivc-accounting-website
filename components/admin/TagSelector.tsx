@@ -1,28 +1,32 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Plus, X, Search } from 'lucide-react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { X, Plus } from 'lucide-react';
 import { Tag } from '@/lib/types/blog';
-import toast from 'react-hot-toast';
+import { generateSlug } from '@/lib/utils/blog';
 
 interface TagSelectorProps {
   selectedTags: string[];
   onChange: (tags: string[]) => void;
+  maxTags?: number;
 }
 
-export default function TagSelector({ selectedTags, onChange }: TagSelectorProps) {
+export default function TagSelector({ 
+  selectedTags, 
+  onChange,
+  maxTags = 10
+}: TagSelectorProps) {
   const [tags, setTags] = useState<Tag[]>([]);
-  const [filteredTags, setFilteredTags] = useState<Tag[]>([]);
   const [inputValue, setInputValue] = useState('');
-  const [isOpen, setIsOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isCreating, setIsCreating] = useState(false);
+  const [suggestions, setSuggestions] = useState<Tag[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [loading, setLoading] = useState(true);
   const inputRef = useRef<HTMLInputElement>(null);
   const supabase = createClientComponentClient();
 
   useEffect(() => {
-    loadTags();
+    fetchTags();
   }, []);
 
   useEffect(() => {
@@ -31,13 +35,15 @@ export default function TagSelector({ selectedTags, onChange }: TagSelectorProps
         tag.name.toLowerCase().includes(inputValue.toLowerCase()) &&
         !selectedTags.includes(tag.id)
       );
-      setFilteredTags(filtered);
+      setSuggestions(filtered);
+      setShowSuggestions(true);
     } else {
-      setFilteredTags([]);
+      setSuggestions([]);
+      setShowSuggestions(false);
     }
   }, [inputValue, tags, selectedTags]);
 
-  const loadTags = async () => {
+  const fetchTags = async () => {
     try {
       const { data, error } = await supabase
         .from('tags')
@@ -47,40 +53,41 @@ export default function TagSelector({ selectedTags, onChange }: TagSelectorProps
       if (error) throw error;
       setTags(data || []);
     } catch (error) {
-      console.error('Error loading tags:', error);
+      console.error('Error fetching tags:', error);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  const createTag = async (name: string) => {
-    if (!name.trim()) return;
-    
-    setIsCreating(true);
+  const addTag = async (tag: Tag) => {
+    if (selectedTags.length < maxTags && !selectedTags.includes(tag.id)) {
+      onChange([...selectedTags, tag.id]);
+      setInputValue('');
+      setShowSuggestions(false);
+    }
+  };
+
+  const createNewTag = async () => {
+    if (!inputValue.trim() || selectedTags.length >= maxTags) return;
+
     try {
+      const newTag = {
+        name: inputValue.trim(),
+        slug: generateSlug(inputValue.trim())
+      };
+
       const { data, error } = await supabase
         .from('tags')
-        .insert([{ name: name.trim() }])
+        .insert(newTag)
         .select()
         .single();
 
       if (error) throw error;
-      
-      setTags(prev => [...prev, data]);
-      addTag(data.id);
-      setInputValue('');
-      toast.success('Tag created successfully');
+
+      setTags([...tags, data]);
+      addTag(data);
     } catch (error) {
       console.error('Error creating tag:', error);
-      toast.error('Failed to create tag');
-    } finally {
-      setIsCreating(false);
-    }
-  };
-
-  const addTag = (tagId: string) => {
-    if (!selectedTags.includes(tagId)) {
-      onChange([...selectedTags, tagId]);
     }
   };
 
@@ -88,117 +95,103 @@ export default function TagSelector({ selectedTags, onChange }: TagSelectorProps
     onChange(selectedTags.filter(id => id !== tagId));
   };
 
-  const handleInputKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      if (filteredTags.length > 0) {
-        addTag(filteredTags[0].id);
-        setInputValue('');
+      
+      if (suggestions.length > 0) {
+        addTag(suggestions[0]);
       } else if (inputValue.trim()) {
-        createTag(inputValue);
+        createNewTag();
       }
-    } else if (e.key === 'Escape') {
-      setIsOpen(false);
-      inputRef.current?.blur();
     }
   };
 
-  const getSelectedTagNames = () => {
-    return tags
-      .filter(tag => selectedTags.includes(tag.id))
-      .map(tag => tag.name);
-  };
-
-  if (isLoading) {
-    return (
-      <div className="space-y-2">
-        <label className="block text-sm font-bold text-[#1a2b4a] mb-2">
-          Tags
-        </label>
-        <div className="animate-pulse bg-gray-200 h-10 rounded"></div>
-      </div>
-    );
-  }
+  const selectedTagObjects = tags.filter(tag => selectedTags.includes(tag.id));
 
   return (
-    <div className="space-y-2">
+    <div>
       <label className="block text-sm font-bold text-[#1a2b4a] mb-2">
         Tags
       </label>
       
-      <div className="relative">
-        <div className="flex items-center border border-gray-300 rounded-lg bg-white focus-within:border-[#4a90e2]">
-          <Search className="w-4 h-4 text-gray-400 ml-3" />
+      {/* Selected Tags */}
+      {selectedTagObjects.length > 0 && (
+        <div className="flex flex-wrap gap-2 mb-2">
+          {selectedTagObjects.map(tag => (
+            <span
+              key={tag.id}
+              className="inline-flex items-center gap-1 px-2 py-1 bg-[#4a90e2]/10 text-[#4a90e2] text-sm rounded-full"
+            >
+              {tag.name}
+              <button
+                type="button"
+                onClick={() => removeTag(tag.id)}
+                className="hover:text-[#ff6b35] transition-colors"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+      
+      {/* Tag Input */}
+      {selectedTags.length < maxTags && (
+        <div className="relative">
           <input
             ref={inputRef}
             type="text"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            onFocus={() => setIsOpen(true)}
-            onKeyDown={handleInputKeyDown}
-            placeholder="Search or create tags..."
-            className="flex-1 px-3 py-2 border-none outline-none text-sm"
-            disabled={isCreating}
+            onKeyDown={handleKeyDown}
+            onFocus={() => setShowSuggestions(true)}
+            placeholder="Type to search or create tags..."
+            className="w-full px-3 py-2 border border-gray-300 focus:outline-none focus:border-[#4a90e2]"
           />
-          {isCreating && (
-            <div className="animate-spin w-4 h-4 border-2 border-[#4a90e2] border-t-transparent rounded-full mr-3" />
+          
+          {/* Suggestions Dropdown */}
+          {showSuggestions && (
+            <>
+              <div 
+                className="fixed inset-0 z-10" 
+                onClick={() => setShowSuggestions(false)}
+              />
+              <div className="absolute z-20 w-full mt-1 bg-white border border-gray-200 shadow-lg max-h-48 overflow-auto">
+                {suggestions.length > 0 ? (
+                  suggestions.map(tag => (
+                    <button
+                      key={tag.id}
+                      type="button"
+                      onClick={() => addTag(tag)}
+                      className="w-full px-3 py-2 text-left hover:bg-gray-50 text-sm"
+                    >
+                      {tag.name}
+                    </button>
+                  ))
+                ) : inputValue.trim() ? (
+                  <button
+                    type="button"
+                    onClick={createNewTag}
+                    className="w-full px-3 py-2 text-left hover:bg-gray-50 text-sm flex items-center gap-2 text-[#4a90e2]"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Create "{inputValue.trim()}"
+                  </button>
+                ) : (
+                  <div className="px-3 py-2 text-sm text-gray-500">
+                    Start typing to search tags...
+                  </div>
+                )}
+              </div>
+            </>
           )}
         </div>
-
-        {isOpen && (inputValue.trim() || filteredTags.length > 0) && (
-          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-            <div className="py-1">
-              {filteredTags.map((tag) => (
-                <button
-                  key={tag.id}
-                  onClick={() => {
-                    addTag(tag.id);
-                    setInputValue('');
-                  }}
-                  className="w-full text-left px-3 py-2 hover:bg-gray-50 text-sm flex items-center"
-                >
-                  <Plus className="w-4 h-4 mr-2 text-[#4a90e2]" />
-                  {tag.name}
-                </button>
-              ))}
-              
-              {inputValue.trim() && filteredTags.length === 0 && (
-                <button
-                  onClick={() => createTag(inputValue)}
-                  className="w-full text-left px-3 py-2 hover:bg-gray-50 text-sm flex items-center text-[#4a90e2]"
-                  disabled={isCreating}
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Create "{inputValue.trim()}"
-                </button>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {selectedTags.length > 0 && (
-        <div className="flex flex-wrap gap-1">
-          {getSelectedTagNames().map((tagName, index) => {
-            const tagId = tags.find(t => t.name === tagName)?.id;
-            return (
-              <span
-                key={tagId || index}
-                className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-[#ff6b35] text-white"
-              >
-                {tagName}
-                <button
-                  type="button"
-                  onClick={() => tagId && removeTag(tagId)}
-                  className="ml-1 hover:bg-[#e55a2b] rounded-full p-0.5"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              </span>
-            );
-          })}
-        </div>
       )}
+      
+      <p className="mt-1 text-xs text-gray-500">
+        {selectedTags.length} of {maxTags} tags
+      </p>
     </div>
   );
 } 
