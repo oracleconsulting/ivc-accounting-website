@@ -529,7 +529,7 @@ export default function EmailSettingsPage() {
                   placeholder="<h2>New Blog Post: {{title}}</h2><p>{{excerpt}}</p><a href='{{url}}'>Read More</a>"
                 />
                 <p className="text-sm text-gray-500 mt-1">
-                  Available variables: {{title}}, {{excerpt}}, {{url}}, {{author}}
+                  Available variables: {`{{title}}, {{excerpt}}, {{url}}, {{author}}`}
                 </p>
               </div>
 
@@ -544,7 +544,7 @@ export default function EmailSettingsPage() {
                   placeholder="<h2>Thank you for contacting IVC Accounting</h2><p>Hello {{name}},</p><p>We've received your message and will respond within 24 hours.</p>"
                 />
                 <p className="text-sm text-gray-500 mt-1">
-                  Available variables: {{name}}, {{email}}, {{subject}}, {{message}}
+                  Available variables: {`{{name}}, {{subject}}, {{email}}, {{message}}`}
                 </p>
               </div>
 
@@ -559,7 +559,7 @@ export default function EmailSettingsPage() {
                   placeholder="<h2>Appointment Confirmed</h2><p>Hello {{name}},</p><p>Your appointment is confirmed for {{date}} at {{time}}.</p>"
                 />
                 <p className="text-sm text-gray-500 mt-1">
-                  Available variables: {{name}}, {{date}}, {{time}}, {{location}}
+                  Available variables: {`{{name}}, {{date}}, {{time}}, {{location}}`}
                 </p>
               </div>
             </div>
