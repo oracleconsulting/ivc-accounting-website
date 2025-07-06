@@ -1,12 +1,53 @@
 import { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// Add error handling for missing env vars
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!supabaseUrl || !supabaseServiceKey) {
+  console.error('Missing Supabase environment variables for RSS feed');
+}
+
+// Create client only if we have the required keys
+const supabase = supabaseUrl && supabaseServiceKey 
+  ? createClient(supabaseUrl, supabaseServiceKey)
+  : null;
 
 export async function GET(request: NextRequest) {
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.ivcaccounting.co.uk';
+  const siteName = 'IVC Accounting';
+  const siteDescription = 'Expert chartered accountants serving Essex businesses. Specializing in tax planning, business growth, and financial strategy.';
+
+  // If Supabase is not configured, return a basic RSS feed
+  if (!supabase) {
+    const basicRssXml = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:wfw="http://wellformedweb.org/CommentAPI/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:sy="http://purl.org/rss/1.0/modules/syndication/" xmlns:slash="http://purl.org/rss/1.0/modules/slash/">
+  <channel>
+    <title>${siteName} Blog</title>
+    <atom:link href="${baseUrl}/feed.xml" rel="self" type="application/rss+xml" />
+    <link>${baseUrl}/blog</link>
+    <description>${siteDescription}</description>
+    <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
+    <language>en-GB</language>
+    <sy:updatePeriod>daily</sy:updatePeriod>
+    <sy:updateFrequency>1</sy:updateFrequency>
+    <image>
+      <url>${baseUrl}/logo.png</url>
+      <title>${siteName}</title>
+      <link>${baseUrl}</link>
+    </image>
+  </channel>
+</rss>`;
+
+    return new Response(basicRssXml, {
+      headers: {
+        'Content-Type': 'application/rss+xml; charset=utf-8',
+        'Cache-Control': 'public, max-age=3600, s-maxage=3600',
+      },
+    });
+  }
+
   try {
     // Fetch published blog posts
     const { data: posts, error } = await supabase
@@ -42,10 +83,6 @@ export async function GET(request: NextRequest) {
       console.error('Error fetching posts for RSS:', error);
       return new Response('Error generating RSS feed', { status: 500 });
     }
-
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.ivcaccounting.co.uk';
-    const siteName = 'IVC Accounting';
-    const siteDescription = 'Expert chartered accountants serving Essex businesses. Specializing in tax planning, business growth, and financial strategy.';
 
     // Generate RSS XML
     const rssXml = `<?xml version="1.0" encoding="UTF-8"?>

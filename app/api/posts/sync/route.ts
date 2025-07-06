@@ -1,13 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// Add error handling for missing env vars
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!supabaseUrl || !supabaseServiceKey) {
+  console.error('Missing Supabase environment variables for posts sync');
+}
+
+// Create client only if we have the required keys
+const supabase = supabaseUrl && supabaseServiceKey 
+  ? createClient(supabaseUrl, supabaseServiceKey)
+  : null;
 
 // GET - Fetch posts for offline storage
 export async function GET(request: NextRequest) {
+  if (!supabase) {
+    return NextResponse.json(
+      { error: 'Supabase not configured' },
+      { status: 500 }
+    );
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const lastSync = searchParams.get('lastSync');
@@ -45,6 +60,13 @@ export async function GET(request: NextRequest) {
 
 // POST - Sync offline changes back to server
 export async function POST(request: NextRequest) {
+  if (!supabase) {
+    return NextResponse.json(
+      { error: 'Supabase not configured' },
+      { status: 500 }
+    );
+  }
+
   try {
     const { posts, deletedPosts } = await request.json();
     

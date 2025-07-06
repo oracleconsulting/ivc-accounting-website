@@ -1,13 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// Add error handling for missing env vars
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!supabaseUrl || !supabaseServiceKey) {
+  console.error('Missing Supabase environment variables');
+}
+
+// Create client only if we have the required keys
+const supabase = supabaseUrl && supabaseServiceKey 
+  ? createClient(supabaseUrl, supabaseServiceKey)
+  : null;
 
 // GET current AI settings
 export async function GET() {
+  if (!supabase) {
+    // Return defaults if Supabase is not configured
+    return NextResponse.json({
+      research_system_prompt: `You are an expert UK accounting and tax research assistant specializing in finding timely, relevant topics for accounting blog content. Your expertise includes UK tax law and HMRC regulations, small business accounting challenges, regional business trends in Essex and East of England, and financial planning and strategy.`,
+      research_temperature: 0.7,
+      research_model: 'anthropic/claude-3-haiku',
+      writing_system_prompt: `You are an expert blog writer for IVC Accounting, a chartered accounting firm in Halstead, Essex. Your writing style is professional, educational, SEO-optimized without being keyword-stuffed, practical and actionable for UK small businesses, and compliant with UK financial regulations. Brand voice: "OTHER ACCOUNTANTS FILE. WE FIGHT." - We're proactive, protective, and passionate about our clients' success.`,
+      writing_temperature: 0.8,
+      writing_model: 'anthropic/claude-3-sonnet',
+      social_system_prompt: `You are a social media expert for IVC Accounting. Create engaging, platform-specific content that maintains professional credibility while being approachable, uses platform best practices, includes relevant hashtags, drives traffic back to the blog, and reflects the brand: "OTHER ACCOUNTANTS FILE. WE FIGHT."`,
+      social_temperature: 0.9,
+      social_model: 'anthropic/claude-3-haiku',
+    });
+  }
+
   try {
     const { data, error } = await supabase
       .from('ai_settings')
@@ -43,6 +66,13 @@ export async function GET() {
 
 // PUT update AI settings
 export async function PUT(request: NextRequest) {
+  if (!supabase) {
+    return NextResponse.json(
+      { error: 'Supabase not configured' },
+      { status: 500 }
+    );
+  }
+
   try {
     const settings = await request.json();
     
