@@ -27,37 +27,58 @@ export default function Hero() {
 
   return (
     <section className="relative min-h-screen bg-[#1a2b4a] overflow-hidden">
-      {/* Background texture/pattern - dynamic grid */}
+      {/* Background texture/pattern - MORE VISIBLE */}
       <div className="absolute inset-0">
-        {/* Grid pattern */}
-        <div className="absolute inset-0 opacity-5" style={{
-          backgroundImage: 'linear-gradient(to right, #f5f1e8 1px, transparent 1px), linear-gradient(to bottom, #f5f1e8 1px, transparent 1px)',
-          backgroundSize: '50px 50px'
-        }} />
+        {/* Grid pattern - increased opacity */}
+        <div 
+          className="absolute inset-0 opacity-20" 
+          style={{
+            backgroundImage: 'linear-gradient(to right, #f5f1e8 1px, transparent 1px), linear-gradient(to bottom, #f5f1e8 1px, transparent 1px)',
+            backgroundSize: '50px 50px'
+          }} 
+        />
         
-        {/* Diagonal pattern overlay */}
-        <div className="absolute inset-0 opacity-5" style={{
-          backgroundImage: `repeating-linear-gradient(
-            45deg,
-            transparent,
-            transparent 40px,
-            #ff6b35 40px,
-            #ff6b35 41px
-          )`
-        }} />
+        {/* Diagonal pattern overlay - increased opacity */}
+        <div 
+          className="absolute inset-0 opacity-10" 
+          style={{
+            backgroundImage: `repeating-linear-gradient(
+              45deg,
+              transparent,
+              transparent 40px,
+              #ff6b35 40px,
+              #ff6b35 41px
+            )`
+          }} 
+        />
         
-        {/* Data visualization dots in corner */}
-        <div className="absolute top-20 right-20 opacity-10">
-          <div className="grid grid-cols-8 gap-2">
+        {/* Data visualization dots in corner - increased opacity and size */}
+        <div className="absolute top-32 right-10 opacity-30">
+          <div className="grid grid-cols-8 gap-3">
             {[...Array(64)].map((_, i) => (
-              <div key={i} className={`w-2 h-2 ${i % 3 === 0 ? 'bg-[#ff6b35]' : 'bg-[#4a90e2]'}`} />
+              <div 
+                key={i} 
+                className={`w-3 h-3 ${i % 3 === 0 ? 'bg-[#ff6b35]' : 'bg-[#4a90e2]'}`} 
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Additional dots pattern on left */}
+        <div className="absolute bottom-40 left-10 opacity-20 rotate-45">
+          <div className="grid grid-cols-6 gap-2">
+            {[...Array(36)].map((_, i) => (
+              <div 
+                key={i} 
+                className={`w-2 h-2 ${i % 2 === 0 ? 'bg-[#4a90e2]' : 'bg-[#f5f1e8]'}`} 
+              />
             ))}
           </div>
         </div>
       </div>
 
-      {/* Mountain/data shapes */}
-      <div className="absolute bottom-0 left-0 w-full h-[60%] opacity-10">
+      {/* Mountain/data shapes - increased opacity */}
+      <div className="absolute bottom-0 left-0 w-full h-[60%] opacity-20">
         <svg viewBox="0 0 1440 400" className="w-full h-full">
           <polygon points="0,400 480,200 960,100 1440,300 1440,400" fill="#ff6b35" />
           <polygon points="0,400 720,250 1440,150 1440,400" fill="#4a90e2" />
