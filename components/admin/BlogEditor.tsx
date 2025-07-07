@@ -12,6 +12,7 @@ import Strike from '@tiptap/extension-strike';
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 import { common, createLowlight } from 'lowlight';
 import { Upload } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import EditorToolbar from './EditorToolbar';
 import SEOPanel from './SEOPanel';
 import AIAssistant from '@/components/admin/AIAssistant';
@@ -29,11 +30,13 @@ const lowlight = createLowlight(common);
 
 interface BlogEditorProps {
   post?: Post;
-  onSave: (post: Partial<Post>) => Promise<void>;
-  onPublish: (post: Partial<Post>) => Promise<void>;
+  postId?: string;
+  onSave?: (post: Partial<Post>) => Promise<void>;
+  onPublish?: (post: Partial<Post>) => Promise<void>;
 }
 
-export default function BlogEditor({ post, onSave, onPublish }: BlogEditorProps) {
+export default function BlogEditor({ post, postId, onSave, onPublish }: BlogEditorProps) {
+  const router = useRouter();
   const [title, setTitle] = useState(post?.title || '');
   const [slug, setSlug] = useState(post?.slug || '');
   const [excerpt, setExcerpt] = useState(post?.excerpt || '');
@@ -49,6 +52,85 @@ export default function BlogEditor({ post, onSave, onPublish }: BlogEditorProps)
   const [autoSaveStatus, setAutoSaveStatus] = useState<'saved' | 'saving' | 'error'>('saved');
   
   const supabase = createClientComponentClient();
+
+  // Internal save function that calls API directly
+  const handleInternalSave = useCallback(async (postData: Partial<Post>) => {
+    if (!postId) return;
+    
+    try {
+      const response = await fetch(`/api/admin/post-by-id?id=${postId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          ...postData,
+          category_ids: postData.category_ids || categories,
+          tag_ids: postData.tag_ids || tags
+        }),
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          toast.error('Authentication required. Please log in.');
+          router.push('/login');
+          return;
+        }
+        throw new Error('Failed to save post');
+      }
+
+      const updatedPost = await response.json();
+      toast.success('Post saved successfully');
+      return updatedPost;
+    } catch (error) {
+      console.error('Error saving post:', error);
+      toast.error('Failed to save post');
+      throw error;
+    }
+  }, [postId, categories, tags, router]);
+
+  // Internal publish function that calls API directly
+  const handleInternalPublish = useCallback(async (postData: Partial<Post>) => {
+    if (!postId) return;
+    
+    try {
+      const response = await fetch(`/api/admin/post-by-id?id=${postId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          ...postData,
+          status: 'published',
+          published_at: new Date().toISOString(),
+          category_ids: postData.category_ids || categories,
+          tag_ids: postData.tag_ids || tags
+        }),
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          toast.error('Authentication required. Please log in.');
+          router.push('/login');
+          return;
+        }
+        throw new Error('Failed to publish post');
+      }
+
+      toast.success('Post published successfully');
+      router.push('/admin/posts');
+    } catch (error) {
+      console.error('Error publishing post:', error);
+      toast.error('Failed to publish post');
+      throw error;
+    }
+  }, [postId, categories, tags, router]);
+
+  // Use provided handlers or fall back to internal ones
+  const saveHandler = onSave || handleInternalSave;
+  const publishHandler = onPublish || handleInternalPublish;
 
   const editor = useEditor({
     extensions: [
@@ -121,7 +203,7 @@ export default function BlogEditor({ post, onSave, onPublish }: BlogEditorProps)
       const content_html = editor.getHTML();
       const read_time = calculateReadTime(content_text);
       
-      await onSave({
+      await saveHandler({
         title,
         slug,
         content,
@@ -141,7 +223,7 @@ export default function BlogEditor({ post, onSave, onPublish }: BlogEditorProps)
       setAutoSaveStatus('error');
       console.error('Auto-save failed:', error);
     }
-  }, [editor, title, slug, excerpt, featuredImage, seoData, onSave]);
+  }, [editor, title, slug, excerpt, featuredImage, seoData, saveHandler]);
 
   const debouncedAutoSave = useCallback(
     debounce(autoSave, 30000), // Auto-save every 30 seconds
@@ -189,7 +271,7 @@ export default function BlogEditor({ post, onSave, onPublish }: BlogEditorProps)
       seo_keywords: seoData.seo_keywords.length > 0 ? seoData.seo_keywords : []
     };
 
-    await onPublish({
+    await publishHandler({
       title,
       slug,
       content,
@@ -199,8 +281,6 @@ export default function BlogEditor({ post, onSave, onPublish }: BlogEditorProps)
       featured_image: featuredImage,
       read_time,
       ...finalSeoData,
-      status: 'published',
-      published_at: new Date().toISOString(),
       category_ids: categories,
       tag_ids: tags
     });
