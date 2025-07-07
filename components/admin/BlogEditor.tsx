@@ -23,6 +23,7 @@ import { generateSlug, calculateReadTime } from '@/lib/utils/blog';
 import { uploadImage } from '@/lib/utils/storage';
 import toast from 'react-hot-toast';
 import { Post } from '@/lib/types/blog';
+import { extractCategoryIds, extractTagIds } from '@/lib/utils/blog-helpers';
 
 const lowlight = createLowlight(common);
 
@@ -37,8 +38,8 @@ export default function BlogEditor({ post, onSave, onPublish }: BlogEditorProps)
   const [slug, setSlug] = useState(post?.slug || '');
   const [excerpt, setExcerpt] = useState(post?.excerpt || '');
   const [featuredImage, setFeaturedImage] = useState(post?.featured_image || '');
-  const [categories, setCategories] = useState<string[]>(post?.category_ids || []);
-  const [tags, setTags] = useState<string[]>(post?.tag_ids || []);
+  const [categories, setCategories] = useState<string[]>(() => extractCategoryIds(post || {}));
+  const [tags, setTags] = useState<string[]>(() => extractTagIds(post || {}));
   const [seoData, setSeoData] = useState({
     seo_title: post?.seo_title || '',
     seo_description: post?.seo_description || '',

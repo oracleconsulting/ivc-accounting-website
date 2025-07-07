@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { formatDistanceToNow } from 'date-fns';
 import { Clock, User, Tag } from 'lucide-react';
 import { Post } from '@/lib/types/blog';
+import { getPrimaryCategory, hasTags, getTagNames } from '@/lib/utils/blog-helpers';
 
 interface BlogListProps {
   posts: Post[];
@@ -76,13 +77,16 @@ export default function BlogList({ posts, currentPage, totalPages, searchParams 
               )}
               
               {/* Category Badge */}
-              {post.post_categories?.[0]?.category && (
-                <div className="absolute top-4 left-4">
-                  <span className="inline-block px-3 py-1 bg-oracle-orange text-white text-xs font-bold rounded-full">
-                    {post.post_categories[0].category.name}
-                  </span>
-                </div>
-              )}
+              {(() => {
+                const primaryCategory = getPrimaryCategory(post);
+                return primaryCategory ? (
+                  <div className="absolute top-4 left-4">
+                    <span className="inline-block px-3 py-1 bg-oracle-orange text-white text-xs font-bold rounded-full">
+                      {primaryCategory.name}
+                    </span>
+                  </div>
+                ) : null;
+              })()}
             </div>
 
             {/* Content */}
@@ -102,38 +106,40 @@ export default function BlogList({ posts, currentPage, totalPages, searchParams 
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-1">
                     <User className="w-4 h-4" />
-                    <span>{post.author?.name || 'IVC Accounting'}</span>
+                    <span>{post.author?.full_name || 'IVC Accounting'}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <Clock className="w-4 h-4" />
                     <span>{post.read_time || 5} min read</span>
                   </div>
                 </div>
-                <time dateTime={post.published_at}>
+                <time dateTime={post.published_at || undefined}>
                   {post.published_at ? formatDistanceToNow(new Date(post.published_at), { addSuffix: true }) : 'Recently'}
                 </time>
               </div>
 
               {/* Tags */}
-              {post.post_tags && post.post_tags.length > 0 && (
-                <div className="flex items-center gap-2 mb-4">
-                  <Tag className="w-4 h-4 text-gray-400" />
-                  <div className="flex flex-wrap gap-1">
-                    {post.post_tags.slice(0, 3).map((tagRelation) => (
-                      <Link
-                        key={tagRelation.tag.id}
-                        href={`/blog?tag=${tagRelation.tag.slug}`}
-                        className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded hover:bg-oracle-orange hover:text-white transition-colors"
-                      >
-                        {tagRelation.tag.name}
-                      </Link>
-                    ))}
-                    {post.post_tags.length > 3 && (
-                      <span className="text-xs text-gray-400">+{post.post_tags.length - 3} more</span>
-                    )}
+              {(() => {
+                const tagNames = getTagNames(post);
+                return tagNames.length > 0 ? (
+                  <div className="flex items-center gap-2 mb-4">
+                    <Tag className="w-4 h-4 text-gray-400" />
+                    <div className="flex flex-wrap gap-1">
+                      {tagNames.slice(0, 3).map((tagName, index) => (
+                        <span
+                          key={index}
+                          className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded"
+                        >
+                          {tagName}
+                        </span>
+                      ))}
+                      {tagNames.length > 3 && (
+                        <span className="text-xs text-gray-400">+{tagNames.length - 3} more</span>
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
+                ) : null;
+              })()}
 
               {/* Read More Button */}
               <Link

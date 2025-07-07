@@ -30,6 +30,15 @@ export interface PostTag {
   tag: Tag;
 }
 
+// Join table relations for many-to-many relationships
+export interface PostCategoryRelation {
+  category: Category;
+}
+
+export interface PostTagRelation {
+  tag: Tag;
+}
+
 export interface Post {
   id: string;
   title: string;
@@ -51,10 +60,19 @@ export interface Post {
   view_count: number;
   created_at: string;
   updated_at: string;
-  categories?: PostCategory[];
-  tags?: PostTag[];
+  
+  // Support both data structures:
+  // 1. Simple arrays (for editing)
   category_ids?: string[];
   tag_ids?: string[];
+  
+  // 2. Join table relations (for display)
+  post_categories?: PostCategoryRelation[];
+  post_tags?: PostTagRelation[];
+  
+  // Legacy support
+  categories?: PostCategory[];
+  tags?: PostTag[];
 }
 
 export interface PostFilters {
