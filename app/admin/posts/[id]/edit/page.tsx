@@ -24,7 +24,7 @@ export default function EditPostPage({ params }: EditPostPageProps) {
 
   const fetchPost = async () => {
     try {
-      const response = await fetch(`/api/admin/posts/${params.id}`, {
+      const response = await fetch(`/api/admin/post-by-id?id=${params.id}`, {
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
@@ -46,7 +46,7 @@ export default function EditPostPage({ params }: EditPostPageProps) {
       }
 
       const data = await response.json();
-      setPost(data.post);
+      setPost(data);
     } catch (error) {
       console.error('Error fetching post:', error);
       toast.error('Failed to load post');
@@ -57,12 +57,12 @@ export default function EditPostPage({ params }: EditPostPageProps) {
 
   const handleSave = async (postData: Partial<Post>) => {
     try {
-      const response = await fetch(`/api/admin/posts/${params.id}`, {
+      const response = await fetch(`/api/admin/post-by-id?id=${params.id}`, {
         method: 'PUT',
-        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
           ...postData,
           category_ids: postData.category_ids || post?.categories?.map(c => c.category.id),
@@ -80,7 +80,7 @@ export default function EditPostPage({ params }: EditPostPageProps) {
       }
 
       const updatedPost = await response.json();
-      setPost(updatedPost.post);
+      setPost(updatedPost);
       toast.success('Post saved successfully');
     } catch (error) {
       console.error('Error saving post:', error);
@@ -91,12 +91,12 @@ export default function EditPostPage({ params }: EditPostPageProps) {
 
   const handlePublish = async (postData: Partial<Post>) => {
     try {
-      const response = await fetch(`/api/admin/posts/${params.id}`, {
+      const response = await fetch(`/api/admin/post-by-id?id=${params.id}`, {
         method: 'PUT',
-        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
           ...postData,
           status: 'published',
