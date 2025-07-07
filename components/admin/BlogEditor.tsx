@@ -37,8 +37,8 @@ export default function BlogEditor({ post, onSave, onPublish }: BlogEditorProps)
   const [slug, setSlug] = useState(post?.slug || '');
   const [excerpt, setExcerpt] = useState(post?.excerpt || '');
   const [featuredImage, setFeaturedImage] = useState(post?.featured_image || '');
-  const [categories, setCategories] = useState<string[]>(post?.categories?.map(c => c.id) || []);
-  const [tags, setTags] = useState<string[]>(post?.tags?.map(t => t.id) || []);
+  const [categories, setCategories] = useState<string[]>(post?.category_ids || []);
+  const [tags, setTags] = useState<string[]>(post?.tag_ids || []);
   const [seoData, setSeoData] = useState({
     seo_title: post?.seo_title || '',
     seo_description: post?.seo_description || '',
