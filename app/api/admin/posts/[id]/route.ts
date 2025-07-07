@@ -13,16 +13,29 @@ export async function GET(
   console.log('Request URL:', request.url);
   
   try {
-    const supabase = createRouteHandlerClient({ cookies });
+    // Get the cookie store and create client with proper cookie handling
+    const cookieStore = cookies();
+    const supabase = createRouteHandlerClient({ 
+      cookies: () => cookieStore 
+    });
     
-    // Check authentication
+    // Debug authentication
+    console.log('Checking authentication...');
     const { data: { user }, error: authError } = await supabase.auth.getUser();
+    console.log('Auth result:', { 
+      user: user?.email, 
+      userId: user?.id,
+      authError: authError?.message, 
+      hasUser: !!user,
+      cookies: cookieStore.getAll().map(c => ({ name: c.name, hasValue: !!c.value }))
+    });
+    
     if (authError || !user) {
-      console.log('Authentication failed:', authError);
+      console.log('Auth failed:', authError?.message || 'No user');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    console.log('User authenticated:', user.id);
+    console.log('Auth successful, fetching post:', params.id);
 
     const { data: post, error } = await supabase
       .from('posts')
@@ -57,7 +70,10 @@ export async function PUT(
   console.log('PUT /api/admin/posts/[id] called with id:', params.id);
   
   try {
-    const supabase = createRouteHandlerClient({ cookies });
+    const cookieStore = cookies();
+    const supabase = createRouteHandlerClient({ 
+      cookies: () => cookieStore 
+    });
     
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -158,7 +174,10 @@ export async function DELETE(
   console.log('DELETE /api/admin/posts/[id] called with id:', params.id);
   
   try {
-    const supabase = createRouteHandlerClient({ cookies });
+    const cookieStore = cookies();
+    const supabase = createRouteHandlerClient({ 
+      cookies: () => cookieStore 
+    });
     
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser();

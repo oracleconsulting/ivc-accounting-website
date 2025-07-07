@@ -24,7 +24,12 @@ export default function EditPostPage({ params }: EditPostPageProps) {
 
   const fetchPost = async () => {
     try {
-      const response = await fetch(`/api/admin/posts/${params.id}`);
+      const response = await fetch(`/api/admin/posts/${params.id}`, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
       
       if (!response.ok) {
         if (response.status === 404) {
@@ -32,11 +37,16 @@ export default function EditPostPage({ params }: EditPostPageProps) {
           router.push('/admin/posts');
           return;
         }
+        if (response.status === 401) {
+          toast.error('Authentication required. Please log in.');
+          router.push('/login');
+          return;
+        }
         throw new Error('Failed to fetch post');
       }
 
       const data = await response.json();
-      setPost(data);
+      setPost(data.post);
     } catch (error) {
       console.error('Error fetching post:', error);
       toast.error('Failed to load post');
@@ -49,6 +59,7 @@ export default function EditPostPage({ params }: EditPostPageProps) {
     try {
       const response = await fetch(`/api/admin/posts/${params.id}`, {
         method: 'PUT',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -60,11 +71,16 @@ export default function EditPostPage({ params }: EditPostPageProps) {
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          toast.error('Authentication required. Please log in.');
+          router.push('/login');
+          return;
+        }
         throw new Error('Failed to save post');
       }
 
       const updatedPost = await response.json();
-      setPost(updatedPost);
+      setPost(updatedPost.post);
       toast.success('Post saved successfully');
     } catch (error) {
       console.error('Error saving post:', error);
@@ -77,6 +93,7 @@ export default function EditPostPage({ params }: EditPostPageProps) {
     try {
       const response = await fetch(`/api/admin/posts/${params.id}`, {
         method: 'PUT',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -90,6 +107,11 @@ export default function EditPostPage({ params }: EditPostPageProps) {
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          toast.error('Authentication required. Please log in.');
+          router.push('/login');
+          return;
+        }
         throw new Error('Failed to publish post');
       }
 
