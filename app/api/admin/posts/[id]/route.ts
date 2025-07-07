@@ -2,19 +2,27 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 
+console.log('Loading /api/admin/posts/[id]/route.ts');
+
 // GET /api/admin/posts/[id] - Get single post
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  console.log('GET /api/admin/posts/[id] called with id:', params.id);
+  console.log('Request URL:', request.url);
+  
   try {
     const supabase = createRouteHandlerClient({ cookies });
     
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
+      console.log('Authentication failed:', authError);
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    console.log('User authenticated:', user.id);
 
     const { data: post, error } = await supabase
       .from('posts')
@@ -27,7 +35,10 @@ export async function GET(
       .eq('id', params.id)
       .single();
 
+    console.log('Supabase query result:', { post: !!post, error, id: params.id });
+
     if (error || !post) {
+      console.log('Post not found or error:', error);
       return NextResponse.json({ error: 'Post not found' }, { status: 404 });
     }
 
@@ -43,6 +54,8 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  console.log('PUT /api/admin/posts/[id] called with id:', params.id);
+  
   try {
     const supabase = createRouteHandlerClient({ cookies });
     
@@ -142,6 +155,8 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  console.log('DELETE /api/admin/posts/[id] called with id:', params.id);
+  
   try {
     const supabase = createRouteHandlerClient({ cookies });
     
