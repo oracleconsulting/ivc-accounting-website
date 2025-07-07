@@ -2,15 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 
-console.log('Loading /api/admin/posts/[id]/route.ts');
+console.log('🚀 Loading /api/admin/posts/[id]/route.ts');
 
 // GET /api/admin/posts/[id] - Get single post
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  console.log('GET /api/admin/posts/[id] called with id:', params.id);
-  console.log('Request URL:', request.url);
+  console.log('🎯 GET /api/admin/posts/[id] called with id:', params.id);
+  console.log('📡 Request URL:', request.url);
+  console.log('🔍 Request headers:', Object.fromEntries(request.headers.entries()));
   
   try {
     // Get the cookie store and create client with proper cookie handling
