@@ -41,7 +41,7 @@ interface RSSAnalyticsProps {
   items: RSSItem[];
 }
 
-export function RSSAnalytics({ feeds, items }: RSSAnalyticsProps) {
+function RSSAnalytics({ feeds, items }: RSSAnalyticsProps) {
   // Calculate analytics
   const totalFeeds = feeds.length;
   const activeFeeds = feeds.filter(f => f.is_active).length;
@@ -247,4 +247,6 @@ export function RSSAnalytics({ feeds, items }: RSSAnalyticsProps) {
       </Card>
     </div>
   );
-} 
+}
+
+export default RSSAnalytics; 

@@ -34,7 +34,7 @@ interface RSSFeedManagerProps {
   onFeedsUpdate: (feeds: RSSFeed[]) => void;
 }
 
-export function RSSFeedManager({ feeds, onFeedsUpdate }: RSSFeedManagerProps) {
+function RSSFeedManager({ feeds, onFeedsUpdate }: RSSFeedManagerProps) {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingFeed, setEditingFeed] = useState<RSSFeed | null>(null);
   const [formData, setFormData] = useState({
@@ -329,4 +329,6 @@ export function RSSFeedManager({ feeds, onFeedsUpdate }: RSSFeedManagerProps) {
       </Card>
     </div>
   );
-} 
+}
+
+export default RSSFeedManager; 

@@ -19,9 +19,9 @@ import {
   CheckCircle,
   AlertCircle
 } from 'lucide-react';
-import { RSSFeedManager } from '@/components/admin/RSSFeedManager';
-import { RSSContentImporter } from '@/components/admin/RSSContentImporter';
-import { RSSAnalytics } from '@/components/admin/RSSAnalytics';
+import RSSFeedManager from '@/components/admin/RSSFeedManager';
+import RSSContentImporter from '@/components/admin/RSSContentImporter';
+import RSSAnalytics from '@/components/admin/RSSAnalytics';
 
 interface RSSFeed {
   id: string;

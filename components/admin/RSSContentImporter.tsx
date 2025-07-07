@@ -47,7 +47,7 @@ interface RSSContentImporterProps {
   onItemsUpdate: (items: RSSItem[]) => void;
 }
 
-export function RSSContentImporter({ items, feeds, onItemsUpdate }: RSSContentImporterProps) {
+function RSSContentImporter({ items, feeds, onItemsUpdate }: RSSContentImporterProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFeed, setSelectedFeed] = useState<string>('all');
   const [importStatus, setImportStatus] = useState<string>('all'); // all, imported, not_imported
@@ -274,4 +274,6 @@ export function RSSContentImporter({ items, feeds, onItemsUpdate }: RSSContentIm
       </Card>
     </div>
   );
-} 
+}
+
+export default RSSContentImporter; 
