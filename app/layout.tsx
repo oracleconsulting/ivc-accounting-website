@@ -3,8 +3,14 @@ import { Inter } from 'next/font/google'
 import Layout from '@/components/layout/Layout'
 import { Toaster } from 'react-hot-toast'
 import './globals.css'
+import dynamic from 'next/dynamic';
 
 const inter = Inter({ subsets: ['latin'] })
+
+// Disable SSR for children to avoid hydration issues
+const ClientOnly = dynamic(() => Promise.resolve(({ children }: { children: React.ReactNode }) => <>{children}</>), {
+  ssr: false
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://ivcaccounting.co.uk'),
@@ -108,8 +114,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+      </head>
       <body className={inter.className} suppressHydrationWarning>
-        <Layout>{children}</Layout>
+        <ClientOnly>
+          {children}
+        </ClientOnly>
         <Toaster 
           position="top-right"
           toastOptions={{
