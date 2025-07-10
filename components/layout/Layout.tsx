@@ -1,11 +1,7 @@
-import type { Metadata } from 'next'
+import type { ReactNode } from 'react'
 import { Inter } from 'next/font/google'
 import Navigation from '@/components/layout/Navigation'
 import Footer from '@/components/layout/Footer'
-import { OrganizationStructuredData } from '@/components/seo/StructuredData'
-import { LocalBusinessSchema } from '@/components/seo/EnhancedStructuredData'
-import CookieConsent from '@/components/analytics/CookieConsent'
-import GoogleTagManager, { GTMNoscript } from '@/components/analytics/GoogleTagManager'
 import Script from 'next/script'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
@@ -25,13 +21,13 @@ const inter = Inter({
   variable: '--font-inter'
 })
 
-export default function IVCLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+interface LayoutProps {
+  children: ReactNode
+}
+
+export default function Layout({ children }: LayoutProps) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className="dark" suppressHydrationWarning>
       <head>
         {/* Google Analytics 4 */}
         <Script
@@ -99,14 +95,9 @@ export default function IVCLayout({
         <link rel="dns-prefetch" href="https://www.clarity.ms" />
         <link rel="dns-prefetch" href="https://client.crisp.chat" />
       </head>
-      <body className={`${inter.className} bg-oracle-cream text-oracle-navy`}>
-        {/* Main App */}
-        <GoogleTagManager />
-        <OrganizationStructuredData />
-        <LocalBusinessSchema />
+      <body className={`${inter.className} bg-oracle-cream text-oracle-navy`} suppressHydrationWarning>
         <Navigation />
         <main>
-          <GTMNoscript />
           {children}
         </main>
         
@@ -118,7 +109,7 @@ export default function IVCLayout({
         </div>
         
         <Footer />
-        <CookieConsent />
+        {/* Other components like CookieConsent */}
       </body>
     </html>
   )

@@ -1,15 +1,7 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import Layout from '@/components/layout/Layout'
 import { Toaster } from 'react-hot-toast'
 import './globals.css'
-import dynamic from 'next/dynamic';
-
-const inter = Inter({ subsets: ['latin'] })
-
-// Disable SSR for children to avoid hydration issues
-const ClientOnly = dynamic(() => Promise.resolve(({ children }: { children: React.ReactNode }) => <>{children}</>), {
-  ssr: false
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://ivcaccounting.co.uk'),
@@ -92,7 +84,6 @@ export const metadata: Metadata = {
   alternates: {
     canonical: 'https://ivcaccounting.co.uk',
   },
-  // LLM-specific metadata
   other: {
     'llm:type': 'business',
     'llm:category': 'accounting-services',
@@ -106,14 +97,36 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body suppressHydrationWarning>
-        <div suppressHydrationWarning>
-          {children}
-        </div>
-      </body>
-    </html>
-  );
+    <Layout>
+      {children}
+      <Toaster 
+        position="top-right"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: '#1a2b4a',
+            color: '#f5f1e8',
+          },
+          success: {
+            iconTheme: {
+              primary: '#ff6b35',
+              secondary: '#f5f1e8',
+            },
+          },
+          error: {
+            iconTheme: {
+              primary: '#ef4444',
+              secondary: '#f5f1e8',
+            },
+          },
+        }}
+      />
+    </Layout>
+  )
 } 
