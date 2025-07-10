@@ -9,11 +9,17 @@ import Button from '@/components/shared/Button'
 export default function Navigation() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
+    // Check initial scroll position after mount
+    setIsScrolled(window.scrollY > 20)
+    
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20)
     }
+    
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
@@ -32,10 +38,13 @@ export default function Navigation() {
     { href: '/tools', label: 'TOOLS' },
   ]
 
+  // Use mounted state to ensure consistent rendering
+  const navClassName = `fixed w-full z-50 nav-transition ${
+    mounted && isScrolled ? 'bg-[#1a2b4a] shadow-corporate' : 'bg-transparent'
+  }`
+
   return (
-    <nav className={`fixed w-full z-50 nav-transition ${
-      isScrolled ? 'bg-[#1a2b4a] shadow-corporate' : 'bg-transparent'
-    }`}>
+    <nav className={navClassName}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}

@@ -11,8 +11,10 @@ const blurDataURL = "data:image/jpeg;base64,/9j/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJ
 
 export default function Hero() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const handleMouseMove = (e: MouseEvent) => {
       setMousePosition({ x: e.clientX, y: e.clientY });
     };
@@ -21,9 +23,10 @@ export default function Hero() {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
-  const parallaxStyle = {
+  // Only apply parallax after component is mounted
+  const parallaxStyle = mounted ? {
     transform: `translate(${mousePosition.x * 0.01}px, ${mousePosition.y * 0.01}px)`,
-  };
+  } : {};
 
   return (
     <section className="relative min-h-screen bg-[#1a2b4a] overflow-hidden">
