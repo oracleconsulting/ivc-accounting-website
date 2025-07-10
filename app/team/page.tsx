@@ -155,13 +155,13 @@ export default function TeamPage() {
               },
               {
                 icon: Building,
-                year: "2020",
+                year: "2022",
                 title: "PE EXIT EXPERIENCE",
                 description: "Chose values over valuations when PE took over"
               },
               {
                 icon: Rocket,
-                year: "2021",
+                year: "2025",
                 title: "FOUNDED IVC",
                 description: "Built a firm where fighting beats filing"
               }

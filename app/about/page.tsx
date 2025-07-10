@@ -164,7 +164,7 @@ export default function AboutPage() {
                   className="w-full"
                 />
                 <div className="absolute -bottom-8 -right-8 bg-[#4a90e2] text-[#f5f1e8] p-8 max-w-sm">
-                  <p className="text-3xl font-black uppercase">2024</p>
+                  <p className="text-3xl font-black uppercase">2025</p>
                   <p className="text-lg font-bold uppercase">Founded IVC</p>
                   <p className="text-sm mt-1">
                     &ldquo;I chose to build something where relationships matter more than revenue.&rdquo;
@@ -294,12 +294,12 @@ export default function AboutPage() {
                   description: "Moved into senior roles, seeing firsthand how larger firms lose touch with what matters."
                 },
                 {
-                  year: "2023-2024",
+                  year: "2022-2024",
                   title: "THE PE EXPERIENCE",
                   description: "Experienced a private equity acquisition. Chose to exit when values clashed with profit margins."
                 },
                 {
-                  year: "2024",
+                  year: "2025",
                   title: "FOUNDED IVC ACCOUNTING",
                   description: "Built a firm based on fighting for clients, not just filing for them. Limited to 50 clients by choice."
                 },

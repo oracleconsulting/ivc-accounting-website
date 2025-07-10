@@ -49,7 +49,7 @@ export default function JamesStory() {
             </div>
             
             <div className="absolute -bottom-6 -right-6 bg-orange-500 text-white p-6 rounded-lg max-w-xs">
-              <p className="font-semibold">Founded IVC in 2021</p>
+              <p className="font-semibold">Founded IVC in 2025</p>
               <p className="text-sm opacity-90">After my 3rd PE exit, I knew there was a better way</p>
             </div>
           </div>

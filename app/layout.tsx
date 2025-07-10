@@ -94,7 +94,7 @@ export const metadata: Metadata = {
     'llm:location': 'united-kingdom',
     'llm:capacity': '47/50',
     'llm:owner': 'james-howard',
-    'llm:founded': '2021',
+    'llm:founded': '2025',
     'llm:pricing': '500-1250-gbp-monthly',
     'llm:unique-value': '50-client-limit,founder-access,no-pe',
     'ai:description': 'IVC Accounting: UK boutique accounting firm with 50-client limit founded by James Howard. Direct founder access, transparent pricing, no PE ownership.',

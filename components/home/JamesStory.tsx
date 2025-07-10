@@ -34,7 +34,7 @@ export default function JamesStory() {
                     className="w-full"
                   />
                   <div className="absolute bottom-8 right-8 bg-[#ff6b35] text-[#f5f1e8] p-6 max-w-xs">
-                    <p className="text-3xl font-black uppercase">2021</p>
+                    <p className="text-3xl font-black uppercase">2025</p>
                     <p className="text-lg font-bold uppercase">Founded IVC</p>
                     <p className="text-sm mt-1">After my PE exit, I knew there was a better way</p>
                   </div>
