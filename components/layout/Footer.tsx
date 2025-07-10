@@ -1,9 +1,14 @@
-// components/layout/Footer.tsx
+'use client';
+
+import { useState, useEffect } from 'react';
 import Link from 'next/link'
 import { Calendar } from 'lucide-react'
 
 export default function Footer() {
-  const currentYear = new Date().getFullYear()
+  const [currentYear, setCurrentYear] = useState<number>(2025); // Default year
+  useEffect(() => {
+    setCurrentYear(new Date().getFullYear());
+  }, []);
   
   const footerLinks = {
     services: [
