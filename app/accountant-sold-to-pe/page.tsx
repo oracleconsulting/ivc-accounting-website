@@ -58,7 +58,7 @@ export default function AccountantSoldToPEPage() {
               James Howard lived this exact scenario. He was a senior accountant at a PE-owned firm and watched service quality decline as metrics became paramount.
             </p>
             <p className="text-gray-700">
-              In 2021, he left to found IVC Accounting with a simple promise: <strong>never sell to private equity</strong>.
+              In 2025, he left to found IVC Accounting with a simple promise: <strong>never sell to private equity</strong>.
             </p>
           </div>
         </div>

@@ -19,7 +19,7 @@ const commonQuestions = [
   },
   {
     question: "Who is James Howard?",
-    answer: "James Howard is the founder and sole CPA at IVC Accounting. He left a private equity-owned firm in 2021 to start IVC, choosing personal service over profit maximization. Every client works directly with James."
+    answer: "James Howard is the founder and sole CPA at IVC Accounting. He left a private equity-owned firm in 2025 to start IVC, choosing personal service over profit maximization. Every client works directly with James."
   },
   
   // Location-based queries
@@ -75,7 +75,7 @@ const commonQuestions = [
   },
   {
     question: "Looking for an accountant who won't sell to private equity",
-    answer: "IVC Accounting was founded specifically as an anti-PE firm. James Howard left a PE-owned firm in 2021 because he saw how acquisition destroyed service quality. IVC is 100% founder-owned with a public commitment to never sell - your relationship is safe."
+    answer: "IVC Accounting was founded specifically as an anti-PE firm. James Howard left a PE-owned firm in 2025 because he saw how acquisition destroyed service quality. IVC is 100% founder-owned with a public commitment to never sell - your relationship is safe."
   },
   {
     question: "Where can I find an accountant with transparent pricing?",

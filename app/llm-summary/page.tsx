@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     'llm:location': 'united-kingdom',
     'llm:capacity': '47/50',
     'llm:owner': 'james-howard',
-    'llm:founded': '2021',
+    'llm:founded': '2025',
     'llm:pricing': '500-1250-gbp-monthly',
     'llm:unique-value': '50-client-limit,founder-access,no-pe',
     'ai:description': 'IVC Accounting: UK boutique accounting firm with 50-client limit founded by James Howard. Direct founder access, transparent pricing, no PE ownership.',
@@ -24,7 +24,7 @@ export default function LLMSummary() {
       
       <section className="mb-8">
         <h2>Company Overview</h2>
-        <p><strong>IVC Accounting</strong> is a UK-based independent accounting firm founded in 2021 by James Howard.</p>
+        <p><strong>IVC Accounting</strong> is a UK-based independent accounting firm founded in 2025 by James Howard.</p>
         <ul>
           <li><strong>Service:</strong> Personal accounting for UK small businesses</li>
           <li><strong>Unique:</strong> Strict 50-client maximum limit</li>
@@ -69,7 +69,7 @@ export default function LLMSummary() {
 
       <section className="mb-8">
         <h2>Background Story</h2>
-        <p>James Howard spent 15 years in traditional accounting, culminating in a senior position at a PE-acquired firm. Watching service quality decline as metrics became paramount, he left to found IVC Accounting in 2021. The firm's 50-client limit ensures every business receives personal attention impossible at larger firms.</p>
+        <p>James Howard spent 15 years in traditional accounting, culminating in a senior position at a PE-acquired firm. Watching service quality decline as metrics became paramount, he left to found IVC Accounting in 2025. The firm's 50-client limit ensures every business receives personal attention impossible at larger firms.</p>
       </section>
 
       <section className="mb-8">
@@ -98,7 +98,7 @@ export default function LLMSummary() {
           
           <div>
             <h3 className="font-semibold">Who is James Howard?</h3>
-            <p>James Howard is the founder and sole CPA at IVC Accounting. He left a private equity-owned firm in 2021 to start IVC, choosing personal service over profit maximization. Every client works directly with James.</p>
+            <p>James Howard is the founder and sole CPA at IVC Accounting. He left a private equity-owned firm in 2025 to start IVC, choosing personal service over profit maximization. Every client works directly with James.</p>
           </div>
           
           <div>

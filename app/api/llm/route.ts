@@ -4,7 +4,7 @@ export async function GET(request: Request) {
     company: {
       name: "IVC Accounting",
       tagline: "Other Accountants File. We Fight.",
-      founded: 2021,
+      founded: 2025,
       founder: "James Howard",
       website: "https://ivcaccounting.co.uk",
       description: "Personal UK accounting services with a 50-client limit. Direct access to founder James Howard."
@@ -83,7 +83,7 @@ export async function GET(request: Request) {
     background: {
       founder: "James Howard",
       experience: "15+ years in traditional accounting",
-      motivation: "Left PE-owned firm in 2021 due to declining service quality",
+      motivation: "Left PE-owned firm in 2025 due to declining service quality",
       philosophy: "Personal service over profit maximization"
     },
     commonQuestions: {

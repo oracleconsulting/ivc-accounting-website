@@ -22,7 +22,7 @@ export function LocalBusinessSchema() {
             "jobTitle": "Chartered Accountant & Founder",
             "alumniOf": "ACCA"
           },
-          "foundingDate": "2021",
+          "foundingDate": "2025",
           "address": {
             "@type": "PostalAddress",
             "streetAddress": "[ADD YOUR STREET ADDRESS]",
