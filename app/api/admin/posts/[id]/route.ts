@@ -9,6 +9,25 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  // TEMPORARY: Return mock data for testing
+  if (process.env.NODE_ENV === 'development') {
+    return NextResponse.json({
+      id: params.id,
+      title: 'Test Post',
+      content: '<p>Test content for hydration testing</p>',
+      content_text: 'Test content for hydration testing',
+      content_html: '<p>Test content for hydration testing</p>',
+      slug: 'test-post',
+      status: 'draft',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      published_at: null,
+      author_id: 'test-user',
+      read_time: 5,
+      seo_title: 'Test Post',
+      seo_description: 'Test description'
+    })
+  }
   console.log('🎯 GET /api/admin/posts/[id] called with id:', params.id);
   console.log('📡 Request URL:', request.url);
   console.log('🔍 Request headers:', Object.fromEntries(request.headers.entries()));
