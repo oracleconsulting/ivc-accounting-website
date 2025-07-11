@@ -60,55 +60,75 @@ export default function BlogEditor({ post, postId, onSave, onPublish }: BlogEdit
   const [autoSaveStatus, setAutoSaveStatus] = useState<'saved' | 'saving' | 'error'>('saved');
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [isCreatingPost, setIsCreatingPost] = useState(false);
+  const [currentPostId, setCurrentPostId] = useState(postId);
   
   const supabase = createClientComponentClient();
 
   // Create a new post if none exists
   useEffect(() => {
-    const createNewPost = async () => {
-      if (!postId && !post) {
-        try {
-          const { data: { user } } = await supabase.auth.getUser();
-          if (!user) {
-            toast.error('Please log in to create posts');
-            router.push('/auth');
-            return;
-          }
-
-          // Create a new draft post
-          const { data, error } = await supabase
-            .from('posts')
-            .insert({
-              title: 'Untitled Post',
-              slug: `draft-${Date.now()}`,
-              content: { type: 'doc', content: [] },
-              content_text: '',
-              content_html: '',
-              excerpt: '',
-              status: 'draft',
-              author_id: user.id,
-              read_time: 0
-            })
-            .select()
-            .single();
-
-          if (error) throw error;
-
-          // Redirect to edit the new post
-          router.push(`/admin/posts/${data.id}/edit`);
-        } catch (error) {
-          console.error('Error creating new post:', error);
-          toast.error('Failed to create new post');
+    const initializePost = async () => {
+      // If we have a postId from props, use it
+      if (postId) {
+        setCurrentPostId(postId);
+        return;
+      }
+      
+      // If we already created a post, don't create another
+      if (currentPostId || isCreatingPost) {
+        return;
+      }
+      
+      // Create a new post
+      setIsCreatingPost(true);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          toast.error('Please log in to create posts');
+          router.push('/auth');
+          return;
         }
+
+        const newSlug = `draft-${Date.now()}`;
+        const { data, error } = await supabase
+          .from('posts')
+          .insert({
+            title: 'Untitled Post',
+            slug: newSlug,
+            content: { type: 'doc', content: [] },
+            content_text: '',
+            content_html: '',
+            excerpt: '',
+            status: 'draft',
+            author_id: user.id,
+            read_time: 0
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        setCurrentPostId(data.id);
+        // Update the URL without full page reload
+        window.history.replaceState({}, '', `/admin/posts/${data.id}/edit`);
+        
+      } catch (error) {
+        console.error('Error creating new post:', error);
+        toast.error('Failed to create new post');
+      } finally {
+        setIsCreatingPost(false);
       }
     };
 
-    createNewPost();
-  }, [postId, post, supabase, router]);
+    initializePost();
+  }, [postId, currentPostId, isCreatingPost, supabase, router]);
 
   // Internal save function that directly updates Supabase
   const handleInternalSave = useCallback(async (postData: Partial<Post>) => {
-    if (!postId) return;
+    if (!currentPostId) {
+      console.log('No post ID available for saving');
+      return;
+    }
     
     try {
       setAutoSaveStatus('saving');
@@ -119,18 +139,18 @@ export default function BlogEditor({ post, postId, onSave, onPublish }: BlogEdit
       }
 
       // Extract category_ids and tag_ids from postData
-      const { category_ids, tag_ids, ...postDataWithoutRelations } = postData;
+      const { category_ids, tag_ids, ...postDataWithoutRelations } = postData as any;
 
       const updateData = {
         ...postDataWithoutRelations,
         updated_at: new Date().toISOString(),
       };
 
-      // Update the post without category_ids and tag_ids
+      // Update the post
       const { data, error } = await supabase
         .from('posts')
         .update(updateData)
-        .eq('id', postId)
+        .eq('id', currentPostId)
         .select()
         .single();
 
@@ -138,44 +158,52 @@ export default function BlogEditor({ post, postId, onSave, onPublish }: BlogEdit
 
       // Update post_categories relationship
       if (category_ids !== undefined) {
-        // First delete existing relationships
-        await supabase
+        // Delete existing relationships
+        const { error: deleteError } = await supabase
           .from('post_categories')
           .delete()
-          .eq('post_id', postId);
+          .eq('post_id', currentPostId);
+        
+        if (deleteError) console.error('Error deleting categories:', deleteError);
 
-        // Then insert new ones
+        // Insert new relationships
         if (category_ids.length > 0) {
-          await supabase
+          const { error: insertError } = await supabase
             .from('post_categories')
             .insert(
-              category_ids.map((categoryId, index) => ({
-                post_id: postId,
+              category_ids.map((categoryId: string, index: number) => ({
+                post_id: currentPostId,
                 category_id: categoryId,
-                is_primary: index === 0 // First category is primary
+                is_primary: index === 0
               }))
             );
+          
+          if (insertError) console.error('Error inserting categories:', insertError);
         }
       }
 
       // Update post_tags relationship
       if (tag_ids !== undefined) {
-        // First delete existing relationships
-        await supabase
+        // Delete existing relationships
+        const { error: deleteError } = await supabase
           .from('post_tags')
           .delete()
-          .eq('post_id', postId);
+          .eq('post_id', currentPostId);
+        
+        if (deleteError) console.error('Error deleting tags:', deleteError);
 
-        // Then insert new ones
+        // Insert new relationships
         if (tag_ids.length > 0) {
-          await supabase
+          const { error: insertError } = await supabase
             .from('post_tags')
             .insert(
-              tag_ids.map(tagId => ({
-                post_id: postId,
+              tag_ids.map((tagId: string) => ({
+                post_id: currentPostId,
                 tag_id: tagId
               }))
             );
+          
+          if (insertError) console.error('Error inserting tags:', insertError);
         }
       }
 
@@ -185,13 +213,14 @@ export default function BlogEditor({ post, postId, onSave, onPublish }: BlogEdit
     } catch (error) {
       console.error('Error saving post:', error);
       setAutoSaveStatus('error');
+      toast.error('Failed to save post');
       throw error;
     }
-  }, [postId, supabase]);
+  }, [currentPostId, supabase]);
 
   // Internal publish function
   const handleInternalPublish = useCallback(async (postData: Partial<Post>) => {
-    if (!postId) return;
+    if (!currentPostId) return;
     
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -200,7 +229,7 @@ export default function BlogEditor({ post, postId, onSave, onPublish }: BlogEdit
       }
 
       // Extract category_ids and tag_ids from postData
-      const { category_ids, tag_ids, ...postDataWithoutRelations } = postData;
+      const { category_ids, tag_ids, ...postDataWithoutRelations } = postData as any;
 
       const updateData = {
         ...postDataWithoutRelations,
@@ -212,7 +241,7 @@ export default function BlogEditor({ post, postId, onSave, onPublish }: BlogEdit
       const { data, error } = await supabase
         .from('posts')
         .update(updateData)
-        .eq('id', postId)
+        .eq('id', currentPostId)
         .select()
         .single();
 
@@ -223,14 +252,14 @@ export default function BlogEditor({ post, postId, onSave, onPublish }: BlogEdit
         await supabase
           .from('post_categories')
           .delete()
-          .eq('post_id', postId);
+          .eq('post_id', currentPostId);
 
         if (category_ids.length > 0) {
           await supabase
             .from('post_categories')
             .insert(
-              category_ids.map((categoryId, index) => ({
-                post_id: postId,
+              category_ids.map((categoryId: string, index: number) => ({
+                post_id: currentPostId,
                 category_id: categoryId,
                 is_primary: index === 0
               }))
@@ -243,14 +272,14 @@ export default function BlogEditor({ post, postId, onSave, onPublish }: BlogEdit
         await supabase
           .from('post_tags')
           .delete()
-          .eq('post_id', postId);
+          .eq('post_id', currentPostId);
 
         if (tag_ids.length > 0) {
           await supabase
             .from('post_tags')
             .insert(
-              tag_ids.map(tagId => ({
-                post_id: postId,
+              tag_ids.map((tagId: string) => ({
+                post_id: currentPostId,
                 tag_id: tagId
               }))
             );
@@ -264,7 +293,7 @@ export default function BlogEditor({ post, postId, onSave, onPublish }: BlogEdit
       toast.error('Failed to publish post');
       throw error;
     }
-  }, [postId, supabase, router]);
+  }, [currentPostId, supabase, router]);
 
   // Use provided handlers or fall back to internal ones
   const saveHandler = onSave || handleInternalSave;
@@ -344,11 +373,10 @@ export default function BlogEditor({ post, postId, onSave, onPublish }: BlogEdit
 
   // Auto-save functionality
   const autoSave = useCallback(async () => {
-    if (!editor || !title) return;
-    
-    // Don't autosave if we don't have a postId yet
-    if (!postId) {
-      console.log('No postId yet, skipping autosave');
+    if (!editor || !title || !currentPostId) {
+      if (!currentPostId) {
+        console.log('Waiting for post to be created before auto-saving');
+      }
       return;
     }
     
@@ -373,12 +401,11 @@ export default function BlogEditor({ post, postId, onSave, onPublish }: BlogEdit
         tag_ids: tags
       });
       
-      toast.success('Auto-saved');
+      console.log('Auto-save successful');
     } catch (error) {
-      toast.error('Auto-save failed');
       console.error('Auto-save failed:', error);
     }
-  }, [editor, title, slug, excerpt, featuredImage, seoData, saveHandler, categories, tags, postId]);
+  }, [editor, title, slug, excerpt, featuredImage, seoData, saveHandler, categories, tags, currentPostId]);
 
   // Trigger auto-save with debounce
   const triggerAutoSave = useCallback(() => {
@@ -424,7 +451,7 @@ export default function BlogEditor({ post, postId, onSave, onPublish }: BlogEdit
 
   // Handle publish
   const handlePublish = async () => {
-    if (!editor || !title || !slug) {
+    if (!editor || !title || !slug || !currentPostId) {
       toast.error('Please fill in all required fields');
       return;
     }
@@ -434,7 +461,6 @@ export default function BlogEditor({ post, postId, onSave, onPublish }: BlogEdit
     const content_html = editor.getHTML();
     const read_time = calculateReadTime(content_text);
     
-    // Auto-generate SEO data if not provided
     const finalSeoData = {
       seo_title: seoData.seo_title || title.substring(0, 60),
       seo_description: seoData.seo_description || excerpt.substring(0, 160) || content_text.substring(0, 160),
@@ -465,6 +491,18 @@ export default function BlogEditor({ post, postId, onSave, onPublish }: BlogEdit
     
     await autoSave();
   };
+
+  // Show loading state while creating post
+  if (isCreatingPost) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4a90e2] mx-auto mb-4"></div>
+          <p className="text-gray-600">Creating new post...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-[calc(100vh-theme(spacing.16))] bg-[#f5f1e8]">
