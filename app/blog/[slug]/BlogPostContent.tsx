@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { Calendar, Clock, ArrowLeft } from 'lucide-react';
+import { generateHTML } from '@tiptap/html';
+import StarterKit from '@tiptap/starter-kit';
 
 export default function BlogPostContent({ post }: { post: any }) {
   const [mounted, setMounted] = useState(false);
@@ -21,15 +22,49 @@ export default function BlogPostContent({ post }: { post: any }) {
       return <p>No content available</p>;
     }
     
-    if (typeof post.content === 'string' && !post.content.startsWith('{')) {
-      return <div dangerouslySetInnerHTML={{ __html: post.content }} />;
+    // The content appears to be a JSON string, so let's parse it
+    try {
+      // Parse the JSON string
+      const contentData = typeof post.content === 'string' 
+        ? JSON.parse(post.content) 
+        : post.content;
+      
+      console.log('Parsed content:', contentData);
+      
+      // Generate HTML from the Tiptap JSON
+      if (contentData && contentData.type === 'doc') {
+        const html = generateHTML(contentData, [StarterKit]);
+        return <div dangerouslySetInnerHTML={{ __html: html }} />;
+      }
+    } catch (error) {
+      console.error('Error processing content:', error);
+      
+      // Fallback: manually render the content
+      try {
+        const contentData = JSON.parse(post.content);
+        if (contentData.type === 'doc' && contentData.content) {
+          return (
+            <div>
+              {contentData.content.map((node: any, index: number) => {
+                if (node.type === 'heading' && node.attrs?.level === 2) {
+                  return <h2 key={index} className="text-2xl font-bold mb-4">{node.content[0]?.text}</h2>;
+                }
+                if (node.type === 'paragraph') {
+                  const text = node.content?.[0]?.text || '';
+                  return <p key={index} className="mb-4">{text}</p>;
+                }
+                return null;
+              })}
+            </div>
+          );
+        }
+      } catch (e) {
+        // If all else fails, show a message
+        return <p>Unable to render content</p>;
+      }
     }
     
-    if (post.content_html) {
-      return <div dangerouslySetInnerHTML={{ __html: post.content_html }} />;
-    }
-    
-    return <p>{post.excerpt || 'Content preview not available'}</p>;
+    return <p>Content format not recognized</p>;
   };
 
   return (

@@ -19,12 +19,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   
   const { data: post, error } = await supabase
     .from('posts')
-    .select(`
-      *,
-      author:profiles!author_id(full_name, avatar_url),
-      categories:post_categories(category:categories(*)),
-      tags:post_tags(tag:tags(*))
-    `)
+    .select('*')
     .eq('slug', params.slug)
     .eq('status', 'published')
     .single();
