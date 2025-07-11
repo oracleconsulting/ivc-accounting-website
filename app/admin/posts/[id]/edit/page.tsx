@@ -1,8 +1,8 @@
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
-import dynamic from 'next/dynamic';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { ArrowLeft } from 'lucide-react';
 
 // Dynamically import BlogEditor to avoid SSR issues
@@ -105,4 +105,4 @@ export default async function EditPostPage({ params }: EditPostPageProps) {
       </div>
     </div>
   );
-} 
+}
