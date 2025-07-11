@@ -7,27 +7,27 @@ import { ArrowLeft } from 'lucide-react';
 import { SafeDate } from '@/components/ui/SafeDate';
 import ErrorBoundary from '@/components/ErrorBoundary';
 
-// Dynamically import BlogEditor to avoid SSR issues
-const BlogEditor = dynamic(() => import('@/components/admin/BlogEditor'), {
+// Dynamically import simple BlogEditor
+const BlogEditorSimple = dynamic(() => import('@/components/admin/BlogEditorSimple'), {
   ssr: false,
   loading: () => (
     <div className="min-h-screen bg-[#f5f1e8] flex items-center justify-center">
       <div className="flex items-center gap-3">
         <div className="w-8 h-8 border-4 border-[#ff6b35] border-t-transparent rounded-full animate-spin" />
-        <span className="text-lg font-medium text-[#1a2b4a]">Loading editor...</span>
+        <span className="text-lg font-medium text-[#1a2b4a]">Loading simple editor...</span>
       </div>
     </div>
   )
 });
 
-interface EditPostPageProps {
+interface SimpleEditPostPageProps {
   params: {
     id: string;
   };
 }
 
-export default async function EditPostPage({ params }: EditPostPageProps) {
-  console.log('EditPostPage: Loading with ID:', params.id);
+export default async function SimpleEditPostPage({ params }: SimpleEditPostPageProps) {
+  console.log('SimpleEditPostPage: Loading with ID:', params.id);
   
   const supabase = createServerComponentClient({ cookies });
   
@@ -44,7 +44,7 @@ export default async function EditPostPage({ params }: EditPostPageProps) {
     .eq('id', params.id)
     .single();
 
-  console.log('EditPostPage: Post query result:', { post: post?.id, error });
+  console.log('SimpleEditPostPage: Post query result:', { post: post?.id, error });
 
   if (error || !post) {
     console.log('Post not found:', params.id, error);
@@ -65,9 +65,9 @@ export default async function EditPostPage({ params }: EditPostPageProps) {
             </Link>
             
             <div>
-              <h1 className="text-2xl font-black text-[#1a2b4a]">Edit Post</h1>
+              <h1 className="text-2xl font-black text-[#1a2b4a]">Simple Editor Test</h1>
               <p className="text-sm text-gray-600 mt-1">
-                Last updated: <SafeDate date={post.updated_at} />
+                Testing simplified editor - Last updated: <SafeDate date={post.updated_at} />
               </p>
             </div>
           </div>
@@ -83,29 +83,23 @@ export default async function EditPostPage({ params }: EditPostPageProps) {
               {post.status}
             </span>
             
-            {post.status === 'published' && (
-              <Link
-                href={`/blog/${post.slug}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-4 py-2 border border-gray-300 text-[#1a2b4a] font-medium hover:bg-gray-50 transition-colors"
-              >
-                View Post
-              </Link>
-            )}
+            <Link
+              href={`/admin/posts/${params.id}/edit`}
+              className="px-4 py-2 bg-blue-500 text-white font-medium rounded hover:bg-blue-600 transition-colors"
+            >
+              Full Editor
+            </Link>
           </div>
         </div>
       </div>
 
-      {/* Editor */}
-      <div className="p-6">
-        <ErrorBoundary>
-          <BlogEditor 
-            post={post}
-            postId={params.id}
-          />
-        </ErrorBoundary>
-      </div>
+      {/* Simple Editor */}
+      <ErrorBoundary>
+        <BlogEditorSimple 
+          post={post}
+          postId={params.id}
+        />
+      </ErrorBoundary>
     </div>
   );
-}
+} 
