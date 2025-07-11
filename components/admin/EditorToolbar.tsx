@@ -17,7 +17,15 @@ import {
   Image,
   Undo,
   Redo,
-  Upload
+  Upload,
+  Table,
+  TableProperties,
+  Plus,
+  Trash2,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  AlignJustify
 } from 'lucide-react';
 
 interface EditorToolbarProps {
@@ -42,28 +50,6 @@ export default function EditorToolbar({ editor, onImageUpload }: EditorToolbarPr
     input.click();
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.currentTarget.classList.add('bg-oracle-orange/10');
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.currentTarget.classList.remove('bg-oracle-orange/10');
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.currentTarget.classList.remove('bg-oracle-orange/10');
-    
-    const files = Array.from(e.dataTransfer.files);
-    const imageFile = files.find(file => file.type.startsWith('image/'));
-    
-    if (imageFile) {
-      onImageUpload(imageFile);
-    }
-  };
-
   const setLink = () => {
     const url = window.prompt('Enter URL');
     if (url) {
@@ -71,38 +57,43 @@ export default function EditorToolbar({ editor, onImageUpload }: EditorToolbarPr
     }
   };
 
+  // Table functions
+  const insertTable = () => {
+    editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
+  };
+
   return (
-    <div className="border-b border-gray-300 p-4 bg-gray-50">
+    <div className="p-4 bg-gray-50">
       <div className="flex flex-wrap items-center gap-2">
         {/* Text Formatting */}
         <div className="flex items-center gap-1 border-r border-gray-300 pr-2">
           <button
             onClick={() => editor.chain().focus().toggleBold().run()}
-            className={`p-2 rounded hover:bg-gray-200 ${editor.isActive('bold') ? 'bg-[#ff6b35] text-white' : ''}`}
-            title="Bold"
+            className={`p-2 rounded hover:bg-gray-200 transition-colors ${editor.isActive('bold') ? 'bg-[#ff6b35] text-white' : ''}`}
+            title="Bold (Ctrl+B)"
           >
             <Bold className="w-4 h-4" />
           </button>
           
           <button
             onClick={() => editor.chain().focus().toggleItalic().run()}
-            className={`p-2 rounded hover:bg-gray-200 ${editor.isActive('italic') ? 'bg-[#ff6b35] text-white' : ''}`}
-            title="Italic"
+            className={`p-2 rounded hover:bg-gray-200 transition-colors ${editor.isActive('italic') ? 'bg-[#ff6b35] text-white' : ''}`}
+            title="Italic (Ctrl+I)"
           >
             <Italic className="w-4 h-4" />
           </button>
           
           <button
             onClick={() => editor.chain().focus().toggleUnderline().run()}
-            className={`p-2 rounded hover:bg-gray-200 ${editor.isActive('underline') ? 'bg-[#ff6b35] text-white' : ''}`}
-            title="Underline"
+            className={`p-2 rounded hover:bg-gray-200 transition-colors ${editor.isActive('underline') ? 'bg-[#ff6b35] text-white' : ''}`}
+            title="Underline (Ctrl+U)"
           >
             <Underline className="w-4 h-4" />
           </button>
           
           <button
             onClick={() => editor.chain().focus().toggleStrike().run()}
-            className={`p-2 rounded hover:bg-gray-200 ${editor.isActive('strike') ? 'bg-[#ff6b35] text-white' : ''}`}
+            className={`p-2 rounded hover:bg-gray-200 transition-colors ${editor.isActive('strike') ? 'bg-[#ff6b35] text-white' : ''}`}
             title="Strikethrough"
           >
             <Strikethrough className="w-4 h-4" />
@@ -113,7 +104,7 @@ export default function EditorToolbar({ editor, onImageUpload }: EditorToolbarPr
         <div className="flex items-center gap-1 border-r border-gray-300 pr-2">
           <button
             onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-            className={`p-2 rounded hover:bg-gray-200 ${editor.isActive('heading', { level: 1 }) ? 'bg-[#ff6b35] text-white' : ''}`}
+            className={`p-2 rounded hover:bg-gray-200 transition-colors ${editor.isActive('heading', { level: 1 }) ? 'bg-[#ff6b35] text-white' : ''}`}
             title="Heading 1"
           >
             <Heading1 className="w-4 h-4" />
@@ -121,7 +112,7 @@ export default function EditorToolbar({ editor, onImageUpload }: EditorToolbarPr
           
           <button
             onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-            className={`p-2 rounded hover:bg-gray-200 ${editor.isActive('heading', { level: 2 }) ? 'bg-[#ff6b35] text-white' : ''}`}
+            className={`p-2 rounded hover:bg-gray-200 transition-colors ${editor.isActive('heading', { level: 2 }) ? 'bg-[#ff6b35] text-white' : ''}`}
             title="Heading 2"
           >
             <Heading2 className="w-4 h-4" />
@@ -129,10 +120,45 @@ export default function EditorToolbar({ editor, onImageUpload }: EditorToolbarPr
           
           <button
             onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-            className={`p-2 rounded hover:bg-gray-200 ${editor.isActive('heading', { level: 3 }) ? 'bg-[#ff6b35] text-white' : ''}`}
+            className={`p-2 rounded hover:bg-gray-200 transition-colors ${editor.isActive('heading', { level: 3 }) ? 'bg-[#ff6b35] text-white' : ''}`}
             title="Heading 3"
           >
             <Heading3 className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Text Alignment */}
+        <div className="flex items-center gap-1 border-r border-gray-300 pr-2">
+          <button
+            onClick={() => editor.chain().focus().setTextAlign('left').run()}
+            className={`p-2 rounded hover:bg-gray-200 transition-colors ${editor.isActive({ textAlign: 'left' }) ? 'bg-[#ff6b35] text-white' : ''}`}
+            title="Align Left"
+          >
+            <AlignLeft className="w-4 h-4" />
+          </button>
+          
+          <button
+            onClick={() => editor.chain().focus().setTextAlign('center').run()}
+            className={`p-2 rounded hover:bg-gray-200 transition-colors ${editor.isActive({ textAlign: 'center' }) ? 'bg-[#ff6b35] text-white' : ''}`}
+            title="Align Center"
+          >
+            <AlignCenter className="w-4 h-4" />
+          </button>
+          
+          <button
+            onClick={() => editor.chain().focus().setTextAlign('right').run()}
+            className={`p-2 rounded hover:bg-gray-200 transition-colors ${editor.isActive({ textAlign: 'right' }) ? 'bg-[#ff6b35] text-white' : ''}`}
+            title="Align Right"
+          >
+            <AlignRight className="w-4 h-4" />
+          </button>
+          
+          <button
+            onClick={() => editor.chain().focus().setTextAlign('justify').run()}
+            className={`p-2 rounded hover:bg-gray-200 transition-colors ${editor.isActive({ textAlign: 'justify' }) ? 'bg-[#ff6b35] text-white' : ''}`}
+            title="Justify"
+          >
+            <AlignJustify className="w-4 h-4" />
           </button>
         </div>
 
@@ -140,7 +166,7 @@ export default function EditorToolbar({ editor, onImageUpload }: EditorToolbarPr
         <div className="flex items-center gap-1 border-r border-gray-300 pr-2">
           <button
             onClick={() => editor.chain().focus().toggleBulletList().run()}
-            className={`p-2 rounded hover:bg-gray-200 ${editor.isActive('bulletList') ? 'bg-[#ff6b35] text-white' : ''}`}
+            className={`p-2 rounded hover:bg-gray-200 transition-colors ${editor.isActive('bulletList') ? 'bg-[#ff6b35] text-white' : ''}`}
             title="Bullet List"
           >
             <List className="w-4 h-4" />
@@ -148,7 +174,7 @@ export default function EditorToolbar({ editor, onImageUpload }: EditorToolbarPr
           
           <button
             onClick={() => editor.chain().focus().toggleOrderedList().run()}
-            className={`p-2 rounded hover:bg-gray-200 ${editor.isActive('orderedList') ? 'bg-[#ff6b35] text-white' : ''}`}
+            className={`p-2 rounded hover:bg-gray-200 transition-colors ${editor.isActive('orderedList') ? 'bg-[#ff6b35] text-white' : ''}`}
             title="Numbered List"
           >
             <ListOrdered className="w-4 h-4" />
@@ -159,7 +185,7 @@ export default function EditorToolbar({ editor, onImageUpload }: EditorToolbarPr
         <div className="flex items-center gap-1 border-r border-gray-300 pr-2">
           <button
             onClick={() => editor.chain().focus().toggleBlockquote().run()}
-            className={`p-2 rounded hover:bg-gray-200 ${editor.isActive('blockquote') ? 'bg-[#ff6b35] text-white' : ''}`}
+            className={`p-2 rounded hover:bg-gray-200 transition-colors ${editor.isActive('blockquote') ? 'bg-[#ff6b35] text-white' : ''}`}
             title="Quote"
           >
             <Quote className="w-4 h-4" />
@@ -167,7 +193,7 @@ export default function EditorToolbar({ editor, onImageUpload }: EditorToolbarPr
           
           <button
             onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-            className={`p-2 rounded hover:bg-gray-200 ${editor.isActive('codeBlock') ? 'bg-[#ff6b35] text-white' : ''}`}
+            className={`p-2 rounded hover:bg-gray-200 transition-colors ${editor.isActive('codeBlock') ? 'bg-[#ff6b35] text-white' : ''}`}
             title="Code Block"
           >
             <Code className="w-4 h-4" />
@@ -178,7 +204,7 @@ export default function EditorToolbar({ editor, onImageUpload }: EditorToolbarPr
         <div className="flex items-center gap-1 border-r border-gray-300 pr-2">
           <button
             onClick={setLink}
-            className={`p-2 rounded hover:bg-gray-200 ${editor.isActive('link') ? 'bg-[#ff6b35] text-white' : ''}`}
+            className={`p-2 rounded hover:bg-gray-200 transition-colors ${editor.isActive('link') ? 'bg-[#ff6b35] text-white' : ''}`}
             title="Add Link"
           >
             <Link className="w-4 h-4" />
@@ -186,30 +212,84 @@ export default function EditorToolbar({ editor, onImageUpload }: EditorToolbarPr
           
           <button
             onClick={addImage}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
             className="p-2 rounded hover:bg-gray-200 transition-colors"
-            title="Add Image (or drag & drop)"
+            title="Add Image"
           >
             <Upload className="w-4 h-4" />
           </button>
+        </div>
+
+        {/* Tables */}
+        <div className="flex items-center gap-1 border-r border-gray-300 pr-2">
+          <button
+            onClick={insertTable}
+            className="p-2 rounded hover:bg-gray-200 transition-colors"
+            title="Insert Table"
+          >
+            <TableProperties className="w-4 h-4" />
+          </button>
+          
+          {editor.isActive('table') && (
+            <>
+              <button
+                onClick={() => editor.chain().focus().addColumnAfter().run()}
+                className="p-2 rounded hover:bg-gray-200 transition-colors"
+                title="Add Column"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+              
+              <button
+                onClick={() => editor.chain().focus().addRowAfter().run()}
+                className="p-2 rounded hover:bg-gray-200 transition-colors"
+                title="Add Row"
+              >
+                <Plus className="w-4 h-4 rotate-90" />
+              </button>
+              
+              <button
+                onClick={() => editor.chain().focus().deleteColumn().run()}
+                className="p-2 rounded hover:bg-gray-200 transition-colors"
+                title="Delete Column"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+              
+              <button
+                onClick={() => editor.chain().focus().deleteRow().run()}
+                className="p-2 rounded hover:bg-gray-200 transition-colors"
+                title="Delete Row"
+              >
+                <Trash2 className="w-4 h-4 rotate-90" />
+              </button>
+              
+              <button
+                onClick={() => editor.chain().focus().deleteTable().run()}
+                className="p-2 rounded hover:bg-gray-200 transition-colors text-red-600"
+                title="Delete Table"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </>
+          )}
         </div>
 
         {/* History */}
         <div className="flex items-center gap-1">
           <button
             onClick={() => editor.chain().focus().undo().run()}
-            className="p-2 rounded hover:bg-gray-200"
-            title="Undo"
+            disabled={!editor.can().undo()}
+            className="p-2 rounded hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Undo (Ctrl+Z)"
           >
             <Undo className="w-4 h-4" />
           </button>
           
           <button
             onClick={() => editor.chain().focus().redo().run()}
-            className="p-2 rounded hover:bg-gray-200"
-            title="Redo"
+            disabled={!editor.can().redo()}
+            className="p-2 rounded hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Redo (Ctrl+Y)"
           >
             <Redo className="w-4 h-4" />
           </button>

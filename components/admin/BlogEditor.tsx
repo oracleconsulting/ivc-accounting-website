@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Highlight from '@tiptap/extension-highlight';
@@ -10,6 +10,11 @@ import Link from '@tiptap/extension-link';
 import Underline from '@tiptap/extension-underline';
 import Strike from '@tiptap/extension-strike';
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
+import Table from '@tiptap/extension-table';
+import TableRow from '@tiptap/extension-table-row';
+import TableCell from '@tiptap/extension-table-cell';
+import TableHeader from '@tiptap/extension-table-header';
+import TextAlign from '@tiptap/extension-text-align';
 import { common, createLowlight } from 'lowlight';
 import { Upload } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -19,6 +24,7 @@ import AIAssistant from '@/components/admin/AIAssistant';
 import CategorySelector from '@/components/admin/CategorySelector';
 import TagSelector from '@/components/admin/TagSelector';
 import ImageUpload from './ImageUpload';
+import SocialMediaGenerator from '@/components/admin/SocialMediaGenerator';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { generateSlug, calculateReadTime } from '@/lib/utils/blog';
 import { uploadImage } from '@/lib/utils/storage';
@@ -49,74 +55,148 @@ export default function BlogEditor({ post, postId, onSave, onPublish }: BlogEdit
     seo_keywords: post?.seo_keywords || []
   });
   const [showAI, setShowAI] = useState(false);
+  const [showSocialGenerator, setShowSocialGenerator] = useState(false);
   const [autoSaveStatus, setAutoSaveStatus] = useState<'saved' | 'saving' | 'error'>('saved');
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   const supabase = createClientComponentClient();
 
-  // Internal save function that calls API directly
+  // Internal save function that directly updates Supabase
   const handleInternalSave = useCallback(async (postData: Partial<Post>) => {
     if (!postId) return;
     
     try {
-      const response = await fetch(`/api/admin/post-by-id?id=${postId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          ...postData,
-          category_ids: postData.category_ids || categories,
-          tag_ids: postData.tag_ids || tags
-        }),
-      });
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          toast.error('Authentication required. Please log in.');
-          router.push('/login');
-          return;
-        }
-        throw new Error('Failed to save post');
+      setAutoSaveStatus('saving');
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('Not authenticated');
       }
 
-      const updatedPost = await response.json();
-      toast.success('Post saved successfully');
-      return updatedPost;
+      const updateData = {
+        ...postData,
+        updated_at: new Date().toISOString(),
+      };
+
+      const { data, error } = await supabase
+        .from('posts')
+        .update(updateData)
+        .eq('id', postId)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Update post_categories relationship
+      if (postData.category_ids) {
+        await supabase
+          .from('post_categories')
+          .delete()
+          .eq('post_id', postId);
+
+        if (postData.category_ids.length > 0) {
+          await supabase
+            .from('post_categories')
+            .insert(
+              postData.category_ids.map(categoryId => ({
+                post_id: postId,
+                category_id: categoryId
+              }))
+            );
+        }
+      }
+
+      // Update post_tags relationship
+      if (postData.tag_ids) {
+        await supabase
+          .from('post_tags')
+          .delete()
+          .eq('post_id', postId);
+
+        if (postData.tag_ids.length > 0) {
+          await supabase
+            .from('post_tags')
+            .insert(
+              postData.tag_ids.map(tagId => ({
+                post_id: postId,
+                tag_id: tagId
+              }))
+            );
+        }
+      }
+
+      setAutoSaveStatus('saved');
+      setLastSaved(new Date());
+      return data;
     } catch (error) {
       console.error('Error saving post:', error);
-      toast.error('Failed to save post');
+      setAutoSaveStatus('error');
       throw error;
     }
-  }, [postId, categories, tags, router]);
+  }, [postId, supabase]);
 
-  // Internal publish function that calls API directly
+  // Internal publish function
   const handleInternalPublish = useCallback(async (postData: Partial<Post>) => {
     if (!postId) return;
     
     try {
-      const response = await fetch(`/api/admin/post-by-id?id=${postId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          ...postData,
-          status: 'published',
-          published_at: new Date().toISOString(),
-          category_ids: postData.category_ids || categories,
-          tag_ids: postData.tag_ids || tags
-        }),
-      });
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('Not authenticated');
+      }
 
-      if (!response.ok) {
-        if (response.status === 401) {
-          toast.error('Authentication required. Please log in.');
-          router.push('/login');
-          return;
+      const updateData = {
+        ...postData,
+        status: 'published',
+        published_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      const { data, error } = await supabase
+        .from('posts')
+        .update(updateData)
+        .eq('id', postId)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Update categories and tags (same as save)
+      if (postData.category_ids) {
+        await supabase
+          .from('post_categories')
+          .delete()
+          .eq('post_id', postId);
+
+        if (postData.category_ids.length > 0) {
+          await supabase
+            .from('post_categories')
+            .insert(
+              postData.category_ids.map(categoryId => ({
+                post_id: postId,
+                category_id: categoryId
+              }))
+            );
         }
-        throw new Error('Failed to publish post');
+      }
+
+      if (postData.tag_ids) {
+        await supabase
+          .from('post_tags')
+          .delete()
+          .eq('post_id', postId);
+
+        if (postData.tag_ids.length > 0) {
+          await supabase
+            .from('post_tags')
+            .insert(
+              postData.tag_ids.map(tagId => ({
+                post_id: postId,
+                tag_id: tagId
+              }))
+            );
+        }
       }
 
       toast.success('Post published successfully');
@@ -126,7 +206,7 @@ export default function BlogEditor({ post, postId, onSave, onPublish }: BlogEdit
       toast.error('Failed to publish post');
       throw error;
     }
-  }, [postId, categories, tags, router]);
+  }, [postId, supabase, router]);
 
   // Use provided handlers or fall back to internal ones
   const saveHandler = onSave || handleInternalSave;
@@ -158,14 +238,23 @@ export default function BlogEditor({ post, postId, onSave, onPublish }: BlogEdit
           class: 'bg-[#1a2b4a] text-[#f5f1e8] p-4 rounded-none my-4 overflow-x-auto',
         },
       }),
+      Table.configure({
+        resizable: true,
+      }),
+      TableRow,
+      TableHeader,
+      TableCell,
+      TextAlign.configure({
+        types: ['heading', 'paragraph'],
+      }),
     ],
     content: post?.content || '',
     onUpdate: ({ editor }) => {
-      debouncedAutoSave();
+      triggerAutoSave();
     },
     editorProps: {
       attributes: {
-        class: 'prose prose-lg max-w-none focus:outline-none min-h-[500px]',
+        class: 'prose prose-lg max-w-none focus:outline-none',
       },
       handlePaste: (view, event, slice) => {
         const items = Array.from(event.clipboardData?.items || []);
@@ -193,9 +282,7 @@ export default function BlogEditor({ post, postId, onSave, onPublish }: BlogEdit
 
   // Auto-save functionality
   const autoSave = useCallback(async () => {
-    if (!editor || !title) return;
-    
-    setAutoSaveStatus('saving');
+    if (!editor || !title || !postId) return;
     
     try {
       const content = editor.getJSON();
@@ -218,17 +305,32 @@ export default function BlogEditor({ post, postId, onSave, onPublish }: BlogEdit
         tag_ids: tags
       });
       
-      setAutoSaveStatus('saved');
+      toast.success('Auto-saved');
     } catch (error) {
-      setAutoSaveStatus('error');
+      toast.error('Auto-save failed');
       console.error('Auto-save failed:', error);
     }
-  }, [editor, title, slug, excerpt, featuredImage, seoData, saveHandler]);
+  }, [editor, title, slug, excerpt, featuredImage, seoData, saveHandler, categories, tags, postId]);
 
-  const debouncedAutoSave = useCallback(
-    debounce(autoSave, 30000), // Auto-save every 30 seconds
-    [autoSave]
-  );
+  // Trigger auto-save with debounce
+  const triggerAutoSave = useCallback(() => {
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+    
+    autoSaveTimeoutRef.current = setTimeout(() => {
+      autoSave();
+    }, 5000); // Auto-save after 5 seconds of inactivity
+  }, [autoSave]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Handle image upload
   const handleImageUpload = async (file: File) => {
@@ -286,101 +388,150 @@ export default function BlogEditor({ post, postId, onSave, onPublish }: BlogEdit
     });
   };
 
+  // Manual save
+  const handleManualSave = async () => {
+    if (!editor || !title) {
+      toast.error('Please add a title');
+      return;
+    }
+    
+    await autoSave();
+  };
+
   return (
-    <div className="flex gap-6">
-      {/* Main Editor */}
-      <div className="flex-1 bg-white p-6 shadow-lg">
-        {/* Title Input */}
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Enter post title..."
-          className="w-full text-4xl font-black text-[#1a2b4a] border-none outline-none mb-4 placeholder-gray-400"
-        />
-        
-        {/* Slug */}
-        <div className="mb-4 flex items-center gap-2">
-          <span className="text-sm text-gray-600">Slug:</span>
+    <div className="flex h-[calc(100vh-theme(spacing.16))] bg-[#f5f1e8]">
+      {/* Main Editor - Fixed Layout */}
+      <div className="flex-1 flex flex-col bg-white shadow-lg overflow-hidden">
+        {/* Header Section - Fixed */}
+        <div className="flex-shrink-0 p-6 border-b border-gray-200">
+          {/* Title Input */}
           <input
             type="text"
-            value={slug}
-            onChange={(e) => setSlug(e.target.value)}
-            className="flex-1 text-sm px-2 py-1 border border-gray-300"
+            value={title}
+            onChange={(e) => {
+              setTitle(e.target.value);
+              triggerAutoSave();
+            }}
+            placeholder="Enter post title..."
+            className="w-full text-4xl font-black text-[#1a2b4a] border-none outline-none mb-4 placeholder-gray-400"
+          />
+          
+          {/* Slug */}
+          <div className="mb-4 flex items-center gap-2">
+            <span className="text-sm text-gray-600">Slug:</span>
+            <input
+              type="text"
+              value={slug}
+              onChange={(e) => {
+                setSlug(e.target.value);
+                triggerAutoSave();
+              }}
+              className="flex-1 text-sm px-2 py-1 border border-gray-300 rounded focus:outline-none focus:border-[#4a90e2]"
+            />
+          </div>
+
+          {/* Excerpt */}
+          <textarea
+            value={excerpt}
+            onChange={(e) => {
+              setExcerpt(e.target.value);
+              triggerAutoSave();
+            }}
+            placeholder="Brief description..."
+            className="w-full p-2 border border-gray-300 rounded mb-4 resize-none focus:outline-none focus:border-[#4a90e2]"
+            rows={2}
           />
         </div>
 
-        {/* Excerpt */}
-        <textarea
-          value={excerpt}
-          onChange={(e) => setExcerpt(e.target.value)}
-          placeholder="Brief description..."
-          className="w-full p-2 border border-gray-300 mb-4 resize-none"
-          rows={2}
-        />
-
-        {/* Editor Toolbar */}
-        <EditorToolbar editor={editor} onImageUpload={handleEditorImageUpload} />
+        {/* Toolbar - Sticky */}
+        <div className="flex-shrink-0 sticky top-0 z-10 bg-white border-b border-gray-200">
+          <EditorToolbar editor={editor} onImageUpload={handleEditorImageUpload} />
+        </div>
         
-        {/* Editor Content */}
-        <div 
-          className="border border-gray-300 p-4 min-h-[500px] relative group"
-          onDragOver={(e) => {
-            e.preventDefault();
-            e.currentTarget.classList.add('border-oracle-orange', 'bg-oracle-orange/5');
-          }}
-          onDragLeave={(e) => {
-            e.preventDefault();
-            e.currentTarget.classList.remove('border-oracle-orange', 'bg-oracle-orange/5');
-          }}
-          onDrop={(e) => {
-            e.preventDefault();
-            e.currentTarget.classList.remove('border-oracle-orange', 'bg-oracle-orange/5');
-            
-            const files = Array.from(e.dataTransfer.files);
-            const imageFile = files.find(file => file.type.startsWith('image/'));
-            
-            if (imageFile) {
-              handleEditorImageUpload(imageFile);
-            }
-          }}
-        >
-          <EditorContent editor={editor} />
-          
-          {/* Drag overlay */}
-          <div className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-            <div className="bg-oracle-orange/10 border-2 border-dashed border-oracle-orange rounded-lg p-8 text-center">
-              <Upload className="w-12 h-12 text-oracle-orange mx-auto mb-4" />
-              <p className="text-oracle-orange font-bold">Drop image here to upload</p>
-            </div>
+        {/* Editor Content - Scrollable */}
+        <div className="flex-1 overflow-y-auto">
+          <div 
+            className="min-h-full p-6"
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.currentTarget.classList.add('bg-oracle-orange/5');
+            }}
+            onDragLeave={(e) => {
+              e.preventDefault();
+              e.currentTarget.classList.remove('bg-oracle-orange/5');
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              e.currentTarget.classList.remove('bg-oracle-orange/5');
+              
+              const files = Array.from(e.dataTransfer.files);
+              const imageFile = files.find(file => file.type.startsWith('image/'));
+              
+              if (imageFile) {
+                handleEditorImageUpload(imageFile);
+              }
+            }}
+          >
+            <EditorContent editor={editor} />
           </div>
         </div>
 
-        {/* Auto-save status */}
-        <div className="mt-4 text-sm text-gray-600">
-          {autoSaveStatus === 'saving' && 'Saving...'}
-          {autoSaveStatus === 'saved' && 'All changes saved'}
-          {autoSaveStatus === 'error' && 'Error saving changes'}
+        {/* Status Bar - Fixed */}
+        <div className="flex-shrink-0 px-6 py-3 border-t border-gray-200 bg-gray-50 flex items-center justify-between text-sm">
+          <div className="flex items-center gap-4">
+            <span className={`flex items-center gap-2 ${
+              autoSaveStatus === 'saving' ? 'text-blue-600' : 
+              autoSaveStatus === 'saved' ? 'text-green-600' : 
+              'text-red-600'
+            }`}>
+              {autoSaveStatus === 'saving' && (
+                <>
+                  <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
+                  Saving...
+                </>
+              )}
+              {autoSaveStatus === 'saved' && (
+                <>
+                  <div className="w-2 h-2 bg-green-600 rounded-full" />
+                  Saved
+                </>
+              )}
+              {autoSaveStatus === 'error' && (
+                <>
+                  <div className="w-2 h-2 bg-red-600 rounded-full" />
+                  Error saving
+                </>
+              )}
+            </span>
+            {lastSaved && (
+              <span className="text-gray-500">
+                Last saved: {lastSaved.toLocaleTimeString()}
+              </span>
+            )}
+          </div>
+          <div className="text-gray-500">
+            {editor?.storage.characterCount.characters()} characters
+          </div>
         </div>
       </div>
 
-      {/* Sidebar */}
-      <div className="w-96 space-y-6">
+      {/* Sidebar - Scrollable */}
+      <div className="w-96 flex-shrink-0 overflow-y-auto bg-[#f5f1e8] p-6 space-y-6">
         {/* Publish Controls */}
-        <div className="bg-white p-6 shadow-lg">
+        <div className="bg-white p-6 rounded-lg shadow-lg">
           <h3 className="font-bold text-[#1a2b4a] mb-4">Publish</h3>
           
           <div className="space-y-4">
             <button
-              onClick={() => autoSave()}
-              className="w-full px-4 py-2 bg-gray-200 text-[#1a2b4a] font-bold hover:bg-gray-300 transition-colors"
+              onClick={handleManualSave}
+              className="w-full px-4 py-2 bg-gray-200 text-[#1a2b4a] font-bold rounded hover:bg-gray-300 transition-colors"
             >
               Save Draft
             </button>
             
             <button
               onClick={handlePublish}
-              className="w-full px-4 py-2 bg-[#ff6b35] text-white font-bold hover:bg-[#e55a2b] transition-colors"
+              className="w-full px-4 py-2 bg-[#ff6b35] text-white font-bold rounded hover:bg-[#e55a2b] transition-colors"
             >
               Publish Now
             </button>
@@ -390,12 +541,18 @@ export default function BlogEditor({ post, postId, onSave, onPublish }: BlogEdit
           <div className="mt-6 space-y-4">
             <CategorySelector
               selectedCategories={categories}
-              onChange={setCategories}
+              onChange={(newCategories) => {
+                setCategories(newCategories);
+                triggerAutoSave();
+              }}
             />
             
             <TagSelector
               selectedTags={tags}
-              onChange={setTags}
+              onChange={(newTags) => {
+                setTags(newTags);
+                triggerAutoSave();
+              }}
             />
           </div>
 
@@ -403,8 +560,14 @@ export default function BlogEditor({ post, postId, onSave, onPublish }: BlogEdit
           <div className="mt-6">
             <ImageUpload
               value={featuredImage}
-              onChange={setFeaturedImage}
-              onRemove={() => setFeaturedImage('')}
+              onChange={(url) => {
+                setFeaturedImage(url);
+                triggerAutoSave();
+              }}
+              onRemove={() => {
+                setFeaturedImage('');
+                triggerAutoSave();
+              }}
             />
           </div>
         </div>
@@ -412,7 +575,10 @@ export default function BlogEditor({ post, postId, onSave, onPublish }: BlogEdit
         {/* SEO Panel */}
         <SEOPanel
           data={seoData}
-          onChange={setSeoData}
+          onChange={(newData) => {
+            setSeoData(newData);
+            triggerAutoSave();
+          }}
           content={editor?.getText() || ''}
           title={title}
         />
@@ -420,38 +586,50 @@ export default function BlogEditor({ post, postId, onSave, onPublish }: BlogEdit
         {/* AI Assistant Toggle */}
         <button
           onClick={() => setShowAI(!showAI)}
-          className="w-full px-4 py-3 bg-[#4a90e2] text-white font-bold hover:bg-[#3a7bc8] transition-colors"
+          className="w-full px-4 py-3 bg-[#4a90e2] text-white font-bold rounded hover:bg-[#3a7bc8] transition-colors"
         >
           {showAI ? 'Hide' : 'Show'} AI Assistant
+        </button>
+
+        {/* Social Media Generator Toggle */}
+        <button
+          onClick={() => setShowSocialGenerator(!showSocialGenerator)}
+          className="w-full px-4 py-3 bg-[#ff6b35] text-white font-bold rounded hover:bg-[#e55a2b] transition-colors"
+        >
+          Generate Social Posts
         </button>
       </div>
 
       {/* AI Assistant Sidebar */}
       {showAI && (
-        <AIAssistant
-          onClose={() => setShowAI(false)}
-          onInsert={(text) => {
-            editor?.chain().focus().insertContent(text).run();
-          }}
-          context={{
-            title,
-            content: editor?.getText() || '',
-            excerpt
-          }}
-        />
+        <div className="absolute right-0 top-0 h-full z-50">
+          <AIAssistant
+            onClose={() => setShowAI(false)}
+            onInsert={(text) => {
+              editor?.chain().focus().insertContent(text).run();
+            }}
+            context={{
+              title,
+              content: editor?.getText() || '',
+              excerpt
+            }}
+          />
+        </div>
+      )}
+
+      {/* Social Media Generator Modal */}
+      {showSocialGenerator && post && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="max-w-4xl w-full">
+            <SocialMediaGenerator
+              postTitle={title}
+              postContent={editor?.getText() || ''}
+              postUrl={`${process.env.NEXT_PUBLIC_SITE_URL}/blog/${slug}`}
+              onClose={() => setShowSocialGenerator(false)}
+            />
+          </div>
+        </div>
       )}
     </div>
   );
-}
-
-// Debounce utility function
-function debounce<T extends (...args: any[]) => any>(
-  func: T,
-  wait: number
-): (...args: Parameters<T>) => void {
-  let timeout: NodeJS.Timeout;
-  return (...args: Parameters<T>) => {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => func(...args), wait);
-  };
 } 
