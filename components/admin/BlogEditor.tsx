@@ -31,6 +31,7 @@ import { uploadImage } from '@/lib/utils/storage';
 import toast from 'react-hot-toast';
 import { Post } from '@/lib/types/blog';
 import { extractCategoryIds, extractTagIds } from '@/lib/utils/blog-helpers';
+import CharacterCount from '@tiptap/extension-character-count';
 
 const lowlight = createLowlight(common);
 
@@ -246,6 +247,10 @@ export default function BlogEditor({ post, postId, onSave, onPublish }: BlogEdit
       TableCell,
       TextAlign.configure({
         types: ['heading', 'paragraph'],
+      }),
+      // Add CharacterCount extension here
+      CharacterCount.configure({
+        limit: null, // No limit, just counting
       }),
     ],
     content: post?.content || '',
@@ -510,7 +515,7 @@ export default function BlogEditor({ post, postId, onSave, onPublish }: BlogEdit
             )}
           </div>
           <div className="text-gray-500">
-            {editor?.storage.characterCount.characters()} characters
+            {editor?.storage.characterCount.characters()} characters • {editor?.storage.characterCount.words()} words
           </div>
         </div>
       </div>
