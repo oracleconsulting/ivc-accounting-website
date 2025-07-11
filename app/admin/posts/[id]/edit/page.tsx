@@ -4,6 +4,7 @@ import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { ArrowLeft } from 'lucide-react';
+import { SafeDate } from '@/components/ui/SafeDate';
 
 // Dynamically import BlogEditor to avoid SSR issues
 const BlogEditor = dynamic(() => import('@/components/admin/BlogEditor'), {
@@ -66,7 +67,7 @@ export default async function EditPostPage({ params }: EditPostPageProps) {
             <div>
               <h1 className="text-2xl font-black text-[#1a2b4a]">Edit Post</h1>
               <p className="text-sm text-gray-600 mt-1">
-                Last updated: {new Date(post.updated_at).toLocaleDateString()}
+                Last updated: <SafeDate date={post.updated_at} />
               </p>
             </div>
           </div>

@@ -14,6 +14,7 @@ interface BlogPostPageProps {
 }
 
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
+  console.log('BlogPostPage: Starting to fetch post with slug:', params.slug);
   const supabase = createServerComponentClient({ cookies });
   
   const { data: post, error } = await supabase
@@ -29,8 +30,11 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     .single();
 
   if (error || !post) {
+    console.log('BlogPostPage: Post not found or error:', { error, post: !!post });
     notFound();
   }
+
+  console.log('BlogPostPage: Successfully fetched post:', { title: post.title, status: post.status });
 
   // Pass serializable data only
   const postData = {
