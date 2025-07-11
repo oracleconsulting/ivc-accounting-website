@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { Inter } from 'next/font/google'
 import Navigation from '@/components/layout/Navigation'
 import Footer from '@/components/layout/Footer'
+import Analytics from '@/components/Analytics'
 import Script from 'next/script'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
@@ -29,22 +30,8 @@ export default function Layout({ children }: LayoutProps) {
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <head>
-        {/* Google Analytics 4 */}
-        <Script
-          src={`https://www.googletagmanager.com/gtag/js?id=G-RNTGN1QG93`}
-          strategy="afterInteractive"
-        />
-        <Script id="google-analytics" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-RNTGN1QG93', {
-              page_path: window.location.pathname,
-              cookie_flags: 'SameSite=None;Secure'
-            });
-          `}
-        </Script>
+        {/* Analytics handled by client component */}
+        <Analytics />
 
         {/* Microsoft Clarity */}
         <Script id="microsoft-clarity" strategy="afterInteractive">

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -28,8 +28,12 @@ interface SocialCalendarProps {
 }
 
 export function SocialCalendar({ scheduledPosts }: SocialCalendarProps) {
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [view, setView] = useState<'calendar' | 'list'>('calendar');
+
+  useEffect(() => {
+    setSelectedDate(new Date());
+  }, []);
 
   const postsForSelectedDate = scheduledPosts.filter(post => {
     const postDate = new Date(post.scheduledAt);

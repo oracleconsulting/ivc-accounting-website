@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { Calendar } from 'lucide-react'
 
 export default function Footer() {
-  const [currentYear, setCurrentYear] = useState<number>(2025); // Default year
+  const [currentYear, setCurrentYear] = useState<number | null>(null);
   useEffect(() => {
     setCurrentYear(new Date().getFullYear());
   }, []);
@@ -107,7 +107,7 @@ export default function Footer() {
         <div className="border-t border-[#f5f1e8]/20 pt-8 mt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-[#f5f1e8]/60 text-sm mb-4 md:mb-0">
-              © {currentYear} IVC Accounting Ltd. All rights reserved.
+              © {currentYear || 2025} IVC Accounting Ltd. All rights reserved.
             </p>
             <div className="flex space-x-6">
               {footerLinks.legal.map((link) => (

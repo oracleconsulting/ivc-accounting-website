@@ -7,21 +7,22 @@ import { Menu, X } from 'lucide-react'
 import Button from '@/components/shared/Button'
 
 export default function Navigation() {
-  const [isScrolled, setIsScrolled] = useState(false)
+  // Initialize as null to ensure consistent SSR/CSR
+  const [isScrolled, setIsScrolled] = useState<boolean | null>(null)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    setMounted(true)
-    // Check initial scroll position after mount
-    setIsScrolled(window.scrollY > 20)
-    
-    const handleScroll = () => {
+    // Set scroll state only on client
+    const updateScrollState = () => {
       setIsScrolled(window.scrollY > 20)
     }
     
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
+    // Set initial state
+    updateScrollState()
+    
+    // Add listener
+    window.addEventListener('scroll', updateScrollState)
+    return () => window.removeEventListener('scroll', updateScrollState)
   }, [])
 
   const mainNavLinks = [
@@ -38,10 +39,10 @@ export default function Navigation() {
     { href: '/tools', label: 'TOOLS' },
   ]
 
-  // Use mounted state to ensure consistent rendering
-  const navClassName = `fixed w-full z-50 nav-transition ${
-    mounted && isScrolled ? 'bg-[#1a2b4a] shadow-corporate' : 'bg-transparent'
-  }`
+  // CRITICAL: Use null check for className to ensure SSR/CSR match
+  const navClassName = isScrolled === null 
+    ? 'fixed w-full z-50 nav-transition bg-transparent' // SSR default
+    : `fixed w-full z-50 nav-transition ${isScrolled ? 'bg-[#1a2b4a] shadow-corporate' : 'bg-transparent'}`
 
   return (
     <nav className={navClassName}>

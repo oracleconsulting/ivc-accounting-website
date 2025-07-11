@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,6 +34,11 @@ interface PlatformConnectorProps {
 export function PlatformConnector({ platforms, onPlatformsUpdate }: PlatformConnectorProps) {
   const [connectingPlatform, setConnectingPlatform] = useState<string | null>(null);
   const [apiKeys, setApiKeys] = useState<Record<string, string>>({});
+  const [currentDate, setCurrentDate] = useState<Date | null>(null);
+
+  useEffect(() => {
+    setCurrentDate(new Date());
+  }, []);
 
   const handleConnect = async (platformId: string) => {
     setConnectingPlatform(platformId);
@@ -108,7 +113,7 @@ export function PlatformConnector({ platforms, onPlatformsUpdate }: PlatformConn
       return { status: 'disconnected', color: 'text-gray-500', icon: <Unlink className="h-4 w-4" /> };
     }
     
-    if (platform.expiresAt && new Date() > platform.expiresAt) {
+    if (platform.expiresAt && currentDate && new Date() > platform.expiresAt) {
       return { status: 'expired', color: 'text-red-500', icon: <AlertCircle className="h-4 w-4" /> };
     }
     
@@ -196,7 +201,7 @@ export function PlatformConnector({ platforms, onPlatformsUpdate }: PlatformConn
                   {platform.expiresAt && (
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-gray-600">Token Expires</span>
-                      <span className={`text-sm ${new Date() > platform.expiresAt ? 'text-red-600' : 'text-gray-900'}`}>
+                      <span className={`text-sm ${currentDate && new Date() > platform.expiresAt ? 'text-red-600' : 'text-gray-900'}`}>
                         {platform.expiresAt.toLocaleDateString()}
                       </span>
                     </div>
@@ -205,7 +210,7 @@ export function PlatformConnector({ platforms, onPlatformsUpdate }: PlatformConn
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Last Sync</span>
                     <span className="text-sm text-gray-900">
-                      {new Date().toLocaleDateString()}
+                      {currentDate ? currentDate.toLocaleDateString() : 'Loading...'}
                     </span>
                   </div>
                 </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from './button';
 
@@ -11,7 +11,12 @@ interface CalendarProps {
 }
 
 export function Calendar({ value, onSelect, className = '' }: CalendarProps) {
-  const [currentDate, setCurrentDate] = useState(value || new Date());
+  const [currentDate, setCurrentDate] = useState<Date | null>(null);
+  
+  // Set initial date after mount to avoid hydration mismatch
+  useEffect(() => {
+    setCurrentDate(value || new Date());
+  }, [value]);
 
   const getDaysInMonth = (date: Date) => {
     return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
@@ -22,12 +27,21 @@ export function Calendar({ value, onSelect, className = '' }: CalendarProps) {
   };
 
   const goToPreviousMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+    if (currentDate) {
+      setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+    }
   };
 
   const goToNextMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+    if (currentDate) {
+      setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+    }
   };
+
+  // Don't render until we have a date to avoid hydration mismatch
+  if (!currentDate) {
+    return <div className={`bg-white rounded-lg shadow-sm border ${className}`}>Loading...</div>;
+  }
 
   const daysInMonth = getDaysInMonth(currentDate);
   const firstDayOfMonth = getFirstDayOfMonth(currentDate);
