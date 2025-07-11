@@ -26,6 +26,8 @@ interface EditPostPageProps {
 }
 
 export default async function EditPostPage({ params }: EditPostPageProps) {
+  console.log('EditPostPage: Loading with ID:', params.id);
+  
   const supabase = createServerComponentClient({ cookies });
   
   // Check authentication
@@ -34,17 +36,14 @@ export default async function EditPostPage({ params }: EditPostPageProps) {
     redirect('/login');
   }
 
-  // Fetch post data
+  // Fetch post data - SIMPLIFIED QUERY
   const { data: post, error } = await supabase
     .from('posts')
-    .select(`
-      *,
-      author:profiles!author_id(id, full_name, avatar_url),
-      categories:post_categories(category:categories(*)),
-      tags:post_tags(tag:tags(*))
-    `)
+    .select('*')  // Just get the post without joins
     .eq('id', params.id)
     .single();
+
+  console.log('EditPostPage: Post query result:', { post: post?.id, error });
 
   if (error || !post) {
     console.log('Post not found:', params.id, error);
