@@ -7,21 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { campaignService, Campaign } from '@/lib/services/campaignService';
-import { 
-  BarChart, 
-  Bar, 
-  LineChart, 
-  Line, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell
-} from 'recharts';
+import { Campaign } from '@/lib/services/campaignService';
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -44,11 +30,11 @@ import {
   Facebook,
   Instagram,
   Video,
-  FileDown
+  FileDown,
+  Plus
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
 
 interface CampaignDashboardProps {
   campaignId?: string;
@@ -79,15 +65,56 @@ export function CampaignDashboard({ campaignId }: CampaignDashboardProps) {
   const loadCampaigns = async () => {
     try {
       setLoading(true);
-      const data = await campaignService.getAllCampaigns();
-      setCampaigns(data);
-      if (data.length > 0 && !campaignId) {
-        setSelectedCampaign(data[0]);
-        loadCampaignAnalytics(data[0].id);
+      // For now, use mock data until the service is properly connected
+      const mockCampaigns: Campaign[] = [
+        {
+          id: '1',
+          name: 'Sample Campaign',
+          topic: 'Tax Planning for Small Businesses',
+          status: 'ready',
+          created_at: new Date().toISOString(),
+          created_by: 'user-1',
+          analytics: {
+            total_reach: 1250,
+            total_engagement: 89,
+            conversion_rate: 7.1,
+            best_performing_channel: 'linkedin',
+            roi: 340
+          },
+          components: {
+            blog: {
+              id: 'blog-1',
+              title: 'Tax Planning for Small Businesses',
+              content: 'Sample content...',
+              score: 85,
+              published_at: new Date().toISOString()
+            },
+            newsletter: {
+              id: 'newsletter-1',
+              subject: 'Tax Planning Newsletter',
+              content: 'Newsletter content...',
+              sent_at: new Date().toISOString(),
+              recipient_count: 500
+            },
+            socialSeries: {
+              linkedin: {
+                posts: [
+                  { content: 'Sample LinkedIn post', hashtags: ['tax', 'business'] }
+                ],
+                theme: 'Professional',
+                hook: 'Tax planning hook'
+              }
+            }
+          }
+        }
+      ];
+      setCampaigns(mockCampaigns);
+      if (mockCampaigns.length > 0 && !campaignId) {
+        setSelectedCampaign(mockCampaigns[0]);
+        loadCampaignAnalytics(mockCampaigns[0].id);
       }
     } catch (error) {
       console.error('Error loading campaigns:', error);
-      toast.error('Failed to load campaigns');
     } finally {
       setLoading(false);
     }
@@ -95,8 +122,21 @@ export function CampaignDashboard({ campaignId }: CampaignDashboardProps) {
 
   const loadCampaignAnalytics = async (id: string) => {
     try {
-      const data = await campaignService.getCampaignAnalytics(id);
-      setAnalytics(data);
+      // Mock analytics data
+      const mockAnalytics = {
+        total_reach: 1250,
+        total_engagement: 89,
+        conversion_rate: 7.1,
+        best_performing_channel: 'linkedin',
+        roi: 340,
+        channel_breakdown: {
+          linkedin: { reach: 450, engagement: 34, clicks: 12 },
+          twitter: { reach: 300, engagement: 23, clicks: 8 },
+          facebook: { reach: 250, engagement: 18, clicks: 6 },
+          newsletter: { reach: 250, engagement: 14, clicks: 4 }
+        }
+      };
+      setAnalytics(mockAnalytics);
     } catch (error) {
       console.error('Error loading analytics:', error);
     }
@@ -108,9 +148,8 @@ export function CampaignDashboard({ campaignId }: CampaignDashboardProps) {
     setRefreshing(true);
     try {
       await loadCampaignAnalytics(selectedCampaign.id);
-      toast.success('Analytics refreshed');
     } catch (error) {
-      toast.error('Failed to refresh analytics');
+      console.error('Failed to refresh analytics');
     } finally {
       setRefreshing(false);
     }
@@ -201,10 +240,10 @@ export function CampaignDashboard({ campaignId }: CampaignDashboardProps) {
             Refresh
           </Button>
           <Button
-            size="sm"
             onClick={() => router.push('/admin/social/compose')}
+            className="bg-blue-600 hover:bg-blue-700"
           >
-            <Sparkles className="w-4 h-4 mr-2" />
+            <Plus className="w-4 h-4 mr-2" />
             New Campaign
           </Button>
         </div>
@@ -213,433 +252,130 @@ export function CampaignDashboard({ campaignId }: CampaignDashboardProps) {
       {selectedCampaign && (
         <>
           {/* Campaign Overview */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Reach</CardTitle>
+                <Eye className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{analytics?.total_reach?.toLocaleString() || 0}</div>
+                <p className="text-xs text-muted-foreground">
+                  +20.1% from last month
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Engagement</CardTitle>
+                <MessageSquare className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{analytics?.total_engagement?.toLocaleString() || 0}</div>
+                <p className="text-xs text-muted-foreground">
+                  +12.5% from last month
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{analytics?.conversion_rate?.toFixed(1) || 0}%</div>
+                <p className="text-xs text-muted-foreground">
+                  +2.1% from last month
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">ROI</CardTitle>
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{analytics?.roi?.toFixed(0) || 0}%</div>
+                <p className="text-xs text-muted-foreground">
+                  +15.3% from last month
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Campaign Status */}
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>{selectedCampaign.topic}</CardTitle>
-                  <CardDescription>
-                    Created {format(new Date(selectedCampaign.created_at), 'MMM d, yyyy')}
-                  </CardDescription>
-                </div>
-                <Badge className={`${getStatusColor(selectedCampaign.status)} text-white`}>
-                  <span className="flex items-center gap-1">
-                    {getStatusIcon(selectedCampaign.status)}
-                    {selectedCampaign.status}
-                  </span>
-                </Badge>
-              </div>
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5" />
+                Campaign Status
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              {/* Quick Stats */}
-              <div className="grid grid-cols-4 gap-4 mb-6">
-                <div className="text-center">
-                  <div className="text-2xl font-bold">{analytics?.total_reach || 0}</div>
-                  <div className="text-sm text-gray-500">Total Reach</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold">{analytics?.total_engagement || 0}</div>
-                  <div className="text-sm text-gray-500">Engagements</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold">
-                    {analytics?.conversion_rate || 0}%
-                  </div>
-                  <div className="text-sm text-gray-500">Conversion Rate</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600">
-                    {analytics?.roi || 0}%
-                  </div>
-                  <div className="text-sm text-gray-500">ROI</div>
-                </div>
-              </div>
-
-              {/* Channel Status Grid */}
-              <div className="grid grid-cols-4 gap-4">
-                {/* Blog */}
-                <Card className="border">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      {getChannelIcon('blog')}
-                      <Badge variant="outline" className="text-xs">
-                        {selectedCampaign.components.blog ? 'Published' : 'Draft'}
-                      </Badge>
-                    </div>
-                    <div className="font-medium">Blog Post</div>
-                    {selectedCampaign.components.blog && (
-                      <div className="text-sm text-gray-500 mt-1">
-                        Score: {selectedCampaign.components.blog.score}/100
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Newsletter */}
-                <Card className="border">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      {getChannelIcon('newsletter')}
-                      <Badge variant="outline" className="text-xs">
-                        {selectedCampaign.components.newsletter?.sent_at ? 'Sent' : 'Ready'}
-                      </Badge>
-                    </div>
-                    <div className="font-medium">Newsletter</div>
-                    {selectedCampaign.components.newsletter?.recipient_count && (
-                      <div className="text-sm text-gray-500 mt-1">
-                        {selectedCampaign.components.newsletter.recipient_count} recipients
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Social Media */}
-                <Card className="border">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <Share2 className="w-5 h-5" />
-                      <Badge variant="outline" className="text-xs">
-                        {Object.keys(selectedCampaign.components.socialSeries || {}).length} platforms
-                      </Badge>
-                    </div>
-                    <div className="font-medium">Social Series</div>
-                    <div className="flex gap-1 mt-2">
-                      {selectedCampaign.components.socialSeries?.linkedin && <Linkedin className="w-4 h-4" />}
-                      {selectedCampaign.components.socialSeries?.twitter && <Twitter className="w-4 h-4" />}
-                      {selectedCampaign.components.socialSeries?.facebook && <Facebook className="w-4 h-4" />}
-                      {selectedCampaign.components.socialSeries?.instagram && <Instagram className="w-4 h-4" />}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Downloads */}
-                <Card className="border">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <Download className="w-5 h-5" />
-                      <Badge variant="outline" className="text-xs">
-                        {Object.keys(selectedCampaign.components.downloads || {}).length} files
-                      </Badge>
-                    </div>
-                    <div className="font-medium">Downloads</div>
-                    <div className="text-sm text-gray-500 mt-1">
-                      {(selectedCampaign.components.downloads?.pdf?.download_count || 0) +
-                        (selectedCampaign.components.downloads?.videoScript?.download_count || 0)} total
-                    </div>
-                  </CardContent>
-                </Card>
+              <div className="flex items-center gap-4">
+                <Badge className={`${getStatusColor(selectedCampaign.status)} text-white`}>
+                  {getStatusIcon(selectedCampaign.status)}
+                  <span className="ml-2 capitalize">{selectedCampaign.status}</span>
+                </Badge>
+                <span className="text-sm text-muted-foreground">
+                  Created {format(new Date(selectedCampaign.created_at), 'MMM dd, yyyy')}
+                </span>
               </div>
             </CardContent>
           </Card>
 
-          {/* Analytics Tabs */}
-          <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="channels">Channels</TabsTrigger>
-              <TabsTrigger value="content">Content</TabsTrigger>
-              <TabsTrigger value="timeline">Timeline</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="overview" className="space-y-4">
-              {/* Performance Chart */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Campaign Performance</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={analytics?.performance_over_time || []}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis />
-                      <Tooltip />
-                      <Line 
-                        type="monotone" 
-                        dataKey="reach" 
-                        stroke="#8884d8" 
-                        name="Reach"
-                      />
-                      <Line 
-                        type="monotone" 
-                        dataKey="engagement" 
-                        stroke="#82ca9d" 
-                        name="Engagement"
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-
-              {/* Best Performing Content */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Top Performing Content</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {analytics?.top_content?.map((item: any, index: number) => (
-                      <div key={index} className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          {getChannelIcon(item.channel)}
-                          <div>
-                            <div className="font-medium">{item.title}</div>
-                            <div className="text-sm text-gray-500">{item.channel}</div>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="font-medium">{item.engagement}</div>
-                          <div className="text-sm text-gray-500">engagements</div>
-                        </div>
+          {/* Channel Performance */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Channel Performance</CardTitle>
+              <CardDescription>
+                Performance breakdown across all channels
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {analytics?.channel_breakdown && Object.entries(analytics.channel_breakdown).map(([channel, data]: [string, any], index) => (
+                  <div key={channel} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      {getChannelIcon(channel)}
+                      <div>
+                        <h4 className="font-medium capitalize">{channel}</h4>
+                        <p className="text-sm text-muted-foreground">
+                          {data.reach?.toLocaleString()} reach • {data.engagement?.toLocaleString()} engagement
+                        </p>
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="channels" className="space-y-4">
-              {/* Channel Distribution */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Channel Performance</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={analytics?.channel_performance || []}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="channel" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="reach" fill="#8884d8" name="Reach" />
-                      <Bar dataKey="engagement" fill="#82ca9d" name="Engagement" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-
-              {/* Engagement by Channel */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Engagement Distribution</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={analytics?.engagement_by_channel || []}
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                        label
-                      >
-                        {(analytics?.engagement_by_channel || []).map((entry: any, index: number) => (
-                          <Cell key={`cell-${index}`} fill={channelColors[index % channelColors.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="content" className="space-y-4">
-              {/* Content Details */}
-              <div className="grid grid-cols-2 gap-4">
-                {/* Blog Performance */}
-                {selectedCampaign.components.blog && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <FileText className="w-5 h-5" />
-                        Blog Post
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-2">
-                        <div className="flex justify-between">
-                          <span className="text-gray-500">Title</span>
-                          <span className="font-medium text-right">
-                            {selectedCampaign.components.blog.title}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-500">Score</span>
-                          <span className="font-medium">
-                            {selectedCampaign.components.blog.score}/100
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-500">Views</span>
-                          <span className="font-medium">
-                            {analytics?.channel_breakdown?.blog?.views || 0}
-                          </span>
-                        </div>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="w-full mt-4"
-                          onClick={() => router.push(`/admin/posts/${selectedCampaign.blog_post_id}`)}
-                        >
-                          View Post
-                          <ArrowRight className="w-4 h-4 ml-2" />
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {/* Social Series Performance */}
-                {selectedCampaign.components.socialSeries && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Share2 className="w-5 h-5" />
-                        Social Series
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        {Object.entries(selectedCampaign.components.socialSeries).map(([platform, series]) => (
-                          <div key={platform} className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              {getChannelIcon(platform)}
-                              <span className="capitalize">{platform}</span>
-                            </div>
-                            <div className="text-right">
-                              <div className="font-medium">
-                                {(series as any).posts?.length || 0} posts
-                              </div>
-                              <div className="text-sm text-gray-500">
-                                {analytics?.channel_breakdown?.social?.[platform]?.engagement || 0} eng.
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="w-full mt-4"
-                          onClick={() => router.push(`/admin/social/campaigns/${selectedCampaign.id}/series`)}
-                        >
-                          Manage Series
-                          <ArrowRight className="w-4 h-4 ml-2" />
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
-
-              {/* Downloads Performance */}
-              {selectedCampaign.components.downloads && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Downloads</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {Object.entries(selectedCampaign.components.downloads).map(([type, download]) => (
-                        <div key={type} className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <FileDown className="w-5 h-5" />
-                            <span className="capitalize">{type.replace('_', ' ')}</span>
-                          </div>
-                          <div className="flex items-center gap-4">
-                            <span className="text-sm text-gray-500">
-                              {(download as any).download_count} downloads
-                            </span>
-                            <Button size="sm" variant="outline">
-                              Download
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
                     </div>
-                  </CardContent>
-                </Card>
-              )}
-            </TabsContent>
-
-            <TabsContent value="timeline" className="space-y-4">
-              {/* Publishing Timeline */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Publishing Timeline</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {analytics?.timeline?.map((event: any, index: number) => (
-                      <div key={index} className="flex gap-4">
-                        <div className="flex flex-col items-center">
-                          <div className={`w-3 h-3 rounded-full ${event.completed ? 'bg-green-500' : 'bg-gray-300'}`} />
-                          {index < analytics.timeline.length - 1 && (
-                            <div className="w-0.5 h-16 bg-gray-200" />
-                          )}
-                        </div>
-                        <div className="flex-1 pb-8">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <div className="font-medium flex items-center gap-2">
-                                {getChannelIcon(event.channel)}
-                                {event.title}
-                              </div>
-                              <div className="text-sm text-gray-500 mt-1">
-                                {format(new Date(event.date), 'MMM d, yyyy h:mm a')}
-                              </div>
-                            </div>
-                            {event.metrics && (
-                              <div className="text-right">
-                                <div className="text-sm font-medium">
-                                  {event.metrics.reach} reach
-                                </div>
-                                <div className="text-sm text-gray-500">
-                                  {event.metrics.engagement} engagements
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
+                    <div className="text-right">
+                      <div className="font-medium">{data.clicks?.toLocaleString() || 0} clicks</div>
+                      <div className="text-sm text-muted-foreground">
+                        {data.reach ? ((data.clicks / data.reach) * 100).toFixed(1) : 0}% CTR
                       </div>
-                    ))}
+                    </div>
                   </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-
-          {/* Action Buttons */}
-          {selectedCampaign.status === 'ready' && (
-            <Card>
-              <CardContent className="flex items-center justify-between p-6">
-                <div>
-                  <h3 className="font-semibold">Ready to Publish</h3>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Your campaign is ready to be published across all channels
-                  </p>
-                </div>
-                <Button
-                  size="lg"
-                  onClick={async () => {
-                    try {
-                      await campaignService.publishCampaign(selectedCampaign.id);
-                      toast.success('Campaign published successfully!');
-                      loadCampaigns();
-                    } catch (error) {
-                      toast.error('Failed to publish campaign');
-                    }
-                  }}
-                >
-                  <Zap className="w-5 h-5 mr-2" />
-                  Publish Campaign
-                </Button>
-              </CardContent>
-            </Card>
-          )}
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </>
+      )}
+
+      {!selectedCampaign && campaigns.length === 0 && (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <Sparkles className="w-12 h-12 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-medium mb-2">No campaigns yet</h3>
+            <p className="text-muted-foreground mb-4">
+              Create your first campaign to get started
+            </p>
+            <Button onClick={() => router.push('/admin/social/compose')}>
+              <Plus className="w-4 h-4 mr-2" />
+              Create Campaign
+            </Button>
+          </CardContent>
+        </Card>
       )}
     </div>
   );

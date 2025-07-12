@@ -24,7 +24,7 @@ import AIAssistant from '@/components/admin/AIAssistant';
 import CategorySelector from '@/components/admin/CategorySelector';
 import TagSelector from '@/components/admin/TagSelector';
 import ImageUpload from './ImageUpload';
-import SocialMediaGenerator from '@/components/admin/SocialMediaGenerator';
+import { SocialMediaGenerator } from '@/components/admin/SocialMediaGenerator';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { generateSlug, calculateReadTime } from '@/lib/utils/blog';
 import { uploadImage } from '@/lib/utils/storage';
@@ -976,7 +976,6 @@ export default function BlogEditor({ post, postId, onSave, onPublish }: BlogEdit
               postTitle={title}
               postContent={editor?.getText() || ''}
               postUrl={`${process.env.NEXT_PUBLIC_SITE_URL}/blog/${slug}`}
-              onClose={() => setShowSocialGenerator(false)}
             />
           </div>
         </div>

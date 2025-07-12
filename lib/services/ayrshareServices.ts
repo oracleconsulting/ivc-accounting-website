@@ -5,7 +5,7 @@ interface AyrsharePost {
   post: string;
   platforms: string[];
   media_urls?: string[];
-  scheduleDate?: string;
+  scheduleDate: string;
   shortenLinks?: boolean;
   hashtags?: string[];
   profileKeys?: string[];
@@ -227,7 +227,7 @@ export class AyrshareService {
       const ayrsharePost: AyrsharePost = {
         post: `${post.content}\n\n${post.hashtags.map((h: string) => `#${h}`).join(' ')}`,
         platforms: ['linkedin'],
-        scheduleDate: post.scheduled_for,
+        scheduleDate: post.scheduled_for || '',
         shortenLinks: true
       };
 
@@ -260,7 +260,7 @@ export class AyrshareService {
     const ayrsharePost: AyrsharePost = {
       post: tweets, // Array for thread
       platforms: ['twitter'],
-      scheduleDate: thread.tweets[0].scheduled_for,
+      scheduleDate: thread.tweets[0].scheduled_for || '',
       shortenLinks: true
     };
 
@@ -286,7 +286,7 @@ export class AyrshareService {
       const ayrsharePost: AyrsharePost = {
         post: post.content,
         platforms: ['facebook'],
-        scheduleDate: post.scheduled_for,
+        scheduleDate: post.scheduled_for || '',
         shortenLinks: true
       };
 

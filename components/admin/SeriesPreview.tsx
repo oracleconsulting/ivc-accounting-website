@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
   Linkedin, 
   Twitter, 
@@ -26,7 +25,6 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { toast } from 'sonner';
 
 interface SeriesPreviewProps {
   campaignId: string;
@@ -68,7 +66,7 @@ export function SeriesPreview({
 
     onUpdate(editingPost.platform, updatedSeries);
     setEditingPost(null);
-    toast.success('Post updated');
+    console.log('Post updated');
   };
 
   const handleCancel = () => {
@@ -79,7 +77,7 @@ export function SeriesPreview({
   const copyToClipboard = (text: string, postId: string) => {
     navigator.clipboard.writeText(text);
     setCopiedPost(postId);
-    toast.success('Copied to clipboard');
+    console.log('Copied to clipboard');
     setTimeout(() => setCopiedPost(null), 2000);
   };
 
@@ -246,7 +244,7 @@ export function SeriesPreview({
                   <strong>Opener:</strong> {socialSeries.twitter.opener}
                 </p>
                 
-                <ScrollArea className="h-[600px]">
+                <div className="h-[600px] overflow-y-auto">
                   <div className="space-y-3">
                     {socialSeries.twitter.tweets.map((tweet: any, index: number) => {
                       const isEditing = editingPost?.platform === 'twitter' && editingPost?.index === index;
@@ -329,7 +327,7 @@ export function SeriesPreview({
                       </CardContent>
                     </Card>
                   </div>
-                </ScrollArea>
+                </div>
               </CardContent>
             </Card>
           )}

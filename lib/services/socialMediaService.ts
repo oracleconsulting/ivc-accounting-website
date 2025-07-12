@@ -1,6 +1,6 @@
 // /lib/services/socialMediaService.ts (Enhanced Version)
 import { supabase } from '@/lib/supabaseClient';
-import { ayrshareService } from './ayrshareService';
+import { ayrshareService } from './ayrshareServices';
 
 export interface SocialPost {
   id?: string;
@@ -116,7 +116,7 @@ export class SocialMediaService {
           post: this.formatPostContent(post),
           platforms: post.platforms,
           media_urls: post.images,
-          scheduleDate: post.scheduledAt?.toISOString(),
+          scheduleDate: post.scheduledAt?.toISOString() || '',
           hashtags: post.hashtags
         });
 

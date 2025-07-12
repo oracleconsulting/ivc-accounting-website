@@ -12,7 +12,6 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Progress } from '@/components/ui/progress';
 import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
 import { campaignService } from '@/lib/services/campaignService';
 import {
   Sparkles,
@@ -108,7 +107,7 @@ export function CampaignCreator({ existingBlogId }: CampaignCreatorProps) {
 
   const generateCampaign = async () => {
     if (!campaignData.topic || campaignData.keywords.length === 0) {
-      toast.error('Please provide a topic and at least one keyword');
+      console.error('Please provide a topic and at least one keyword');
       return;
     }
 
@@ -141,7 +140,7 @@ export function CampaignCreator({ existingBlogId }: CampaignCreatorProps) {
 
       const campaign = await response.json();
       
-      toast.success('Campaign created successfully!');
+      console.log('Campaign created successfully!');
       
       // Navigate to campaign dashboard
       setTimeout(() => {
@@ -150,7 +149,7 @@ export function CampaignCreator({ existingBlogId }: CampaignCreatorProps) {
 
     } catch (error) {
       console.error('Error generating campaign:', error);
-      toast.error('Failed to generate campaign');
+      console.error('Failed to generate campaign');
     } finally {
       setGenerating(false);
     }
@@ -173,9 +172,9 @@ export function CampaignCreator({ existingBlogId }: CampaignCreatorProps) {
         keywords: [...new Set([...prev.keywords, ...data.keywords])]
       }));
       
-      toast.success('Keywords suggested!');
+      console.log('Keywords suggested!');
     } catch (error) {
-      toast.error('Failed to suggest keywords');
+      console.error('Failed to suggest keywords');
     } finally {
       setLoading(false);
     }

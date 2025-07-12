@@ -9,11 +9,9 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { SeriesPreview } from './SeriesPreview';
 import { aiSeriesGenerator } from '@/lib/services/aiSeriesGenerator';
 import { campaignService } from '@/lib/services/campaignService';
-import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import {
   Sparkles,
@@ -133,10 +131,10 @@ export function SocialMediaGenerator({
       setGenerationProgress(100);
       setGeneratedSeries(series);
       
-      toast.success('Social media series generated successfully!');
+      console.log('Social media series generated successfully!');
     } catch (error) {
       console.error('Error generating series:', error);
-      toast.error('Failed to generate social media series');
+      console.error('Failed to generate social media series');
     } finally {
       setGenerating(false);
     }
@@ -159,11 +157,11 @@ export function SocialMediaGenerator({
         router.push(`/admin/social/campaigns/${campaign.id}`);
       } else {
         // Create new campaign without blog post
-        toast.error('Please save the blog post first');
+        console.error('Please save the blog post first');
       }
     } catch (error) {
       console.error('Error creating campaign:', error);
-      toast.error('Failed to create campaign');
+      console.error('Failed to create campaign');
     }
   };
 
@@ -190,9 +188,9 @@ export function SocialMediaGenerator({
         [platform]: newSeries[platform]
       });
       
-      toast.success(`${platform} series regenerated`);
+      console.log(`${platform} series regenerated`);
     } catch (error) {
-      toast.error(`Failed to regenerate ${platform} series`);
+      console.error(`Failed to regenerate ${platform} series`);
     } finally {
       setGenerating(false);
     }

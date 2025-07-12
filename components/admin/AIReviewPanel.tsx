@@ -53,6 +53,7 @@ interface AIReviewPanelProps {
     research?: string;
     improvements?: string;
   };
+  aiMode?: string;
 }
 
 export function AIReviewPanel({ content, onContentUpdate, keywords = [], previousSuggestions }: AIReviewPanelProps) {
