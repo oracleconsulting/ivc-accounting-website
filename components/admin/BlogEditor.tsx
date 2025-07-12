@@ -125,6 +125,8 @@ export default function BlogEditor({ post, postId, onSave, onPublish }: BlogEdit
 
   // Internal save function that directly updates Supabase
   const handleInternalSave = useCallback(async (postData: Partial<Post>) => {
+    console.log('handleInternalSave called with:', { currentPostId, postData });
+    
     if (!currentPostId) {
       console.log('No post ID available for saving');
       return;
@@ -146,6 +148,8 @@ export default function BlogEditor({ post, postId, onSave, onPublish }: BlogEdit
         updated_at: new Date().toISOString(),
       };
 
+      console.log('Updating post with:', updateData);
+
       // Update the post
       const { data, error } = await supabase
         .from('posts')
@@ -154,7 +158,12 @@ export default function BlogEditor({ post, postId, onSave, onPublish }: BlogEdit
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase update error:', error);
+        throw error;
+      }
+
+      console.log('Post updated successfully:', data);
 
       // Update post_categories relationship
       if (category_ids !== undefined) {
@@ -211,7 +220,7 @@ export default function BlogEditor({ post, postId, onSave, onPublish }: BlogEdit
       setLastSaved(new Date());
       return data;
     } catch (error) {
-      console.error('Error saving post:', error);
+      console.error('Error in handleInternalSave:', error);
       setAutoSaveStatus('error');
       toast.error('Failed to save post');
       throw error;
@@ -484,12 +493,116 @@ export default function BlogEditor({ post, postId, onSave, onPublish }: BlogEdit
 
   // Manual save
   const handleManualSave = async () => {
+    console.log('Manual save triggered');
+    console.log('Current state:', {
+      currentPostId,
+      title,
+      slug,
+      hasEditor: !!editor,
+      autoSaveStatus
+    });
+
     if (!editor || !title) {
       toast.error('Please add a title');
       return;
     }
     
-    await autoSave();
+    // Wait for post to be created if it doesn't exist yet
+    if (!currentPostId) {
+      toast.error('Please wait for the post to be created');
+      return;
+    }
+    
+    try {
+      const content = editor.getJSON();
+      const content_text = editor.getText();
+      const content_html = editor.getHTML();
+      const read_time = calculateReadTime(content_text);
+      
+      const saveData = {
+        title,
+        slug,
+        content,
+        content_text,
+        content_html,
+        excerpt,
+        featured_image: featuredImage,
+        read_time,
+        ...seoData,
+        status: 'draft' as const,
+        category_ids: categories,
+        tag_ids: tags
+      };
+      
+      console.log('Saving with data:', saveData);
+      
+      await saveHandler(saveData);
+      
+      toast.success('Draft saved successfully');
+    } catch (error) {
+      console.error('Manual save failed:', error);
+      toast.error('Failed to save draft');
+    }
+  };
+
+  // Test database connection function
+  const testDatabaseConnection = async () => {
+    console.log('Testing database connection...');
+    
+    try {
+      // Test 1: Check authentication
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      console.log('Auth test:', { user: user?.email, error: authError });
+      
+      if (!user) {
+        console.error('Not authenticated');
+        return;
+      }
+      
+      // Test 2: Try to read posts
+      const { data: posts, error: readError } = await supabase
+        .from('posts')
+        .select('id, title, status')
+        .limit(5);
+      console.log('Read test:', { count: posts?.length, error: readError });
+      
+      // Test 3: Try to create a test post
+      const testPost = {
+        title: 'Test Post ' + new Date().toISOString(),
+        slug: 'test-' + Date.now(),
+        content: { type: 'doc', content: [] },
+        status: 'draft',
+        author_id: user.id
+      };
+      
+      const { data: created, error: createError } = await supabase
+        .from('posts')
+        .insert(testPost)
+        .select()
+        .single();
+      console.log('Create test:', { created: created?.id, error: createError });
+      
+      // Test 4: Try to update the test post
+      if (created) {
+        const { data: updated, error: updateError } = await supabase
+          .from('posts')
+          .update({ title: 'Updated Test Post' })
+          .eq('id', created.id)
+          .select()
+          .single();
+        console.log('Update test:', { updated: updated?.title, error: updateError });
+        
+        // Clean up - delete the test post
+        const { error: deleteError } = await supabase
+          .from('posts')
+          .delete()
+          .eq('id', created.id);
+        console.log('Delete test:', { error: deleteError });
+      }
+      
+    } catch (error) {
+      console.error('Database test failed:', error);
+    }
   };
 
   // Show loading state while creating post
@@ -630,18 +743,33 @@ export default function BlogEditor({ post, postId, onSave, onPublish }: BlogEdit
           <div className="space-y-4">
             <button
               onClick={handleManualSave}
-              className="w-full px-4 py-2 bg-gray-200 text-[#1a2b4a] font-bold rounded hover:bg-gray-300 transition-colors"
+              disabled={!currentPostId || autoSaveStatus === 'saving'}
+              className="w-full px-4 py-2 bg-gray-200 text-[#1a2b4a] font-bold rounded hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Save Draft
+              {autoSaveStatus === 'saving' ? 'Saving...' : 'Save Draft'}
             </button>
             
             <button
               onClick={handlePublish}
-              className="w-full px-4 py-2 bg-[#ff6b35] text-white font-bold rounded hover:bg-[#e55a2b] transition-colors"
+              disabled={!currentPostId || !title || !slug}
+              className="w-full px-4 py-2 bg-[#ff6b35] text-white font-bold rounded hover:bg-[#e55a2b] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Publish Now
             </button>
           </div>
+
+          {/* Show save status */}
+          {autoSaveStatus === 'saved' && lastSaved && (
+            <p className="text-sm text-green-600 mt-2">
+              Last saved: {lastSaved.toLocaleTimeString()}
+            </p>
+          )}
+          
+          {autoSaveStatus === 'error' && (
+            <p className="text-sm text-red-600 mt-2">
+              Error saving draft
+            </p>
+          )}
 
           {/* Categories & Tags */}
           <div className="mt-6 space-y-4">
@@ -703,6 +831,14 @@ export default function BlogEditor({ post, postId, onSave, onPublish }: BlogEdit
           className="w-full px-4 py-3 bg-[#ff6b35] text-white font-bold rounded hover:bg-[#e55a2b] transition-colors"
         >
           Generate Social Posts
+        </button>
+
+        {/* Test Database Connection - Temporary */}
+        <button
+          onClick={testDatabaseConnection}
+          className="w-full px-4 py-3 bg-blue-500 text-white font-bold rounded hover:bg-blue-600 transition-colors"
+        >
+          Test Database
         </button>
       </div>
 
