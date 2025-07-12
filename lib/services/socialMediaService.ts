@@ -1,24 +1,29 @@
+// /lib/services/socialMediaService.ts (Enhanced Version)
 import { supabase } from '@/lib/supabaseClient';
+import { ayrshareService } from './ayrshareService';
 
 export interface SocialPost {
   id?: string;
+  campaign_id?: string;
   content: string;
   platforms: string[];
   scheduledAt?: Date;
   images?: string[];
   hashtags?: string[];
   status?: 'draft' | 'scheduled' | 'published' | 'failed';
+  external_id?: string;
+  engagement?: number;
+  reach?: number;
 }
 
 export interface PlatformConnection {
   id: string;
   platform_id: string;
   platform_name: string;
-  access_token?: string;
-  refresh_token?: string;
-  expires_at?: string;
-  profile_url?: string;
   connected: boolean;
+  profile_url?: string;
+  profile_name?: string;
+  profile_image?: string;
 }
 
 export interface PostAnalytics {
@@ -27,271 +32,187 @@ export interface PostAnalytics {
   likes: number;
   shares: number;
   comments: number;
+  clicks: number;
 }
 
 export class SocialMediaService {
-  // LinkedIn Integration
-  private async postToLinkedIn(content: string, accessToken: string): Promise<string> {
-    try {
-      // LinkedIn API v2 endpoint for posting
-      const response = await fetch('https://api.linkedin.com/v2/ugcPosts', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-          'X-Restli-Protocol-Version': '2.0.0'
-        },
-        body: JSON.stringify({
-          author: `urn:li:person:${process.env.LINKEDIN_PERSON_ID}`,
-          lifecycleState: 'PUBLISHED',
-          specificContent: {
-            'com.linkedin.ugc.ShareContent': {
-              shareCommentary: {
-                text: content
-              },
-              shareMediaCategory: 'NONE'
-            }
-          },
-          visibility: {
-            'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC'
-          }
-        })
-      });
+  private useAyrshare: boolean;
 
-      if (!response.ok) {
-        throw new Error(`LinkedIn API error: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      return data.id;
-    } catch (error) {
-      console.error('LinkedIn posting error:', error);
-      throw error;
-    }
+  constructor() {
+    // Check if Ayrshare is configured
+    this.useAyrshare = !!process.env.AYRSHARE_API_KEY;
   }
 
-  // Twitter/X Integration
-  private async postToTwitter(content: string, accessToken: string): Promise<string> {
-    try {
-      // Twitter API v2 endpoint for posting
-      const response = await fetch('https://api.twitter.com/2/tweets', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          text: content
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error(`Twitter API error: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      return data.data.id;
-    } catch (error) {
-      console.error('Twitter posting error:', error);
-      throw error;
-    }
-  }
-
-  // Instagram Integration (via Facebook Graph API)
-  private async postToInstagram(content: string, accessToken: string): Promise<string> {
-    try {
-      // Instagram Basic Display API for posting
-      const response = await fetch(`https://graph.instagram.com/me/media`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          image_url: '', // Would need image URL for Instagram
-          caption: content,
-          access_token: accessToken
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error(`Instagram API error: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      return data.id;
-    } catch (error) {
-      console.error('Instagram posting error:', error);
-      throw error;
-    }
-  }
-
-  // YouTube Integration
-  private async postToYouTube(content: string, accessToken: string): Promise<string> {
-    try {
-      // YouTube Data API v3 for posting
-      const response = await fetch('https://www.googleapis.com/youtube/v3/videos', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          snippet: {
-            title: content.substring(0, 100),
-            description: content,
-            tags: []
-          },
-          status: {
-            privacyStatus: 'public'
-          }
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error(`YouTube API error: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      return data.id;
-    } catch (error) {
-      console.error('YouTube posting error:', error);
-      throw error;
-    }
-  }
-
-  // Get platform connections
+  // Get platform connections - now checks Ayrshare profiles
   async getPlatformConnections(): Promise<PlatformConnection[]> {
     try {
-      const { data, error } = await supabase
-        .from('social_platform_connections')
-        .select('*')
-        .order('platform_name');
+      if (this.useAyrshare) {
+        // Get profiles from Ayrshare
+        const ayrshareProfiles = await ayrshareService.getProfiles();
+        
+        // Map Ayrshare profiles to our format
+        const connections: PlatformConnection[] = ayrshareProfiles.map((profile: any) => ({
+          id: profile.profileKey,
+          platform_id: profile.platform,
+          platform_name: this.formatPlatformName(profile.platform),
+          connected: true,
+          profile_url: profile.profileUrl,
+          profile_name: profile.displayName,
+          profile_image: profile.profileImage
+        }));
 
-      if (error) throw error;
-      return data || [];
+        // Save to database for caching
+        for (const connection of connections) {
+          await supabase
+            .from('social_platform_connections')
+            .upsert({
+              platform_id: connection.platform_id,
+              platform_name: connection.platform_name,
+              connected: true,
+              profile_url: connection.profile_url,
+              updated_at: new Date().toISOString()
+            });
+        }
+
+        return connections;
+      } else {
+        // Fallback to database connections
+        const { data, error } = await supabase
+          .from('social_platform_connections')
+          .select('*')
+          .order('platform_name');
+
+        if (error) throw error;
+        return data || [];
+      }
     } catch (error) {
       console.error('Error fetching platform connections:', error);
       throw error;
     }
   }
 
-  // Save platform connection
-  async savePlatformConnection(connection: Partial<PlatformConnection>): Promise<PlatformConnection> {
+  // Create and schedule a post - now uses Ayrshare
+  async createPost(post: SocialPost): Promise<SocialPost> {
     try {
-      const { data, error } = await supabase
-        .from('social_platform_connections')
-        .upsert(connection)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    } catch (error) {
-      console.error('Error saving platform connection:', error);
-      throw error;
-    }
-  }
-
-  // Create scheduled post
-  async createScheduledPost(post: SocialPost): Promise<any> {
-    try {
-      const { data, error } = await supabase
-        .from('social_scheduled_posts')
+      // Save to database first
+      const { data: savedPost, error } = await supabase
+        .from('social_posts')
         .insert({
+          campaign_id: post.campaign_id,
           content: post.content,
           platforms: post.platforms,
-          scheduled_at: post.scheduledAt?.toISOString(),
-          images: post.images,
+          scheduled_at: post.scheduledAt,
           hashtags: post.hashtags,
-          status: post.status || 'scheduled'
+          status: 'scheduled'
         })
         .select()
         .single();
 
       if (error) throw error;
-      return data;
+
+      // If using Ayrshare, schedule the post
+      if (this.useAyrshare) {
+        const ayrshareResponse = await ayrshareService.createPost({
+          post: this.formatPostContent(post),
+          platforms: post.platforms,
+          media_urls: post.images,
+          scheduleDate: post.scheduledAt?.toISOString(),
+          hashtags: post.hashtags
+        });
+
+        // Update post with external IDs
+        await supabase
+          .from('social_posts')
+          .update({
+            external_id: ayrshareResponse.id,
+            external_post_ids: ayrshareResponse.postIds
+          })
+          .eq('id', savedPost.id);
+
+        savedPost.external_id = ayrshareResponse.id;
+      }
+
+      return savedPost;
     } catch (error) {
-      console.error('Error creating scheduled post:', error);
+      console.error('Error creating post:', error);
       throw error;
     }
   }
 
-  // Publish post immediately
-  async publishPost(post: SocialPost): Promise<any> {
+  // Publish a series of posts for a campaign
+  async publishSeries(platform: string, series: any): Promise<void> {
     try {
-      const connections = await this.getPlatformConnections();
-      const publishedPosts: any[] = [];
-
-      for (const platform of post.platforms) {
-        const connection = connections.find(c => c.platform_id === platform && c.connected);
-        
-        if (!connection?.access_token) {
-          console.warn(`No valid connection for platform: ${platform}`);
-          continue;
-        }
-
-        try {
-          let postId: string;
-
-          switch (platform) {
-            case 'linkedin':
-              postId = await this.postToLinkedIn(post.content, connection.access_token);
-              break;
-            case 'twitter':
-              postId = await this.postToTwitter(post.content, connection.access_token);
-              break;
-            case 'instagram':
-              postId = await this.postToInstagram(post.content, connection.access_token);
-              break;
-            case 'youtube':
-              postId = await this.postToYouTube(post.content, connection.access_token);
-              break;
-            default:
-              console.warn(`Unsupported platform: ${platform}`);
-              continue;
-          }
-
-          // Save to database
-          const { data: savedPost, error } = await supabase
-            .from('social_posts')
-            .insert({
-              content: post.content,
-              platform,
-              post_id: postId,
-              images: post.images,
-              hashtags: post.hashtags,
-              status: 'published',
-              published_at: new Date().toISOString()
-            })
-            .select()
-            .single();
-
-          if (error) throw error;
-          publishedPosts.push(savedPost);
-
-        } catch (error) {
-          console.error(`Error posting to ${platform}:`, error);
-          // Continue with other platforms
+      if (this.useAyrshare) {
+        // Use Ayrshare's batch posting
+        await ayrshareService.postCampaignSeries(series.campaign_id, { [platform]: series });
+      } else {
+        // Fallback to individual platform APIs
+        switch (platform) {
+          case 'linkedin':
+            await this.publishLinkedInSeries(series);
+            break;
+          case 'twitter':
+            await this.publishTwitterThread(series);
+            break;
+          case 'facebook':
+            await this.publishFacebookPosts(series);
+            break;
+          case 'instagram':
+            await this.publishInstagramCarousel(series);
+            break;
         }
       }
-
-      return publishedPosts;
     } catch (error) {
-      console.error('Error publishing post:', error);
+      console.error(`Error publishing ${platform} series:`, error);
+      throw error;
+    }
+  }
+
+  // Delete a scheduled post
+  async deletePost(postId: string): Promise<void> {
+    try {
+      // Get post details
+      const { data: post } = await supabase
+        .from('social_posts')
+        .select('external_id')
+        .eq('id', postId)
+        .single();
+
+      // Delete from Ayrshare if exists
+      if (this.useAyrshare && post?.external_id) {
+        await ayrshareService.deletePost(post.external_id);
+      }
+
+      // Delete from database
+      await supabase
+        .from('social_posts')
+        .delete()
+        .eq('id', postId);
+    } catch (error) {
+      console.error('Error deleting post:', error);
       throw error;
     }
   }
 
   // Get scheduled posts
-  async getScheduledPosts(): Promise<any[]> {
+  async getScheduledPosts(startDate?: Date, endDate?: Date): Promise<SocialPost[]> {
     try {
-      const { data, error } = await supabase
-        .from('social_scheduled_posts')
+      let query = supabase
+        .from('social_posts')
         .select('*')
+        .in('status', ['scheduled', 'published'])
         .order('scheduled_at', { ascending: true });
 
+      if (startDate) {
+        query = query.gte('scheduled_at', startDate.toISOString());
+      }
+      if (endDate) {
+        query = query.lte('scheduled_at', endDate.toISOString());
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
+
       return data || [];
     } catch (error) {
       console.error('Error fetching scheduled posts:', error);
@@ -299,31 +220,32 @@ export class SocialMediaService {
     }
   }
 
-  // Update post analytics
-  async updatePostAnalytics(postId: string, analytics: PostAnalytics): Promise<void> {
-    try {
-      const { error } = await supabase
-        .from('social_posts')
-        .update({
-          engagement: analytics.engagement,
-          reach: analytics.reach,
-          likes: analytics.likes,
-          shares: analytics.shares,
-          comments: analytics.comments,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', postId);
-
-      if (error) throw error;
-    } catch (error) {
-      console.error('Error updating post analytics:', error);
-      throw error;
-    }
-  }
-
-  // Get analytics data
+  // Get analytics for posts
   async getAnalytics(timeRange: string = '30d', platform?: string): Promise<any> {
     try {
+      // If using Ayrshare, fetch fresh analytics
+      if (this.useAyrshare) {
+        const posts = await this.getScheduledPosts();
+        
+        // Update analytics for published posts
+        for (const post of posts.filter(p => p.status === 'published' && p.external_id)) {
+          if (post.external_id) {
+            const analytics = await ayrshareService.getAnalytics(post.external_id);
+            
+            // Update post analytics in database
+            await supabase
+              .from('social_posts')
+              .update({
+                engagement: analytics.engagement || 0,
+                reach: analytics.reach || 0,
+                analytics_updated_at: new Date().toISOString()
+              })
+              .eq('id', post.id);
+          }
+        }
+      }
+
+      // Calculate analytics from database
       const now = new Date();
       let startDate = new Date();
       
@@ -337,8 +259,6 @@ export class SocialMediaService {
         case '90d':
           startDate.setDate(now.getDate() - 90);
           break;
-        default:
-          startDate.setDate(now.getDate() - 30);
       }
 
       let query = supabase
@@ -348,38 +268,24 @@ export class SocialMediaService {
         .lte('created_at', now.toISOString());
 
       if (platform) {
-        query = query.eq('platform', platform);
+        query = query.contains('platforms', [platform]);
       }
 
       const { data: posts, error } = await query;
-
       if (error) throw error;
 
-      // Calculate analytics
+      // Aggregate analytics
       const analytics = {
         totalPosts: posts?.length || 0,
         totalEngagement: posts?.reduce((sum, post) => sum + (post.engagement || 0), 0) || 0,
         totalReach: posts?.reduce((sum, post) => sum + (post.reach || 0), 0) || 0,
-        averageEngagementRate: posts?.length ? 
-          (posts.reduce((sum, post) => sum + (post.engagement || 0), 0) / posts.reduce((sum, post) => sum + (post.reach || 0), 0)) * 100 : 0,
-        topPosts: posts?.slice(0, 5) || [],
-        platformStats: {}
+        averageEngagementRate: 0,
+        topPosts: posts?.sort((a, b) => (b.engagement || 0) - (a.engagement || 0)).slice(0, 5) || [],
+        platformStats: this.aggregatePlatformStats(posts || [])
       };
 
-      // Calculate platform-specific stats
-      if (posts) {
-        const platformStats: Record<string, any> = {};
-        
-        posts.forEach(post => {
-          if (!platformStats[post.platform]) {
-            platformStats[post.platform] = { posts: 0, engagement: 0, reach: 0 };
-          }
-          platformStats[post.platform].posts++;
-          platformStats[post.platform].engagement += post.engagement || 0;
-          platformStats[post.platform].reach += post.reach || 0;
-        });
-        
-        analytics.platformStats = platformStats;
+      if (analytics.totalReach > 0) {
+        analytics.averageEngagementRate = (analytics.totalEngagement / analytics.totalReach) * 100;
       }
 
       return analytics;
@@ -389,57 +295,105 @@ export class SocialMediaService {
     }
   }
 
-  // Refresh access token
-  async refreshAccessToken(platformId: string, refreshToken: string): Promise<string> {
-    try {
-      let tokenEndpoint: string;
-      let clientId: string;
-      let clientSecret: string;
+  // Helper methods
+  private formatPlatformName(platform: string): string {
+    const names: Record<string, string> = {
+      linkedin: 'LinkedIn',
+      twitter: 'Twitter/X',
+      facebook: 'Facebook',
+      instagram: 'Instagram',
+      youtube: 'YouTube',
+      tiktok: 'TikTok'
+    };
+    return names[platform] || platform;
+  }
 
-      switch (platformId) {
-        case 'linkedin':
-          tokenEndpoint = 'https://www.linkedin.com/oauth/v2/accessToken';
-          clientId = process.env.LINKEDIN_CLIENT_ID!;
-          clientSecret = process.env.LINKEDIN_CLIENT_SECRET!;
-          break;
-        case 'twitter':
-          tokenEndpoint = 'https://api.twitter.com/2/oauth2/token';
-          clientId = process.env.TWITTER_CLIENT_ID!;
-          clientSecret = process.env.TWITTER_CLIENT_SECRET!;
-          break;
-        case 'instagram':
-          tokenEndpoint = 'https://graph.instagram.com/access_token';
-          clientId = process.env.INSTAGRAM_APP_ID!;
-          clientSecret = process.env.INSTAGRAM_APP_SECRET!;
-          break;
-        default:
-          throw new Error(`Unsupported platform: ${platformId}`);
+  private formatPostContent(post: SocialPost): string {
+    let content = post.content;
+    
+    // Add hashtags if not already included
+    if (post.hashtags && post.hashtags.length > 0) {
+      const hashtagString = post.hashtags.map(tag => `#${tag.replace(/^#/, '')}`).join(' ');
+      if (!content.includes(hashtagString)) {
+        content += `\n\n${hashtagString}`;
       }
-
-      const response = await fetch(tokenEndpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams({
-          grant_type: 'refresh_token',
-          refresh_token: refreshToken,
-          client_id: clientId,
-          client_secret: clientSecret,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Token refresh failed: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      return data.access_token;
-    } catch (error) {
-      console.error('Error refreshing access token:', error);
-      throw error;
     }
+    
+    return content;
+  }
+
+  private aggregatePlatformStats(posts: any[]): Record<string, any> {
+    const stats: Record<string, any> = {};
+    
+    posts.forEach(post => {
+      post.platforms?.forEach((platform: string) => {
+        if (!stats[platform]) {
+          stats[platform] = { posts: 0, engagement: 0, reach: 0 };
+        }
+        stats[platform].posts++;
+        stats[platform].engagement += post.engagement || 0;
+        stats[platform].reach += post.reach || 0;
+      });
+    });
+    
+    return stats;
+  }
+
+  // Fallback methods for individual platform posting (when not using Ayrshare)
+  private async publishLinkedInSeries(series: any): Promise<void> {
+    // Implementation for direct LinkedIn API posting
+    console.log('Direct LinkedIn posting not implemented - use Ayrshare');
+  }
+
+  private async publishTwitterThread(thread: any): Promise<void> {
+    // Implementation for direct Twitter API posting
+    console.log('Direct Twitter posting not implemented - use Ayrshare');
+  }
+
+  private async publishFacebookPosts(posts: any): Promise<void> {
+    // Implementation for direct Facebook API posting
+    console.log('Direct Facebook posting not implemented - use Ayrshare');
+  }
+
+  private async publishInstagramCarousel(carousel: any): Promise<void> {
+    // Implementation for direct Instagram API posting
+    console.log('Direct Instagram posting not implemented - use Ayrshare');
+  }
+
+  // Validate all connections
+  async validateConnections(): Promise<boolean> {
+    if (this.useAyrshare) {
+      return await ayrshareService.validateConnection();
+    }
+    
+    // Check database connections
+    const connections = await this.getPlatformConnections();
+    return connections.some(c => c.connected);
+  }
+
+  // Get optimal posting times
+  async getOptimalPostingTimes(platform: string): Promise<any> {
+    const optimalTimes = {
+      linkedin: {
+        days: ['Tuesday', 'Wednesday', 'Thursday'],
+        times: ['9:00 AM', '12:00 PM', '5:00 PM']
+      },
+      twitter: {
+        days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+        times: ['9:00 AM', '1:00 PM', '6:00 PM']
+      },
+      facebook: {
+        days: ['Sunday', 'Wednesday', 'Friday'],
+        times: ['1:00 PM', '7:00 PM']
+      },
+      instagram: {
+        days: ['Monday', 'Wednesday', 'Friday'],
+        times: ['11:00 AM', '6:00 PM']
+      }
+    };
+    
+    return optimalTimes[platform as keyof typeof optimalTimes] || null;
   }
 }
 
-export const socialMediaService = new SocialMediaService(); 
+export const socialMediaService = new SocialMediaService();

@@ -1,231 +1,517 @@
+// /components/admin/SocialMediaGenerator.tsx (Enhanced Version)
 'use client';
 
 import { useState } from 'react';
-import { 
-  Loader2, 
-  Share2, 
-  Copy, 
-  Check,
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Progress } from '@/components/ui/progress';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { SeriesPreview } from './SeriesPreview';
+import { aiSeriesGenerator } from '@/lib/services/aiSeriesGenerator';
+import { campaignService } from '@/lib/services/campaignService';
+import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
+import {
+  Sparkles,
+  Wand2,
+  Loader2,
+  CheckCircle2,
+  AlertCircle,
   Linkedin,
-  Instagram,
   Twitter,
   Facebook,
-  Youtube,
+  Instagram,
   Calendar,
-  Image as ImageIcon
+  Target,
+  TrendingUp,
+  Users,
+  BarChart3,
+  Brain,
+  Zap,
+  ArrowRight,
+  Settings2,
+  RefreshCw
 } from 'lucide-react';
-import { blogAIService } from '@/lib/services/blogAIService';
-import toast from 'react-hot-toast';
 
 interface SocialMediaGeneratorProps {
   postTitle: string;
   postContent: string;
-  postUrl: string;
-  onClose?: () => void;
+  postUrl?: string;
+  postId?: string;
+  keywords?: string[];
 }
 
-export default function SocialMediaGenerator({
+export function SocialMediaGenerator({
   postTitle,
   postContent,
   postUrl,
-  onClose
+  postId,
+  keywords = []
 }: SocialMediaGeneratorProps) {
-  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(['linkedin']);
-  const [generatedPosts, setGeneratedPosts] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
-  const [scheduling, setScheduling] = useState(false);
+  const router = useRouter();
+  const [activeTab, setActiveTab] = useState('settings');
+  const [generating, setGenerating] = useState(false);
+  const [generationProgress, setGenerationProgress] = useState(0);
+  const [generatedSeries, setGeneratedSeries] = useState<any>(null);
+  
+  // Generation settings
+  const [settings, setSettings] = useState({
+    platforms: {
+      linkedin: true,
+      twitter: true,
+      facebook: true,
+      instagram: true
+    },
+    seriesType: 'educational', // educational, promotional, storytelling, tips
+    tone: 'professional-friendly',
+    includeHashtags: true,
+    includeCallToAction: true,
+    optimizeForEngagement: true,
+    includeVisuals: true,
+    scheduleOptimally: true
+  });
 
-  const platforms = [
-    { id: 'linkedin', name: 'LinkedIn', icon: Linkedin, color: 'text-[#0077b5]' },
-    { id: 'twitter', name: 'Twitter/X', icon: Twitter, color: 'text-black' },
-    { id: 'instagram', name: 'Instagram', icon: Instagram, color: 'text-[#E4405F]' },
-    { id: 'facebook', name: 'Facebook', icon: Facebook, color: 'text-[#1877f2]' },
-    { id: 'youtube', name: 'YouTube', icon: Youtube, color: 'text-[#FF0000]' }
+  const seriesTypes = [
+    { value: 'educational', label: 'Educational Series', icon: <Brain className="w-4 h-4" /> },
+    { value: 'promotional', label: 'Promotional Campaign', icon: <TrendingUp className="w-4 h-4" /> },
+    { value: 'storytelling', label: 'Story-Based Series', icon: <Users className="w-4 h-4" /> },
+    { value: 'tips', label: 'Tips & Tricks', icon: <Sparkles className="w-4 h-4" /> }
   ];
 
-  const handleGenerate = async () => {
-    if (selectedPlatforms.length === 0) {
-      toast.error('Please select at least one platform');
-      return;
-    }
+  const generateSeries = async () => {
+    setGenerating(true);
+    setGenerationProgress(0);
+    setActiveTab('preview');
 
-    setLoading(true);
     try {
-      const posts = await blogAIService.generateSocialMediaPosts(
-        postTitle,
-        postContent,
-        postUrl,
-        selectedPlatforms
-      );
+      // Calculate total steps
+      const selectedPlatforms = Object.entries(settings.platforms)
+        .filter(([_, enabled]) => enabled)
+        .map(([platform]) => platform);
       
-      setGeneratedPosts(posts);
-      toast.success('Social media posts generated!');
+      const totalSteps = selectedPlatforms.length + 2; // +2 for analysis and optimization
+      let currentStep = 0;
+
+      // Step 1: Analyze content
+      setGenerationProgress((++currentStep / totalSteps) * 100);
+      
+      // Step 2: Generate series for each platform
+      const series = await aiSeriesGenerator.generateCompleteSeries({
+        title: postTitle,
+        content: postContent,
+        keywords,
+        platforms: selectedPlatforms,
+        seriesLength: {
+          linkedin: 5,
+          twitter: 10,
+          facebook: 3,
+          instagram: 5
+        }
+      });
+
+      // Update progress for each platform
+      selectedPlatforms.forEach(() => {
+        setGenerationProgress((++currentStep / totalSteps) * 100);
+      });
+
+      // Step 3: Optimize for engagement
+      if (settings.optimizeForEngagement) {
+        // Analyze competitor content and optimize
+        for (const platform of selectedPlatforms) {
+          const insights = await aiSeriesGenerator.analyzeCompetitorContent(platform, postTitle);
+          if (insights) {
+            // Apply optimizations based on insights
+            series[platform] = await aiSeriesGenerator.optimizeForAlgorithm(platform, series[platform]);
+          }
+        }
+      }
+
+      setGenerationProgress(100);
+      setGeneratedSeries(series);
+      
+      toast.success('Social media series generated successfully!');
     } catch (error) {
-      console.error('Generation error:', error);
-      toast.error('Failed to generate posts');
+      console.error('Error generating series:', error);
+      toast.error('Failed to generate social media series');
     } finally {
-      setLoading(false);
+      setGenerating(false);
     }
   };
 
-  const copyToClipboard = (content: string, index: number) => {
-    navigator.clipboard.writeText(content);
-    setCopiedIndex(index);
-    setTimeout(() => setCopiedIndex(null), 2000);
-    toast.success('Copied to clipboard');
-  };
+  const createFullCampaign = async () => {
+    if (!generatedSeries) return;
 
-  const schedulePost = async (post: any) => {
-    setScheduling(true);
     try {
-      // This would integrate with your social media scheduling service
-      console.log('Scheduling post:', post);
-      toast.success('Post scheduled successfully');
+      // If we have a blog post ID, create campaign from it
+      if (postId) {
+        const campaign = await campaignService.createFromBlog({
+          blogId: postId,
+          blogTitle: postTitle,
+          blogContent: postContent,
+          keywords,
+          userId: 'current-user-id' // Get from auth context
+        });
+        
+        router.push(`/admin/social/campaigns/${campaign.id}`);
+      } else {
+        // Create new campaign without blog post
+        toast.error('Please save the blog post first');
+      }
     } catch (error) {
-      toast.error('Failed to schedule post');
-    } finally {
-      setScheduling(false);
+      console.error('Error creating campaign:', error);
+      toast.error('Failed to create campaign');
     }
   };
 
-  const publishNow = async (post: any) => {
-    setScheduling(true);
+  const regeneratePlatform = async (platform: string) => {
+    if (!generatedSeries) return;
+    
+    setGenerating(true);
     try {
-      // This would integrate with your social media publishing service
-      console.log('Publishing post:', post);
-      toast.success('Post published successfully');
+      const newSeries = await aiSeriesGenerator.generateCompleteSeries({
+        title: postTitle,
+        content: postContent,
+        keywords,
+        platforms: [platform],
+        seriesLength: {
+          linkedin: 5,
+          twitter: 10,
+          facebook: 3,
+          instagram: 5
+        }
+      });
+
+      setGeneratedSeries({
+        ...generatedSeries,
+        [platform]: newSeries[platform]
+      });
+      
+      toast.success(`${platform} series regenerated`);
     } catch (error) {
-      toast.error('Failed to publish post');
+      toast.error(`Failed to regenerate ${platform} series`);
     } finally {
-      setScheduling(false);
+      setGenerating(false);
     }
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-          <Share2 className="w-6 h-6 text-[#ff6b35]" />
-          Social Media Generator
-        </h2>
-        {onClose && (
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
-            ×
-          </button>
-        )}
-      </div>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Wand2 className="w-5 h-5" />
+            AI Social Media Series Generator
+          </CardTitle>
+          <CardDescription>
+            Transform your blog post into engaging social media series across multiple platforms
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="settings">Settings</TabsTrigger>
+              <TabsTrigger value="preview" disabled={!generatedSeries}>Preview</TabsTrigger>
+              <TabsTrigger value="schedule" disabled={!generatedSeries}>Schedule</TabsTrigger>
+            </TabsList>
 
-      {/* Platform Selection */}
-      <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-3">
-          Select Platforms
-        </label>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-          {platforms.map(platform => (
-            <button
-              key={platform.id}
-              onClick={() => {
-                setSelectedPlatforms(prev =>
-                  prev.includes(platform.id)
-                    ? prev.filter(p => p !== platform.id)
-                    : [...prev, platform.id]
-                );
-              }}
-              className={`p-3 rounded-lg border-2 transition-all ${
-                selectedPlatforms.includes(platform.id)
-                  ? 'border-[#ff6b35] bg-[#ff6b35]/10'
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
-            >
-              <platform.icon className={`w-6 h-6 mx-auto mb-1 ${platform.color}`} />
-              <span className="text-xs">{platform.name}</span>
-            </button>
-          ))}
-        </div>
-      </div>
+            {/* Settings Tab */}
+            <TabsContent value="settings" className="space-y-6">
+              {/* Platform Selection */}
+              <div className="space-y-4">
+                <Label>Select Platforms</Label>
+                <div className="grid grid-cols-2 gap-4">
+                  {Object.entries(settings.platforms).map(([platform, enabled]) => (
+                    <label
+                      key={platform}
+                      className={`flex items-center gap-3 p-4 border rounded-lg cursor-pointer transition-colors ${
+                        enabled ? 'bg-purple-50 border-purple-300' : 'hover:bg-gray-50'
+                      }`}
+                    >
+                      <Switch
+                        checked={enabled}
+                        onCheckedChange={(checked) =>
+                          setSettings(prev => ({
+                            ...prev,
+                            platforms: { ...prev.platforms, [platform]: checked }
+                          }))
+                        }
+                      />
+                      <div className="flex items-center gap-2">
+                        {platform === 'linkedin' && <Linkedin className="w-5 h-5" />}
+                        {platform === 'twitter' && <Twitter className="w-5 h-5" />}
+                        {platform === 'facebook' && <Facebook className="w-5 h-5" />}
+                        {platform === 'instagram' && <Instagram className="w-5 h-5" />}
+                        <span className="font-medium capitalize">{platform}</span>
+                      </div>
+                      <div className="ml-auto text-sm text-gray-500">
+                        {platform === 'linkedin' && '5 posts'}
+                        {platform === 'twitter' && '10 tweets'}
+                        {platform === 'facebook' && '3 posts'}
+                        {platform === 'instagram' && '5 slides'}
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              </div>
 
-      {/* Generate Button */}
-      <button
-        onClick={handleGenerate}
-        disabled={loading || selectedPlatforms.length === 0}
-        className="w-full bg-[#ff6b35] text-white py-3 rounded-lg hover:bg-[#e55a2b] transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-      >
-        {loading ? (
-          <>
-            <Loader2 className="w-5 h-5 animate-spin" />
-            Generating Posts...
-          </>
-        ) : (
-          <>
-            <Share2 className="w-5 h-5" />
-            Generate Social Posts
-          </>
-        )}
-      </button>
+              {/* Series Type */}
+              <div className="space-y-4">
+                <Label>Series Type</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  {seriesTypes.map(type => (
+                    <label
+                      key={type.value}
+                      className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-colors ${
+                        settings.seriesType === type.value
+                          ? 'bg-purple-50 border-purple-300'
+                          : 'hover:bg-gray-50'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="seriesType"
+                        value={type.value}
+                        checked={settings.seriesType === type.value}
+                        onChange={(e) =>
+                          setSettings(prev => ({ ...prev, seriesType: e.target.value }))
+                        }
+                        className="sr-only"
+                      />
+                      {type.icon}
+                      <span className="font-medium">{type.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
 
-      {/* Generated Posts */}
-      {generatedPosts.length > 0 && (
-        <div className="mt-6 space-y-4">
-          <h3 className="font-semibold text-gray-900">Generated Posts</h3>
-          
-          {generatedPosts.map((post, index) => {
-            const platform = platforms.find(p => p.id === post.platform);
-            if (!platform) return null;
-            
-            return (
-              <div key={index} className="border border-gray-200 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <platform.icon className={`w-5 h-5 ${platform.color}`} />
-                    <span className="font-medium">{platform.name}</span>
+              {/* Advanced Options */}
+              <div className="space-y-4">
+                <Label>Advanced Options</Label>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Target className="w-4 h-4 text-gray-600" />
+                      <div>
+                        <p className="font-medium">Optimize for Engagement</p>
+                        <p className="text-sm text-gray-500">Use AI to maximize likes and shares</p>
+                      </div>
+                    </div>
+                    <Switch
+                      checked={settings.optimizeForEngagement}
+                      onCheckedChange={(checked) =>
+                        setSettings(prev => ({ ...prev, optimizeForEngagement: checked }))
+                      }
+                    />
                   </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => copyToClipboard(post.content, index)}
-                      className="p-2 text-gray-600 hover:text-gray-900 transition-colors"
-                    >
-                      {copiedIndex === index ? (
-                        <Check className="w-4 h-4 text-green-600" />
-                      ) : (
-                        <Copy className="w-4 h-4" />
-                      )}
-                    </button>
-                    <button
-                      onClick={() => schedulePost(post)}
-                      disabled={scheduling}
-                      className="text-sm text-[#4a90e2] hover:text-[#3a7bc8]"
-                    >
-                      <Calendar className="w-4 h-4" />
-                    </button>
+
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Calendar className="w-4 h-4 text-gray-600" />
+                      <div>
+                        <p className="font-medium">Schedule Optimally</p>
+                        <p className="text-sm text-gray-500">Post at best times for each platform</p>
+                      </div>
+                    </div>
+                    <Switch
+                      checked={settings.scheduleOptimally}
+                      onCheckedChange={(checked) =>
+                        setSettings(prev => ({ ...prev, scheduleOptimally: checked }))
+                      }
+                    />
                   </div>
                 </div>
-                
-                <p className="text-sm text-gray-700 whitespace-pre-wrap mb-3">
-                  {post.content}
-                </p>
-                
-                {post.hashtags.length > 0 && (
-                  <div className="flex flex-wrap gap-1">
-                    {post.hashtags.map((tag: string, idx: number) => (
-                      <span key={idx} className="text-xs text-[#4a90e2]">
-                        #{tag}
-                      </span>
-                    ))}
-                  </div>
-                )}
-                
-                {post.imagePrompt && (
-                  <div className="mt-3 p-2 bg-gray-50 rounded text-xs text-gray-600">
-                    <ImageIcon className="w-3 h-3 inline mr-1" />
-                    Image suggestion: {post.imagePrompt}
-                  </div>
-                )}
               </div>
-            );
-          })}
-        </div>
-      )}
+
+              {/* Generate Button */}
+              <div className="flex justify-end">
+                <Button
+                  size="lg"
+                  onClick={generateSeries}
+                  disabled={generating || !Object.values(settings.platforms).some(v => v)}
+                  className="gap-2"
+                >
+                  {generating ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-5 h-5" />
+                      Generate Series
+                    </>
+                  )}
+                </Button>
+              </div>
+
+              {/* Generation Progress */}
+              {generating && (
+                <div className="space-y-2">
+                  <Progress value={generationProgress} className="h-2" />
+                  <p className="text-sm text-center text-gray-600">
+                    Generating your social media series... {Math.round(generationProgress)}%
+                  </p>
+                </div>
+              )}
+            </TabsContent>
+
+            {/* Preview Tab */}
+            <TabsContent value="preview">
+              {generatedSeries && (
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold">Generated Series Preview</h3>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setActiveTab('settings')}
+                      className="gap-2"
+                    >
+                      <Settings2 className="w-4 h-4" />
+                      Adjust Settings
+                    </Button>
+                  </div>
+
+                  <SeriesPreview
+                    campaignId="preview"
+                    socialSeries={generatedSeries}
+                    onUpdate={(platform, updatedSeries) => {
+                      setGeneratedSeries({
+                        ...generatedSeries,
+                        [platform]: updatedSeries
+                      });
+                    }}
+                  />
+
+                  {/* Platform Actions */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Platform Actions</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-2 gap-4">
+                        {Object.keys(generatedSeries).map(platform => (
+                          <div
+                            key={platform}
+                            className="flex items-center justify-between p-3 border rounded-lg"
+                          >
+                            <div className="flex items-center gap-2">
+                              {platform === 'linkedin' && <Linkedin className="w-4 h-4" />}
+                              {platform === 'twitter' && <Twitter className="w-4 h-4" />}
+                              {platform === 'facebook' && <Facebook className="w-4 h-4" />}
+                              {platform === 'instagram' && <Instagram className="w-4 h-4" />}
+                              <span className="font-medium capitalize">{platform}</span>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => regeneratePlatform(platform)}
+                              disabled={generating}
+                            >
+                              <RefreshCw className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Action Buttons */}
+                  <div className="flex justify-between">
+                    <Button
+                      variant="outline"
+                      onClick={() => setGeneratedSeries(null)}
+                    >
+                      Start Over
+                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        onClick={() => setActiveTab('schedule')}
+                      >
+                        Schedule Posts
+                      </Button>
+                      <Button
+                        onClick={createFullCampaign}
+                        className="gap-2"
+                      >
+                        <Zap className="w-4 h-4" />
+                        Create Full Campaign
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </TabsContent>
+
+            {/* Schedule Tab */}
+            <TabsContent value="schedule">
+              {generatedSeries && (
+                <div className="space-y-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Scheduling Options</CardTitle>
+                      <CardDescription>
+                        Choose when to publish your social media series
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <Button variant="outline" className="justify-start gap-2">
+                            <Zap className="w-4 h-4" />
+                            Publish Now
+                          </Button>
+                          <Button variant="outline" className="justify-start gap-2">
+                            <Calendar className="w-4 h-4" />
+                            Schedule for Later
+                          </Button>
+                        </div>
+                        
+                        <div className="p-4 bg-purple-50 rounded-lg">
+                          <h4 className="font-medium mb-2 flex items-center gap-2">
+                            <BarChart3 className="w-4 h-4" />
+                            Optimal Posting Times
+                          </h4>
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span>LinkedIn:</span>
+                              <span className="font-medium">Tue-Thu, 9am & 5pm</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Twitter:</span>
+                              <span className="font-medium">Weekdays, 9am & 1pm</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Facebook:</span>
+                              <span className="font-medium">Wed & Fri, 1pm</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Instagram:</span>
+                              <span className="font-medium">Mon & Wed, 11am</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <div className="flex justify-end">
+                    <Button size="lg" className="gap-2">
+                      <Calendar className="w-5 h-5" />
+                      Schedule All Posts
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
     </div>
   );
-} 
+}
