@@ -95,7 +95,7 @@ export async function GET(request: NextRequest) {
   try {
     console.log('Testing AI settings endpoint...');
     const startTime = Date.now();
-    const settingsUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/ai/settings`;
+    const settingsUrl = 'http://localhost:3000/api/ai/settings';
     const response = await fetch(settingsUrl);
     
     tests.aiSettings = {

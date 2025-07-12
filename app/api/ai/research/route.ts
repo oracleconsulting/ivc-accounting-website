@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PineconeService } from '@/lib/services/pineconeService';
 
 // Helper function for Railway timeout handling
 async function withTimeout<T>(
@@ -12,18 +11,6 @@ async function withTimeout<T>(
   
   return Promise.race([promise, timeout]);
 }
-
-// Research topics relevant to UK accounting and target markets
-const RESEARCH_PROMPTS = {
-  'accounting': {
-    sources: ['HMRC updates', 'Budget announcements', 'Tax law changes'],
-    focus: ['MTD updates', 'Corporation tax', 'VAT changes', 'R&D credits']
-  },
-  'small-business': {
-    sources: ['Government schemes', 'Business support', 'Economic trends'],
-    focus: ['Cash flow', 'Growth strategies', 'Compliance', 'Cost reduction']
-  }
-};
 
 export async function POST(request: NextRequest) {
   // Comprehensive debug logging
@@ -49,31 +36,47 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('✅ OpenRouter key found, parsing request body...');
-    const { topic, researchType, targetAudience } = await request.json();
-    console.log('Request params:', { topic, researchType, targetAudience });
+    const { industry, targetMarket, timeframe, topic, researchType, targetAudience } = await request.json();
+    console.log('Request params:', { industry, targetMarket, timeframe, topic, researchType, targetAudience });
 
-    // Get AI settings with error handling
-    let settings;
-    try {
-      const settingsUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/ai/settings`;
-      console.log('Fetching settings from:', settingsUrl);
-      
-      const settingsResponse = await fetch(settingsUrl);
-      if (!settingsResponse.ok) {
-        throw new Error(`Settings fetch failed: ${settingsResponse.status}`);
-      }
-      settings = await settingsResponse.json();
-      console.log('Settings loaded:', { model: settings.research_model, temperature: settings.research_temperature });
-    } catch (error) {
-      console.error('Failed to fetch AI settings:', error);
-      settings = {
-        research_system_prompt: `You are an expert research analyst specializing in accounting, tax, and business topics. Provide comprehensive, well-researched insights that are accurate and actionable.`,
-        research_temperature: 0.7,
-        research_model: 'anthropic/claude-3-sonnet'
-      };
-    }
+    // Use direct settings - no internal fetch
+    const settings = {
+      research_system_prompt: `You are an expert UK accounting and tax research assistant specializing in finding timely, relevant topics for accounting blog content. Your expertise includes UK tax law and HMRC regulations, small business accounting challenges, regional business trends in Essex and East of England, and financial planning and strategy.`,
+      research_temperature: 0.7,
+      research_model: 'anthropic/claude-3-haiku'
+    };
 
-    // Make OpenRouter API call with detailed error handling and timeout
+    const userPrompt = topic 
+      ? `Research the following topic: ${topic}
+                
+Research Type: ${researchType || 'comprehensive analysis'}
+Target Audience: ${targetAudience || 'UK small businesses'}
+
+Please provide:
+1. Key findings and insights
+2. Relevant statistics and data
+3. Practical implications for the target audience
+4. Current trends and developments
+5. Recommendations and next steps
+
+Format your response in a clear, structured manner.`
+      : `Research current topics in ${industry || 'accounting'} for ${targetMarket || 'UK small businesses'} during ${timeframe || 'Q1 2024'}.
+
+Find 5 high-impact topics that:
+1. Have recent developments or changes
+2. Directly affect the target audience's finances
+3. Provide actionable advice opportunities
+4. Have SEO potential with clear search intent
+5. Can differentiate IVC Accounting's expertise
+
+For each topic provide:
+- Clear title
+- Impact assessment (why it matters now)
+- Target audience specifics
+- 5-7 relevant keywords
+- Credible sources to reference`;
+
+    // Make OpenRouter API call with timeout
     console.log('Making OpenRouter API call...');
     const startTime = Date.now();
     
@@ -88,30 +91,12 @@ export async function POST(request: NextRequest) {
             'X-Title': 'IVC Research'
           },
           body: JSON.stringify({
-            model: settings.research_model || 'anthropic/claude-3-sonnet',
+            model: settings.research_model,
             messages: [
-              { 
-                role: 'system', 
-                content: settings.research_system_prompt || `You are an expert research analyst specializing in accounting, tax, and business topics. Provide comprehensive, well-researched insights that are accurate and actionable.`
-              },
-              { 
-                role: 'user', 
-                content: `Research the following topic: ${topic}
-                
-                Research Type: ${researchType || 'comprehensive analysis'}
-                Target Audience: ${targetAudience || 'UK small businesses'}
-                
-                Please provide:
-                1. Key findings and insights
-                2. Relevant statistics and data
-                3. Practical implications for the target audience
-                4. Current trends and developments
-                5. Recommendations and next steps
-                
-                Format your response in a clear, structured manner.`
-              }
+              { role: 'system', content: settings.research_system_prompt },
+              { role: 'user', content: userPrompt }
             ],
-            temperature: settings.research_temperature || 0.7,
+            temperature: settings.research_temperature,
             max_tokens: 2500
           })
         }),
@@ -157,7 +142,10 @@ export async function POST(request: NextRequest) {
 
       console.log('✅ AI research successful, content length:', content.length);
       
+      // For research endpoint, we might want to parse the results
+      // For now, return the raw content
       return NextResponse.json({
+        results: content,
         content,
         settings: {
           model: settings.research_model,
@@ -191,35 +179,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
-
-function parseResearchResults(content: string): any[] {
-  // Parse AI response - for now return mock data if parsing fails
-  try {
-    // Add your parsing logic here
-    return getMockResearchResults();
-  } catch (error) {
-    return getMockResearchResults();
-  }
-}
-
-function getMockResearchResults() {
-  return [
-    {
-      topic: "Spring Budget 2024: Key Changes for Small Businesses",
-      relevance: 95,
-      impact: "New dividend tax thresholds and R&D credit changes affect 80% of Essex SMEs",
-      keywords: ["spring budget 2024", "dividend tax", "R&D tax credits", "small business tax"],
-      sources: ["HMRC", "Treasury"],
-      targetAudience: "Small business owners with £50k-£500k revenue"
-    },
-    {
-      topic: "Making Tax Digital: Phase 2 Preparation Guide",
-      relevance: 88,
-      impact: "ITSA requirements starting April 2026 - businesses need 18 months to prepare",
-      keywords: ["making tax digital", "MTD ITSA", "digital tax", "HMRC compliance"],
-      sources: ["HMRC MTD Guide"],
-      targetAudience: "Self-employed and landlords with income over £10k"
-    }
-  ];
 } 

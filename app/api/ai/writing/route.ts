@@ -39,28 +39,33 @@ export async function POST(request: NextRequest) {
     const { topic, outline, tone, targetAudience, keywords } = await request.json();
     console.log('Request params:', { topic, tone, targetAudience });
 
-    // Get AI settings with error handling
-    let settings;
-    try {
-      const settingsUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/ai/settings`;
-      console.log('Fetching settings from:', settingsUrl);
-      
-      const settingsResponse = await fetch(settingsUrl);
-      if (!settingsResponse.ok) {
-        throw new Error(`Settings fetch failed: ${settingsResponse.status}`);
-      }
-      settings = await settingsResponse.json();
-      console.log('Settings loaded:', { model: settings.writing_model, temperature: settings.writing_temperature });
-    } catch (error) {
-      console.error('Failed to fetch AI settings:', error);
-      settings = {
-        writing_system_prompt: `You are an expert blog writer specializing in accounting, tax, and business topics. Write engaging, informative content that provides value to readers while maintaining a professional tone.`,
-        writing_temperature: 0.8,
-        writing_model: 'anthropic/claude-3-sonnet'
-      };
-    }
+    // Use direct settings - no internal fetch
+    const settings = {
+      writing_system_prompt: `You are an expert blog writer for IVC Accounting, a chartered accounting firm in Halstead, Essex. Your writing style is professional, educational, SEO-optimized without being keyword-stuffed, practical and actionable for UK small businesses, and compliant with UK financial regulations. Brand voice: "OTHER ACCOUNTANTS FILE. WE FIGHT." - We're proactive, protective, and passionate about our clients' success.`,
+      writing_temperature: 0.8,
+      writing_model: 'anthropic/claude-3-sonnet'
+    };
 
-    // Make OpenRouter API call with detailed error handling and timeout
+    const systemPrompt = settings.writing_system_prompt;
+
+    const userPrompt = `Write a comprehensive blog post about: ${topic}
+
+${outline ? `Outline: ${outline}` : ''}
+Tone: ${tone || 'professional yet engaging'}
+Target Audience: ${targetAudience || 'UK small business owners'}
+${keywords ? `Keywords to include: ${keywords.join(', ')}` : ''}
+
+Please write in a professional yet engaging style that:
+- Provides practical, actionable advice
+- Uses the specified keywords naturally
+- Includes relevant UK tax and accounting context
+- Maintains the IVC Accounting brand voice
+- Is structured for easy reading with clear headings
+- Includes a compelling introduction and conclusion
+
+Format the response with proper markdown formatting.`;
+
+    // Make OpenRouter API call with timeout
     console.log('Making OpenRouter API call...');
     const startTime = Date.now();
     
@@ -75,25 +80,12 @@ export async function POST(request: NextRequest) {
             'X-Title': 'IVC Blog Writing'
           },
           body: JSON.stringify({
-            model: settings.writing_model || 'anthropic/claude-3-sonnet',
+            model: settings.writing_model,
             messages: [
-              { 
-                role: 'system', 
-                content: settings.writing_system_prompt || `You are an expert blog writer specializing in accounting, tax, and business topics. Write engaging, informative content that provides value to readers while maintaining a professional tone.`
-              },
-              { 
-                role: 'user', 
-                content: `Write a comprehensive blog post about: ${topic}
-                
-                ${outline ? `Outline: ${outline}` : ''}
-                ${tone ? `Tone: ${tone}` : ''}
-                ${targetAudience ? `Target Audience: ${targetAudience}` : ''}
-                ${keywords ? `Keywords to include: ${keywords}` : ''}
-                
-                Please write a well-structured blog post with an introduction, main content sections, and conclusion.`
-              }
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userPrompt }
             ],
-            temperature: settings.writing_temperature || 0.8,
+            temperature: settings.writing_temperature,
             max_tokens: 3000
           })
         }),

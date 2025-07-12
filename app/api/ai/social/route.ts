@@ -12,6 +12,13 @@ async function withTimeout<T>(
   return Promise.race([promise, timeout]);
 }
 
+interface SocialMediaPost {
+  platform: string;
+  content: string;
+  hashtags: string[];
+  mediaType?: string;
+}
+
 export async function POST(request: NextRequest) {
   // Comprehensive debug logging
   console.log('=== AI Social Media Route Debug ===');
@@ -36,134 +43,132 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('✅ OpenRouter key found, parsing request body...');
-    const { topic, platform, tone, targetAudience, callToAction } = await request.json();
-    console.log('Request params:', { topic, platform, tone, targetAudience });
+    const { blogTitle, blogContent, platforms, businessInfo, topic, platform, tone, targetAudience, callToAction } = await request.json();
+    console.log('Request params:', { topic: topic || blogTitle, platform: platform || platforms?.[0], tone, targetAudience });
 
-    // Get AI settings with error handling
-    let settings;
-    try {
-      const settingsUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/ai/settings`;
-      console.log('Fetching settings from:', settingsUrl);
-      
-      const settingsResponse = await fetch(settingsUrl);
-      if (!settingsResponse.ok) {
-        throw new Error(`Settings fetch failed: ${settingsResponse.status}`);
-      }
-      settings = await settingsResponse.json();
-      console.log('Settings loaded:', { model: settings.social_model, temperature: settings.social_temperature });
-    } catch (error) {
-      console.error('Failed to fetch AI settings:', error);
-      settings = {
-        social_system_prompt: `You are an expert social media content creator specializing in accounting, tax, and business topics. Create engaging, professional content that provides value while maintaining brand voice.`,
-        social_temperature: 0.8,
-        social_model: 'anthropic/claude-3-sonnet'
-      };
-    }
+    // Use direct settings - no internal fetch
+    const settings = {
+      social_system_prompt: `You are a social media expert for IVC Accounting. Create engaging, platform-specific content that:
+- Maintains professional credibility while being approachable
+- Uses platform best practices
+- Includes relevant hashtags
+- Drives traffic back to the blog
+- Reflects the brand: "OTHER ACCOUNTANTS FILE. WE FIGHT."`,
+      social_temperature: 0.9,
+      social_model: 'anthropic/claude-3-haiku'
+    };
 
-    // Make OpenRouter API call with detailed error handling and timeout
-    console.log('Making OpenRouter API call...');
-    const startTime = Date.now();
-    
-    try {
-      const response = await withTimeout(
-        fetch('https://openrouter.ai/api/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-            'Content-Type': 'application/json',
-            'HTTP-Referer': process.env.NEXT_PUBLIC_SITE_URL || 'https://www.ivcaccounting.co.uk',
-            'X-Title': 'IVC Social Media'
-          },
-          body: JSON.stringify({
-            model: settings.social_model || 'anthropic/claude-3-sonnet',
-            messages: [
-              { 
-                role: 'system', 
-                content: settings.social_system_prompt || `You are an expert social media content creator specializing in accounting, tax, and business topics. Create engaging, professional content that provides value while maintaining brand voice.`
-              },
-              { 
-                role: 'user', 
-                content: `Create social media content for: ${topic}
-                
-                Platform: ${platform || 'LinkedIn'}
-                Tone: ${tone || 'professional yet engaging'}
-                Target Audience: ${targetAudience || 'UK small business owners'}
-                Call to Action: ${callToAction || 'Contact us for expert advice'}
-                
-                Please create:
-                1. A compelling headline
-                2. Main content (platform-appropriate length)
-                3. Relevant hashtags
-                4. Suggested image description
-                5. Engagement questions
-                
-                Format for ${platform} specifically.`
-              }
-            ],
-            temperature: settings.social_temperature || 0.8,
-            max_tokens: 1500
-          })
-        }),
-        8000 // 8 seconds to leave buffer for Railway's 10-second limit
-      );
+    // Handle both single platform and multiple platforms
+    const platformsToGenerate = platforms || [platform || 'LinkedIn'];
+    const posts: SocialMediaPost[] = [];
 
-      const responseTime = Date.now() - startTime;
-      console.log(`OpenRouter response time: ${responseTime}ms`);
-      console.log(`Response status: ${response.status}`);
+    for (const currentPlatform of platformsToGenerate) {
+      const userPrompt = blogTitle && blogContent 
+        ? `Create a ${currentPlatform} post for this blog:
+Title: ${blogTitle}
+Content Summary: ${blogContent.substring(0, 500)}...
+Business Info: ${businessInfo || 'IVC Accounting - Chartered Accountants in Halstead, Essex'}
+
+Create engaging ${currentPlatform}-specific content with:
+- Attention-grabbing opener
+- Key value points
+- Clear call-to-action
+- Relevant hashtags
+- Platform best practices`
+        : `Create social media content for: ${topic}
+                
+Platform: ${currentPlatform}
+Tone: ${tone || 'professional yet engaging'}
+Target Audience: ${targetAudience || 'UK small business owners'}
+Call to Action: ${callToAction || 'Contact us for expert advice'}
+
+Please create:
+1. A compelling headline
+2. Main content (platform-appropriate length)
+3. Relevant hashtags
+4. Suggested image description
+5. Engagement questions
+
+Format for ${currentPlatform} specifically.`;
+
+      console.log(`Making OpenRouter API call for ${currentPlatform}...`);
+      const startTime = Date.now();
       
-      const responseText = await response.text();
-      console.log('Response preview:', responseText.substring(0, 200));
-      
-      if (!response.ok) {
-        console.error('OpenRouter API error:', {
-          status: response.status,
-          statusText: response.statusText,
-          body: responseText
-        });
+      try {
+        const response = await withTimeout(
+          fetch('https://openrouter.ai/api/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+              'Content-Type': 'application/json',
+              'HTTP-Referer': process.env.NEXT_PUBLIC_SITE_URL || 'https://www.ivcaccounting.co.uk',
+              'X-Title': 'IVC Social Media'
+            },
+            body: JSON.stringify({
+              model: settings.social_model,
+              messages: [
+                { role: 'system', content: settings.social_system_prompt },
+                { role: 'user', content: userPrompt }
+              ],
+              temperature: settings.social_temperature,
+              max_tokens: 500
+            })
+          }),
+          8000 // 8 seconds to leave buffer for Railway's 10-second limit
+        );
+
+        const responseTime = Date.now() - startTime;
+        console.log(`OpenRouter response time for ${currentPlatform}: ${responseTime}ms`);
         
-        return NextResponse.json(
-          { 
-            error: 'AI social media generation failed', 
-            details: {
-              status: response.status,
-              message: responseText
-            }
-          },
-          { status: response.status }
-        );
-      }
-
-      const data = JSON.parse(responseText);
-      const content = data.choices?.[0]?.message?.content || '';
-      
-      if (!content) {
-        console.error('No content in OpenRouter response:', data);
-        return NextResponse.json(
-          { error: 'AI generated empty response' },
-          { status: 500 }
-        );
-      }
-
-      console.log('✅ AI social media generation successful, content length:', content.length);
-      
-      return NextResponse.json({
-        content,
-        settings: {
-          model: settings.social_model,
-          temperature: settings.social_temperature
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error(`OpenRouter API error for ${currentPlatform}:`, errorText);
+          continue; // Skip this platform and try the next
         }
-      });
 
-    } catch (error: any) {
-      if (error.message === 'Request timeout') {
-        console.error('AI social media request timed out after 8 seconds');
-        return NextResponse.json(
-          { error: 'AI social media request timed out. Try using a faster model or shorter content.' },
-          { status: 504 }
-        );
+        const data = await response.json();
+        const content = data.choices?.[0]?.message?.content || '';
+        
+        if (content) {
+          // Parse the content to extract hashtags
+          const hashtagMatch = content.match(/#\w+/g) || [];
+          const cleanContent = content.replace(/#\w+/g, '').trim();
+          
+          posts.push({
+            platform: currentPlatform,
+            content: cleanContent,
+            hashtags: hashtagMatch.map((tag: string) => tag.substring(1)),
+            mediaType: currentPlatform === 'Instagram' ? 'image' : 'text'
+          });
+        }
+
+      } catch (error: any) {
+        if (error.message === 'Request timeout') {
+          console.error(`Social media request timed out for ${currentPlatform}`);
+        } else {
+          console.error(`Error generating content for ${currentPlatform}:`, error);
+        }
+        // Continue with other platforms
       }
-      throw error;
     }
+
+    if (posts.length === 0) {
+      return NextResponse.json(
+        { error: 'Failed to generate content for any platform' },
+        { status: 500 }
+      );
+    }
+
+    console.log(`✅ Generated social media content for ${posts.length} platforms`);
+    
+    return NextResponse.json({
+      posts,
+      content: posts[0]?.content, // For backward compatibility
+      settings: {
+        model: settings.social_model,
+        temperature: settings.social_temperature
+      }
+    });
 
   } catch (error: any) {
     console.error('❌ AI Social Media Route Error:', {
