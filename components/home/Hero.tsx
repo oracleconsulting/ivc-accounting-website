@@ -132,7 +132,7 @@ export default function Hero() {
         <div className="flex justify-center mt-4 mb-8">
           <div className="bg-[#ff6b35] py-2 px-6 inline-flex items-center gap-2">
             <span className="text-[#f5f1e8] font-bold uppercase tracking-wider text-sm">
-              ✨ QUALITY OVER QUANTITY • 50 CLIENT LIMIT • 47/50 CAPACITY
+              ✨ QUALITY OVER QUANTITY • 50 CLIENT LIMIT • 12/50 CAPACITY
             </span>
           </div>
         </div>

@@ -43,6 +43,9 @@ interface BlogEditorProps {
 }
 
 export default function BlogEditor({ post, postId, onSave, onPublish }: BlogEditorProps) {
+  // Debug: Log when component mounts
+  console.log('BlogEditor mounted with props:', { postId, post });
+  
   const router = useRouter();
   const [title, setTitle] = useState(post?.title || '');
   const [slug, setSlug] = useState(post?.slug || '');
@@ -65,62 +68,103 @@ export default function BlogEditor({ post, postId, onSave, onPublish }: BlogEdit
   
   const supabase = createClientComponentClient();
 
+  // Add this useEffect to see if the new post is being created
+  useEffect(() => {
+    console.log('=== NEW POST CREATION CHECK ===');
+    console.log('Component mounted');
+    console.log('postId prop:', postId);
+    console.log('currentPostId state:', currentPostId);
+    console.log('isCreatingPost state:', isCreatingPost);
+    console.log('pathname:', window.location.pathname);
+    console.log('=== END CHECK ===');
+  }, []);
+
+  // Also add this to track state changes
+  useEffect(() => {
+    console.log('currentPostId changed to:', currentPostId);
+  }, [currentPostId]);
+
   // Create a new post if none exists
   useEffect(() => {
-    const initializePost = async () => {
+    const createNewPost = async () => {
+      console.log('createNewPost effect running...');
+      console.log('Conditions:', {
+        hasPostId: !!postId,
+        hasCurrentPostId: !!currentPostId,
+        isCreatingPost,
+        shouldCreate: !postId && !currentPostId
+      });
+      
       // If we have a postId from props, use it
       if (postId) {
+        console.log('Using existing postId:', postId);
         setCurrentPostId(postId);
         return;
       }
       
       // If we already created a post, don't create another
       if (currentPostId || isCreatingPost) {
+        console.log('Skipping post creation - already have ID or creating');
         return;
       }
+      
+      console.log('Creating new post...');
       
       // Create a new post
       setIsCreatingPost(true);
       try {
         const { data: { user } } = await supabase.auth.getUser();
+        console.log('Auth user:', user?.email);
+        
         if (!user) {
+          console.error('No authenticated user');
           toast.error('Please log in to create posts');
-          router.push('/auth');
+          router.push('/login');
           return;
         }
 
-        const newSlug = `draft-${Date.now()}`;
+        const newPost = {
+          title: 'Untitled Post',
+          slug: `draft-${Date.now()}`,
+          content: { type: 'doc', content: [] },
+          content_text: '',
+          content_html: '',
+          excerpt: '',
+          status: 'draft',
+          author_id: user.id,
+          read_time: 0
+        };
+        
+        console.log('Inserting new post:', newPost);
+
         const { data, error } = await supabase
           .from('posts')
-          .insert({
-            title: 'Untitled Post',
-            slug: newSlug,
-            content: { type: 'doc', content: [] },
-            content_text: '',
-            content_html: '',
-            excerpt: '',
-            status: 'draft',
-            author_id: user.id,
-            read_time: 0
-          })
+          .insert(newPost)
           .select()
           .single();
 
-        if (error) throw error;
+        if (error) {
+          console.error('Supabase insert error:', error);
+          throw error;
+        }
 
+        console.log('New post created successfully:', data);
         setCurrentPostId(data.id);
+        
         // Update the URL without full page reload
-        window.history.replaceState({}, '', `/admin/posts/${data.id}/edit`);
+        const newUrl = `/admin/posts/${data.id}/edit`;
+        console.log('Updating URL to:', newUrl);
+        window.history.replaceState({}, '', newUrl);
         
       } catch (error) {
-        console.error('Error creating new post:', error);
+        console.error('Failed to create post:', error);
         toast.error('Failed to create new post');
       } finally {
         setIsCreatingPost(false);
       }
     };
 
-    initializePost();
+    createNewPost();
   }, [postId, currentPostId, isCreatingPost, supabase, router]);
 
   // Internal save function that directly updates Supabase
@@ -623,6 +667,50 @@ export default function BlogEditor({ post, postId, onSave, onPublish }: BlogEdit
       <div className="flex-1 flex flex-col bg-white shadow-lg overflow-hidden">
         {/* Header Section - Fixed */}
         <div className="flex-shrink-0 p-6 border-b border-gray-200">
+          {/* Debug Panel */}
+          <div className="bg-yellow-100 p-4 mb-4 rounded">
+            <p className="text-sm mb-2">Debug Panel - Current State:</p>
+            <ul className="text-xs space-y-1">
+              <li>Post ID: {currentPostId || 'NOT SET'}</li>
+              <li>Title: {title || 'EMPTY'}</li>
+              <li>Has Editor: {editor ? 'YES' : 'NO'}</li>
+              <li>Auto Save Status: {autoSaveStatus}</li>
+            </ul>
+            
+            <button
+              onClick={() => {
+                alert('Button clicked! Check console.');
+                console.log('=== SAVE BUTTON DEBUG ===');
+                console.log('currentPostId:', currentPostId);
+                console.log('postId (prop):', postId);
+                console.log('title:', title);
+                console.log('editor exists:', !!editor);
+                console.log('supabase exists:', !!supabase);
+                console.log('=== END DEBUG ===');
+              }}
+              className="mt-2 px-4 py-2 bg-red-500 text-white rounded"
+            >
+              Test Click Handler
+            </button>
+            
+            <button
+              onClick={async () => {
+                console.log('Testing Supabase connection...');
+                try {
+                  const { data: { user } } = await supabase.auth.getUser();
+                  console.log('Current user:', user?.email);
+                  alert(`Logged in as: ${user?.email || 'NOT LOGGED IN'}`);
+                } catch (error) {
+                  console.error('Auth check failed:', error);
+                  alert('Auth check failed - see console');
+                }
+              }}
+              className="mt-2 ml-2 px-4 py-2 bg-blue-500 text-white rounded"
+            >
+              Test Auth
+            </button>
+          </div>
+
           {/* Title Input */}
           <input
             type="text"
@@ -742,11 +830,32 @@ export default function BlogEditor({ post, postId, onSave, onPublish }: BlogEdit
           
           <div className="space-y-4">
             <button
-              onClick={handleManualSave}
-              disabled={!currentPostId || autoSaveStatus === 'saving'}
-              className="w-full px-4 py-2 bg-gray-200 text-[#1a2b4a] font-bold rounded hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              type="button"
+              onClick={() => {
+                console.log('Save Draft clicked');
+                alert('Save Draft clicked - check console for details');
+                
+                // Log current state
+                console.log('Current state when clicking save:', {
+                  currentPostId,
+                  postId,
+                  title,
+                  slug,
+                  hasEditor: !!editor,
+                  isNewPost: !postId
+                });
+                
+                // Try to call the save function
+                if (handleManualSave) {
+                  console.log('Calling handleManualSave...');
+                  handleManualSave();
+                } else {
+                  console.error('handleManualSave is not defined!');
+                }
+              }}
+              className="w-full px-4 py-2 bg-gray-200 text-[#1a2b4a] font-bold rounded hover:bg-gray-300 transition-colors"
             >
-              {autoSaveStatus === 'saving' ? 'Saving...' : 'Save Draft'}
+              Save Draft (Debug)
             </button>
             
             <button
