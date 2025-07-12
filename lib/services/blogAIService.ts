@@ -528,4 +528,9 @@ Focus on UK search intent and include location-specific keywords where relevant.
 }
 
 // Export singleton instance
-export const blogAIService = new BlogAIService(); 
+export const blogAIService = new BlogAIService();
+
+// Initialize the service when it's first imported
+blogAIService.initialize().catch(error => {
+  console.error('Failed to initialize BlogAIService:', error);
+}); 

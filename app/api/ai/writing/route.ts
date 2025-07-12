@@ -4,6 +4,13 @@ const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 
 export async function POST(request: NextRequest) {
   try {
+    // Add detailed logging for production debugging
+    if (!OPENROUTER_API_KEY) {
+      console.error('OPENROUTER_API_KEY is not set in environment');
+      console.error('Environment:', process.env.NODE_ENV);
+      console.error('All env keys:', Object.keys(process.env).filter(k => k.includes('OPEN')));
+    }
+
     const { topic, outline, tone, targetAudience, keywords } = await request.json();
 
     // Get AI settings

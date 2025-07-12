@@ -4,6 +4,10 @@ const nextConfig = {
   compress: true,
   poweredByHeader: false,
   swcMinify: true,
+  // Ensure environment variables are available
+  env: {
+    OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY,
+  },
   
   // Enhanced image optimization
   images: {
@@ -33,6 +37,15 @@ const nextConfig = {
     outputFileTracingExcludes: {
       '/api/ai/*': ['@pinecone-database/pinecone', 'openai'],
     },
+  },
+  
+  // Add webpack config to handle env vars
+  webpack: (config, { isServer }) => {
+    // Ensure env vars are available during build
+    if (!process.env.OPENROUTER_API_KEY && process.env.NODE_ENV === 'production') {
+      console.warn('Warning: OPENROUTER_API_KEY not found in production build');
+    }
+    return config;
   },
   
   // Security and performance headers
