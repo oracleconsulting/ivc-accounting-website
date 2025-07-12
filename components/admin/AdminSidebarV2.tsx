@@ -13,7 +13,9 @@ import {
   Share2,
   Rss,
   Database,
-  BarChart3
+  BarChart3,
+  Mail,
+  Send
 } from 'lucide-react';
 
 export default function AdminSidebarV2() {
@@ -29,6 +31,7 @@ export default function AdminSidebarV2() {
     { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
     { name: 'All Posts', href: '/admin/posts', icon: FileText },
     { name: 'New Post', href: '/admin/posts/new', icon: Plus },
+    { name: 'Newsletter', href: '/admin/newsletter', icon: Mail },
     { name: 'Categories', href: '/admin/categories', icon: FolderOpen },
     { name: 'Tags', href: '/admin/tags', icon: Tag },
     { name: 'Users', href: '/admin/users', icon: Users },

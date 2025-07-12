@@ -1,6 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+// Railway sometimes needs explicit env access
+const getApiKey = () => {
+  // Try multiple methods
+  const key = process.env.OPENROUTER_API_KEY || 
+              process.env['OPENROUTER_API_KEY'] ||
+              globalThis.process?.env?.OPENROUTER_API_KEY;
+  
+  console.log('API Key check:', {
+    exists: !!key,
+    starts_with: key?.substring(0, 6),
+    length: key?.length
+  });
+  
+  return key;
+};
 
 interface SocialMediaPost {
   platform: string;
@@ -10,6 +24,16 @@ interface SocialMediaPost {
 }
 
 export async function POST(request: NextRequest) {
+  const OPENROUTER_API_KEY = getApiKey();
+  
+  if (!OPENROUTER_API_KEY) {
+    console.error('OPENROUTER_API_KEY not found');
+    return NextResponse.json(
+      { error: 'AI service not configured' },
+      { status: 503 }
+    );
+  }
+  
   try {
     const { blogTitle, blogContent, platforms, businessInfo } = await request.json();
 

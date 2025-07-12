@@ -1,7 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PineconeService } from '@/lib/services/pineconeService';
 
-const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+// Railway sometimes needs explicit env access
+const getApiKey = () => {
+  // Try multiple methods
+  const key = process.env.OPENROUTER_API_KEY || 
+              process.env['OPENROUTER_API_KEY'] ||
+              globalThis.process?.env?.OPENROUTER_API_KEY;
+  
+  console.log('API Key check:', {
+    exists: !!key,
+    starts_with: key?.substring(0, 6),
+    length: key?.length
+  });
+  
+  return key;
+};
 
 // Research topics relevant to UK accounting and target markets
 const RESEARCH_PROMPTS = {
@@ -16,6 +30,16 @@ const RESEARCH_PROMPTS = {
 };
 
 export async function POST(request: NextRequest) {
+  const OPENROUTER_API_KEY = getApiKey();
+  
+  if (!OPENROUTER_API_KEY) {
+    console.error('OPENROUTER_API_KEY not found');
+    return NextResponse.json(
+      { error: 'AI service not configured' },
+      { status: 503 }
+    );
+  }
+  
   try {
     const { industry, targetMarket, timeframe, context } = await request.json();
 

@@ -1,15 +1,40 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+// Railway sometimes needs explicit env access
+const getApiKey = () => {
+  // Try multiple methods
+  const key = process.env.OPENROUTER_API_KEY || 
+              process.env['OPENROUTER_API_KEY'] ||
+              globalThis.process?.env?.OPENROUTER_API_KEY;
+  
+  console.log('API Key check:', {
+    exists: !!key,
+    starts_with: key?.substring(0, 6),
+    length: key?.length
+  });
+  
+  return key;
+};
+
+// Add immediate logging
+console.log('=== AI Writing Route Loaded ===');
+console.log('Environment:', process.env.NODE_ENV);
 
 export async function POST(request: NextRequest) {
+  const OPENROUTER_API_KEY = getApiKey();
+  
+  console.log('=== AI Writing POST Request ===');
+  console.log('OPENROUTER_API_KEY exists:', !!OPENROUTER_API_KEY);
+  
+  if (!OPENROUTER_API_KEY) {
+    console.error('OPENROUTER_API_KEY not found');
+    return NextResponse.json(
+      { error: 'AI service not configured' },
+      { status: 503 }
+    );
+  }
+  
   try {
-    // Add detailed logging for production debugging
-    if (!OPENROUTER_API_KEY) {
-      console.error('OPENROUTER_API_KEY is not set in environment');
-      console.error('Environment:', process.env.NODE_ENV);
-      console.error('All env keys:', Object.keys(process.env).filter(k => k.includes('OPEN')));
-    }
 
     const { topic, outline, tone, targetAudience, keywords } = await request.json();
 

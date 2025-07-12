@@ -4,7 +4,7 @@ const nextConfig = {
   compress: true,
   poweredByHeader: false,
   swcMinify: true,
-  // Ensure environment variables are available
+  // Force environment variables to be available
   env: {
     OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY,
   },
@@ -37,13 +37,17 @@ const nextConfig = {
     outputFileTracingExcludes: {
       '/api/ai/*': ['@pinecone-database/pinecone', 'openai'],
     },
+    // Add experimental flag for better env handling
+    serverComponentsExternalPackages: ['@supabase/auth-helpers-nextjs'],
   },
   
-  // Add webpack config to handle env vars
-  webpack: (config, { isServer }) => {
-    // Ensure env vars are available during build
-    if (!process.env.OPENROUTER_API_KEY && process.env.NODE_ENV === 'production') {
-      console.warn('Warning: OPENROUTER_API_KEY not found in production build');
+  // Ensure env vars are loaded during build
+  webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
+    // Log during build to verify
+    if (isServer && !dev) {
+      console.log('=== BUILD TIME ENV CHECK ===');
+      console.log('OPENROUTER_API_KEY exists:', !!process.env.OPENROUTER_API_KEY);
+      console.log('NODE_ENV:', process.env.NODE_ENV);
     }
     return config;
   },
