@@ -11,7 +11,8 @@
     "type-check": "tsc --noEmit",
     "db:migrate": "supabase migration up",
     "db:reset": "supabase db reset",
-    "campaign:test": "tsx scripts/test-campaign.ts"
+    "campaign:test": "tsx scripts/test-campaign.ts",
+    "regenerate-lock": "bash scripts/regenerate-lock.sh"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
