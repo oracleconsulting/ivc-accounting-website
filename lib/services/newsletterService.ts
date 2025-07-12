@@ -2,7 +2,15 @@
 import { supabase } from '@/lib/supabaseClient';
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Only create Resend client if API key is available
+const getResendClient = () => {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    console.warn('RESEND_API_KEY not set - email functionality will be disabled');
+    return null;
+  }
+  return new Resend(apiKey);
+};
 
 interface Newsletter {
   id: string;
@@ -168,6 +176,12 @@ export class NewsletterService {
       const htmlWithTracking = personalizedHtml + trackingPixel;
 
       // Send via Resend
+      const resend = getResendClient();
+      if (!resend) {
+        console.log('Email sending skipped - no RESEND_API_KEY');
+        return;
+      }
+      
       const { data, error } = await resend.emails.send({
         from: 'IVC Accounting <newsletter@ivcaccounting.com>',
         to: subscriber.email,
@@ -373,6 +387,12 @@ export class NewsletterService {
 
   private async sendWelcomeEmail(subscriber: Subscriber): Promise<void> {
     try {
+      const resend = getResendClient();
+      if (!resend) {
+        console.log('Welcome email skipped - no RESEND_API_KEY');
+        return;
+      }
+      
       await resend.emails.send({
         from: 'IVC Accounting <welcome@ivcaccounting.com>',
         to: subscriber.email,
