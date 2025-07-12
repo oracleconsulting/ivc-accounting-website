@@ -1,21 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PineconeService } from '@/lib/services/pineconeService';
 
-// Railway sometimes needs explicit env access
-const getApiKey = () => {
-  // Try multiple methods
-  const key = process.env.OPENROUTER_API_KEY || 
-              process.env['OPENROUTER_API_KEY'] ||
-              globalThis.process?.env?.OPENROUTER_API_KEY;
+// Helper function for Railway timeout handling
+async function withTimeout<T>(
+  promise: Promise<T>, 
+  timeoutMs: number = 9000
+): Promise<T> {
+  const timeout = new Promise<never>((_, reject) => 
+    setTimeout(() => reject(new Error('Request timeout')), timeoutMs)
+  );
   
-  console.log('API Key check:', {
-    exists: !!key,
-    starts_with: key?.substring(0, 6),
-    length: key?.length
-  });
-  
-  return key;
-};
+  return Promise.race([promise, timeout]);
+}
 
 // Research topics relevant to UK accounting and target markets
 const RESEARCH_PROMPTS = {
@@ -30,115 +26,169 @@ const RESEARCH_PROMPTS = {
 };
 
 export async function POST(request: NextRequest) {
-  const OPENROUTER_API_KEY = getApiKey();
-  
-  if (!OPENROUTER_API_KEY) {
-    console.error('OPENROUTER_API_KEY not found');
-    return NextResponse.json(
-      { error: 'AI service not configured' },
-      { status: 503 }
-    );
-  }
-  
-  try {
-    const { industry, targetMarket, timeframe, context } = await request.json();
+  // Comprehensive debug logging
+  console.log('=== AI Research Route Debug ===');
+  console.log('Timestamp:', new Date().toISOString());
+  console.log('Environment:', {
+    NODE_ENV: process.env.NODE_ENV,
+    hasOpenRouterKey: !!process.env.OPENROUTER_API_KEY,
+    keyLength: process.env.OPENROUTER_API_KEY?.length,
+    keyPrefix: process.env.OPENROUTER_API_KEY?.substring(0, 10) + '...',
+    siteUrl: process.env.NEXT_PUBLIC_SITE_URL
+  });
 
-    // Get AI settings
+  try {
+    const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+    
+    if (!OPENROUTER_API_KEY) {
+      console.error('❌ OpenRouter API key not found in environment');
+      return NextResponse.json(
+        { error: 'AI service not configured. Please check environment variables.' },
+        { status: 503 }
+      );
+    }
+
+    console.log('✅ OpenRouter key found, parsing request body...');
+    const { topic, researchType, targetAudience } = await request.json();
+    console.log('Request params:', { topic, researchType, targetAudience });
+
+    // Get AI settings with error handling
     let settings;
     try {
-      const settingsResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/ai/settings`);
+      const settingsUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/ai/settings`;
+      console.log('Fetching settings from:', settingsUrl);
+      
+      const settingsResponse = await fetch(settingsUrl);
+      if (!settingsResponse.ok) {
+        throw new Error(`Settings fetch failed: ${settingsResponse.status}`);
+      }
       settings = await settingsResponse.json();
+      console.log('Settings loaded:', { model: settings.research_model, temperature: settings.research_temperature });
     } catch (error) {
       console.error('Failed to fetch AI settings:', error);
       settings = {
-        research_system_prompt: `You are an expert UK accounting and tax research assistant...`,
-        research_temperature: 0.7
+        research_system_prompt: `You are an expert research analyst specializing in accounting, tax, and business topics. Provide comprehensive, well-researched insights that are accurate and actionable.`,
+        research_temperature: 0.7,
+        research_model: 'anthropic/claude-3-sonnet'
       };
     }
+
+    // Make OpenRouter API call with detailed error handling and timeout
+    console.log('Making OpenRouter API call...');
+    const startTime = Date.now();
     
-    // Search knowledge base for context - with error handling
-    let knowledgeContext = '';
     try {
-      const pinecone = new PineconeService(); // ✅ Instantiate only when needed
-      const relevantDocs = await pinecone.searchSimilar(
-        `${industry} ${targetMarket} ${timeframe}`,
-        5,
-        { type: 'knowledge' }
+      const response = await withTimeout(
+        fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+            'Content-Type': 'application/json',
+            'HTTP-Referer': process.env.NEXT_PUBLIC_SITE_URL || 'https://www.ivcaccounting.co.uk',
+            'X-Title': 'IVC Research'
+          },
+          body: JSON.stringify({
+            model: settings.research_model || 'anthropic/claude-3-sonnet',
+            messages: [
+              { 
+                role: 'system', 
+                content: settings.research_system_prompt || `You are an expert research analyst specializing in accounting, tax, and business topics. Provide comprehensive, well-researched insights that are accurate and actionable.`
+              },
+              { 
+                role: 'user', 
+                content: `Research the following topic: ${topic}
+                
+                Research Type: ${researchType || 'comprehensive analysis'}
+                Target Audience: ${targetAudience || 'UK small businesses'}
+                
+                Please provide:
+                1. Key findings and insights
+                2. Relevant statistics and data
+                3. Practical implications for the target audience
+                4. Current trends and developments
+                5. Recommendations and next steps
+                
+                Format your response in a clear, structured manner.`
+              }
+            ],
+            temperature: settings.research_temperature || 0.7,
+            max_tokens: 2500
+          })
+        }),
+        8000 // 8 seconds to leave buffer for Railway's 10-second limit
       );
+
+      const responseTime = Date.now() - startTime;
+      console.log(`OpenRouter response time: ${responseTime}ms`);
+      console.log(`Response status: ${response.status}`);
       
-      knowledgeContext = relevantDocs
-        .map(doc => doc.metadata?.content || '')
-        .filter((content): content is string => typeof content === 'string' && content.length > 0)
-        .join('\n\n');
-    } catch (error) {
-      console.error('Pinecone search failed:', error);
-      // Continue without knowledge context
-    }
-
-    const systemPrompt = settings.research_system_prompt + 
-      (knowledgeContext ? `\n\nRelevant knowledge base context:\n${knowledgeContext}` : '');
-
-    const userPrompt = `Research current topics in ${industry} for ${targetMarket} during ${timeframe}.
-Find 5 high-impact topics that:
-1. Have recent developments or changes
-2. Directly affect the target audience's finances
-3. Provide actionable advice opportunities
-4. Have SEO potential with clear search intent
-5. Can differentiate IVC Accounting's expertise
-
-For each topic provide:
-- Clear title
-- Impact assessment (why it matters now)
-- Target audience specifics
-- 5-7 relevant keywords
-- Credible sources to reference`;
-
-    // Only make OpenRouter call if API key exists
-    if (!OPENROUTER_API_KEY) {
-      console.warn('OpenRouter API key not configured');
-      return NextResponse.json({ 
-        results: getMockResearchResults() 
-      });
-    }
-
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': process.env.NEXT_PUBLIC_SITE_URL || 'https://www.ivcaccounting.co.uk',
-        'X-Title': 'IVC Blog Research'
-      },
-      body: JSON.stringify({
-        model: settings.research_model || 'anthropic/claude-3-haiku',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ],
-        temperature: settings.research_temperature || 0.7,
-        max_tokens: 2000
-      })
-    });
-
-    const data = await response.json();
-    const researchContent = data.choices?.[0]?.message?.content || '';
-
-    // Parse the AI response into structured data
-    const results = parseResearchResults(researchContent);
-
-    return NextResponse.json({ 
-      results,
-      knowledgeContextUsed: knowledgeContext.length > 0,
-      settings: {
-        model: settings.research_model,
-        temperature: settings.research_temperature
+      const responseText = await response.text();
+      console.log('Response preview:', responseText.substring(0, 200));
+      
+      if (!response.ok) {
+        console.error('OpenRouter API error:', {
+          status: response.status,
+          statusText: response.statusText,
+          body: responseText
+        });
+        
+        return NextResponse.json(
+          { 
+            error: 'AI research failed', 
+            details: {
+              status: response.status,
+              message: responseText
+            }
+          },
+          { status: response.status }
+        );
       }
+
+      const data = JSON.parse(responseText);
+      const content = data.choices?.[0]?.message?.content || '';
+      
+      if (!content) {
+        console.error('No content in OpenRouter response:', data);
+        return NextResponse.json(
+          { error: 'AI generated empty response' },
+          { status: 500 }
+        );
+      }
+
+      console.log('✅ AI research successful, content length:', content.length);
+      
+      return NextResponse.json({
+        content,
+        settings: {
+          model: settings.research_model,
+          temperature: settings.research_temperature
+        }
+      });
+
+    } catch (error: any) {
+      if (error.message === 'Request timeout') {
+        console.error('AI research request timed out after 8 seconds');
+        return NextResponse.json(
+          { error: 'AI research request timed out. Try using a faster model or more specific topic.' },
+          { status: 504 }
+        );
+      }
+      throw error;
+    }
+
+  } catch (error: any) {
+    console.error('❌ AI Research Route Error:', {
+      name: error.name,
+      message: error.message,
+      stack: error.stack
     });
-  } catch (error) {
-    console.error('Research API error:', error);
+    
     return NextResponse.json(
-      { error: 'Failed to perform research', results: getMockResearchResults() },
-      { status: 200 } // Return 200 with mock data instead of 500
+      { 
+        error: 'Failed to generate research',
+        details: error.message 
+      },
+      { status: 500 }
     );
   }
 }

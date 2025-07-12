@@ -1,64 +1,72 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// Railway sometimes needs explicit env access
-const getApiKey = () => {
-  // Try multiple methods
-  const key = process.env.OPENROUTER_API_KEY || 
-              process.env['OPENROUTER_API_KEY'] ||
-              globalThis.process?.env?.OPENROUTER_API_KEY;
+// Helper function for Railway timeout handling
+async function withTimeout<T>(
+  promise: Promise<T>, 
+  timeoutMs: number = 9000
+): Promise<T> {
+  const timeout = new Promise<never>((_, reject) => 
+    setTimeout(() => reject(new Error('Request timeout')), timeoutMs)
+  );
   
-  console.log('API Key check:', {
-    exists: !!key,
-    starts_with: key?.substring(0, 6),
-    length: key?.length
-  });
-  
-  return key;
-};
-
-interface SocialMediaPost {
-  platform: string;
-  content: string;
-  hashtags: string[];
-  mediaType?: string;
+  return Promise.race([promise, timeout]);
 }
 
 export async function POST(request: NextRequest) {
-  const OPENROUTER_API_KEY = getApiKey();
-  
-  if (!OPENROUTER_API_KEY) {
-    console.error('OPENROUTER_API_KEY not found');
-    return NextResponse.json(
-      { error: 'AI service not configured' },
-      { status: 503 }
-    );
-  }
-  
+  // Comprehensive debug logging
+  console.log('=== AI Social Media Route Debug ===');
+  console.log('Timestamp:', new Date().toISOString());
+  console.log('Environment:', {
+    NODE_ENV: process.env.NODE_ENV,
+    hasOpenRouterKey: !!process.env.OPENROUTER_API_KEY,
+    keyLength: process.env.OPENROUTER_API_KEY?.length,
+    keyPrefix: process.env.OPENROUTER_API_KEY?.substring(0, 10) + '...',
+    siteUrl: process.env.NEXT_PUBLIC_SITE_URL
+  });
+
   try {
-    const { blogTitle, blogContent, platforms, businessInfo } = await request.json();
-
-    const systemPrompt = `You are a social media expert for IVC Accounting. Create engaging, platform-specific content that:
-- Maintains professional credibility while being approachable
-- Uses platform best practices
-- Includes relevant hashtags
-- Drives traffic back to the blog
-- Reflects the brand: "OTHER ACCOUNTANTS FILE. WE FIGHT."`;
-
-    // Only make OpenRouter calls if API key exists
+    const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+    
     if (!OPENROUTER_API_KEY) {
-      console.warn('OpenRouter API key not configured');
-      return NextResponse.json({ 
-        posts: getMockSocialPosts(blogTitle, platforms) 
-      });
+      console.error('❌ OpenRouter API key not found in environment');
+      return NextResponse.json(
+        { error: 'AI service not configured. Please check environment variables.' },
+        { status: 503 }
+      );
     }
 
-    const posts: SocialMediaPost[] = [];
+    console.log('✅ OpenRouter key found, parsing request body...');
+    const { topic, platform, tone, targetAudience, callToAction } = await request.json();
+    console.log('Request params:', { topic, platform, tone, targetAudience });
 
-    for (const platform of platforms) {
-      try {
-        const platformPrompt = getPlatformPrompt(platform, blogTitle, blogContent, businessInfo);
-        
-        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    // Get AI settings with error handling
+    let settings;
+    try {
+      const settingsUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/ai/settings`;
+      console.log('Fetching settings from:', settingsUrl);
+      
+      const settingsResponse = await fetch(settingsUrl);
+      if (!settingsResponse.ok) {
+        throw new Error(`Settings fetch failed: ${settingsResponse.status}`);
+      }
+      settings = await settingsResponse.json();
+      console.log('Settings loaded:', { model: settings.social_model, temperature: settings.social_temperature });
+    } catch (error) {
+      console.error('Failed to fetch AI settings:', error);
+      settings = {
+        social_system_prompt: `You are an expert social media content creator specializing in accounting, tax, and business topics. Create engaging, professional content that provides value while maintaining brand voice.`,
+        social_temperature: 0.8,
+        social_model: 'anthropic/claude-3-sonnet'
+      };
+    }
+
+    // Make OpenRouter API call with detailed error handling and timeout
+    console.log('Making OpenRouter API call...');
+    const startTime = Date.now();
+    
+    try {
+      const response = await withTimeout(
+        fetch('https://openrouter.ai/api/v1/chat/completions', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
@@ -67,138 +75,109 @@ export async function POST(request: NextRequest) {
             'X-Title': 'IVC Social Media'
           },
           body: JSON.stringify({
-            model: 'anthropic/claude-3-haiku',
+            model: settings.social_model || 'anthropic/claude-3-sonnet',
             messages: [
-              { role: 'system', content: systemPrompt },
-              { role: 'user', content: platformPrompt }
+              { 
+                role: 'system', 
+                content: settings.social_system_prompt || `You are an expert social media content creator specializing in accounting, tax, and business topics. Create engaging, professional content that provides value while maintaining brand voice.`
+              },
+              { 
+                role: 'user', 
+                content: `Create social media content for: ${topic}
+                
+                Platform: ${platform || 'LinkedIn'}
+                Tone: ${tone || 'professional yet engaging'}
+                Target Audience: ${targetAudience || 'UK small business owners'}
+                Call to Action: ${callToAction || 'Contact us for expert advice'}
+                
+                Please create:
+                1. A compelling headline
+                2. Main content (platform-appropriate length)
+                3. Relevant hashtags
+                4. Suggested image description
+                5. Engagement questions
+                
+                Format for ${platform} specifically.`
+              }
             ],
-            temperature: 0.9,
-            max_tokens: 500
+            temperature: settings.social_temperature || 0.8,
+            max_tokens: 1500
           })
-        });
+        }),
+        8000 // 8 seconds to leave buffer for Railway's 10-second limit
+      );
 
-        const data = await response.json();
-        const generatedPost = parseSocialPost(data.choices?.[0]?.message?.content || '', platform);
-        posts.push(generatedPost);
-      } catch (error) {
-        console.error(`Failed to generate content for ${platform}:`, error);
-        // Add fallback post for this platform
-        posts.push(getMockSocialPost(blogTitle, platform));
+      const responseTime = Date.now() - startTime;
+      console.log(`OpenRouter response time: ${responseTime}ms`);
+      console.log(`Response status: ${response.status}`);
+      
+      const responseText = await response.text();
+      console.log('Response preview:', responseText.substring(0, 200));
+      
+      if (!response.ok) {
+        console.error('OpenRouter API error:', {
+          status: response.status,
+          statusText: response.statusText,
+          body: responseText
+        });
+        
+        return NextResponse.json(
+          { 
+            error: 'AI social media generation failed', 
+            details: {
+              status: response.status,
+              message: responseText
+            }
+          },
+          { status: response.status }
+        );
       }
+
+      const data = JSON.parse(responseText);
+      const content = data.choices?.[0]?.message?.content || '';
+      
+      if (!content) {
+        console.error('No content in OpenRouter response:', data);
+        return NextResponse.json(
+          { error: 'AI generated empty response' },
+          { status: 500 }
+        );
+      }
+
+      console.log('✅ AI social media generation successful, content length:', content.length);
+      
+      return NextResponse.json({
+        content,
+        settings: {
+          model: settings.social_model,
+          temperature: settings.social_temperature
+        }
+      });
+
+    } catch (error: any) {
+      if (error.message === 'Request timeout') {
+        console.error('AI social media request timed out after 8 seconds');
+        return NextResponse.json(
+          { error: 'AI social media request timed out. Try using a faster model or shorter content.' },
+          { status: 504 }
+        );
+      }
+      throw error;
     }
 
-    return NextResponse.json({ posts });
-  } catch (error) {
-    console.error('Social media API error:', error);
+  } catch (error: any) {
+    console.error('❌ AI Social Media Route Error:', {
+      name: error.name,
+      message: error.message,
+      stack: error.stack
+    });
+    
     return NextResponse.json(
-      { error: 'Failed to generate social posts', posts: getMockSocialPosts('', []) },
-      { status: 200 } // Return 200 with mock data instead of 500
+      { 
+        error: 'Failed to generate social media content',
+        details: error.message 
+      },
+      { status: 500 }
     );
   }
-}
-
-function getPlatformPrompt(platform: string, title: string, content: string, businessInfo: any): string {
-  const baseInfo = `Blog Title: ${title}
-Key Points: ${extractKeyPoints(content)}
-Business: ${businessInfo.name} - ${businessInfo.tagline}
-Location: ${businessInfo.location}`;
-
-  const platformSpecifics = {
-    linkedin: `Create a LinkedIn post that:
-- Professional tone but conversational
-- 1300 characters max
-- Includes a compelling hook
-- Has 3-5 relevant hashtags
-- Ends with a question to encourage engagement
-- Includes link placeholder: [BLOG LINK]`,
-    
-    instagram: `Create an Instagram caption that:
-- Engaging and visual-focused opening
-- 2200 characters max but front-load key message
-- Includes 10-15 relevant hashtags
-- Has emoji for visual appeal
-- Call-to-action for link in bio
-- Suggests carousel topics (3-5 slides)`,
-    
-    youtube: `Create a YouTube Community post or Short description that:
-- Attention-grabbing opening
-- 500 characters max
-- Teases the blog content
-- Includes 3-5 relevant hashtags
-- Suggests video hook ideas
-- Call-to-action to read full blog`
-  };
-
-  return `${baseInfo}\n\n${platformSpecifics[platform as keyof typeof platformSpecifics]}`;
-}
-
-function extractKeyPoints(content: string): string {
-  // Extract first 3 key points from blog content
-  const sentences = content.split('.').slice(0, 3);
-  return sentences.join('. ');
-}
-
-function parseSocialPost(content: string, platform: string): SocialMediaPost {
-  // Parse hashtags
-  const hashtags = content.match(/#\w+/g)?.map(tag => tag.slice(1)) || [];
-  const cleanContent = content.replace(/#\w+/g, '').trim();
-
-  return {
-    platform,
-    content: cleanContent,
-    hashtags,
-    mediaType: platform === 'instagram' ? 'carousel' : undefined
-  };
-}
-
-function getMockSocialPosts(blogTitle: string, platforms: string[]): SocialMediaPost[] {
-  return platforms.map(platform => getMockSocialPost(blogTitle, platform));
-}
-
-function getMockSocialPost(blogTitle: string, platform: string): SocialMediaPost {
-  const title = blogTitle || 'UK Tax Planning for Small Businesses';
-  
-  const platformContent = {
-    linkedin: `💼 ${title}
-
-As a UK small business owner, staying on top of your tax obligations is crucial for long-term success. The right tax planning strategies can save you thousands while ensuring full HMRC compliance.
-
-Key takeaways:
-• Understanding your specific tax obligations
-• Making Tax Digital (MTD) compliance requirements  
-• Maximizing R&D tax credits opportunities
-
-What's your biggest tax planning challenge this year? Share your thoughts below! 👇
-
-#UKTax #SmallBusiness #TaxPlanning #HMRC #BusinessGrowth`,
-    
-    instagram: `📊 Tax planning doesn't have to be overwhelming!
-
-Our latest blog breaks down everything UK small businesses need to know about tax planning and compliance. From MTD requirements to R&D credits, we've got you covered.
-
-💡 Pro tip: Start planning early to maximize your tax efficiency!
-
-🔗 Link in bio for the full guide
-
-#UKTax #SmallBusiness #TaxPlanning #HMRC #BusinessTips #Accounting #TaxCredits #MTD #BusinessGrowth #FinancialPlanning`,
-    
-    youtube: `📈 UK Small Business Tax Planning Guide
-
-Everything you need to know about tax planning, MTD compliance, and maximizing your tax efficiency. Don't miss these crucial tips that could save your business thousands!
-
-🔗 Full blog post in description
-
-#UKTax #SmallBusiness #TaxPlanning #HMRC #BusinessTips`
-  };
-
-  const content = platformContent[platform as keyof typeof platformContent] || platformContent.linkedin;
-  const hashtags = content.match(/#\w+/g)?.map(tag => tag.slice(1)) || [];
-  const cleanContent = content.replace(/#\w+/g, '').trim();
-
-  return {
-    platform,
-    content: cleanContent,
-    hashtags,
-    mediaType: platform === 'instagram' ? 'carousel' : undefined
-  };
 } 
