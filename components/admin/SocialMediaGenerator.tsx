@@ -198,17 +198,17 @@ export function SocialMediaGenerator({
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Wand2 className="w-5 h-5" />
+      <Card className="bg-white border-gray-200">
+        <CardHeader className="bg-gray-50">
+          <CardTitle className="flex items-center gap-2 text-gray-900">
+            <Wand2 className="w-5 h-5 text-purple-600" />
             AI Social Media Series Generator
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-gray-700">
             Transform your blog post into engaging social media series across multiple platforms
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="bg-white">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="settings">Settings</TabsTrigger>
@@ -226,7 +226,7 @@ export function SocialMediaGenerator({
                     <label
                       key={platform}
                       className={`flex items-center gap-3 p-4 border rounded-lg cursor-pointer transition-colors ${
-                        enabled ? 'bg-purple-50 border-purple-300' : 'hover:bg-gray-50'
+                        enabled ? 'bg-purple-100 border-purple-400 text-gray-900' : 'bg-white hover:bg-gray-50 text-gray-800'
                       }`}
                     >
                       <Switch
@@ -265,8 +265,8 @@ export function SocialMediaGenerator({
                       key={type.value}
                       className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-colors ${
                         settings.seriesType === type.value
-                          ? 'bg-purple-50 border-purple-300'
-                          : 'hover:bg-gray-50'
+                          ? 'bg-purple-100 border-purple-400 text-gray-900'
+                          : 'bg-white hover:bg-gray-50 text-gray-800'
                       }`}
                     >
                       <input

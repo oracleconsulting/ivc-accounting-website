@@ -341,3 +341,30 @@
            font-black uppercase px-8 py-4 text-lg transition-all duration-300;
   }
 }
+
+/* Fix contrast for AI components */
+.ai-generator-card {
+  background-color: white !important;
+  color: #1a2b4a !important;
+}
+
+.ai-generator-card * {
+  color: inherit;
+}
+
+/* Ensure proper contrast for all cards */
+.card-content-dark {
+  background-color: white;
+  color: #1a2b4a;
+}
+
+/* Platform selection improvements */
+.platform-selector:hover {
+  background-color: #f3f4f6;
+}
+
+.platform-selector.selected {
+  background-color: #e9d5ff;
+  border-color: #9333ea;
+  color: #1a2b4a;
+}

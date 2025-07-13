@@ -38,6 +38,7 @@ import { AutoEnhancements } from './AutoEnhancements';
 import { ContentExporter } from './ContentExporter';
 import { SuggestionHistory } from './SuggestionHistory';
 import { BeforeAfterPreview } from './BeforeAfterPreview';
+import { BlogToCampaignBridge } from './BlogToCampaignBridge';
 
 // AI Writing Modes
 const AI_MODES = {
@@ -67,10 +68,11 @@ const AI_MODES = {
 interface AIBlogEditorProps {
   initialContent?: string;
   postId?: string;
+  userId?: string; // Add this
   onSave: (content: string, metadata: any) => void;
 }
 
-export function AIBlogEditor({ initialContent = '', postId, onSave }: AIBlogEditorProps) {
+export function AIBlogEditor({ initialContent = '', postId, userId = 'current-user-id', onSave }: AIBlogEditorProps) {
   const [content, setContent] = useState(initialContent);
   const [aiMode, setAiMode] = useState<keyof typeof AI_MODES>('quality');
   const [title, setTitle] = useState('');
@@ -315,6 +317,18 @@ export function AIBlogEditor({ initialContent = '', postId, onSave }: AIBlogEdit
           <Sparkles className="w-4 h-4 mr-1" />
           Publish
         </Button>
+        
+        {/* Add the BlogToCampaignBridge here */}
+        {postId && contentScore >= 70 && (
+          <BlogToCampaignBridge
+            blogId={postId}
+            blogTitle={title}
+            blogContent={content}
+            blogScore={contentScore}
+            keywords={keywords}
+            userId={userId}
+          />
+        )}
       </div>
     </div>
   );
