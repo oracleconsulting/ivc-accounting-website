@@ -27,7 +27,11 @@ import {
   Mail,
   Share2,
   Video,
-  Loader2
+  Loader2,
+  Brain,
+  Shield,
+  Lightbulb,
+  Wand2
 } from 'lucide-react';
 
 // Import all our AI components
@@ -187,55 +191,141 @@ export function AIBlogEditor({ initialContent = '', postId, userId = 'current-us
         </div>
       </div>
 
-      {/* Main Editor Layout */}
-      <div className="space-y-4">
-        {/* Main Editor */}
-        <Card>
-          <CardHeader>
-            <div className="space-y-4">
-              <input
-                type="text"
-                placeholder="Blog Title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="text-2xl font-bold border-none outline-none w-full"
-              />
-              <input
-                type="text"
-                placeholder="Keywords (comma-separated)"
-                value={keywords.join(', ')}
-                onChange={(e) => setKeywords(e.target.value.split(',').map(k => k.trim()))}
-                className="text-sm text-muted-foreground border-none outline-none w-full"
-              />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <textarea
-              value={content}
-              onChange={(e) => handleContentUpdate(e.target.value)}
-              className="w-full min-h-[400px] p-4 border rounded-md"
-              placeholder="Start writing your blog post..."
+      {/* Main Editor Layout with Tabs */}
+      <Card>
+        <CardHeader>
+          <div className="space-y-4">
+            <input
+              type="text"
+              placeholder="Blog Title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="text-2xl font-bold border-none outline-none w-full"
             />
-          </CardContent>
-        </Card>
+            <input
+              type="text"
+              placeholder="Keywords (comma-separated)"
+              value={keywords.join(', ')}
+              onChange={(e) => setKeywords(e.target.value.split(',').map(k => k.trim()))}
+              className="text-sm text-muted-foreground border-none outline-none w-full"
+            />
+          </div>
+        </CardHeader>
+        <CardContent>
+          <Tabs defaultValue="write" className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="write" className="flex items-center gap-2">
+                <FileText className="w-4 h-4" />
+                Write
+              </TabsTrigger>
+              <TabsTrigger value="ai-assistant" className="flex items-center gap-2">
+                <Brain className="w-4 h-4" />
+                AI Assistant
+              </TabsTrigger>
+              <TabsTrigger value="ai-review" className="flex items-center gap-2">
+                <Shield className="w-4 h-4" />
+                AI Review
+              </TabsTrigger>
+              <TabsTrigger value="social-media" className="flex items-center gap-2">
+                <Share2 className="w-4 h-4" />
+                Social Media
+              </TabsTrigger>
+            </TabsList>
 
-        {/* AI Review Panel */}
-        <AIReviewPanel
-          content={content}
-          onContentUpdate={handleContentUpdate}
-          keywords={keywords}
-          aiMode={aiMode}
-          title={title}
-        />
+            <TabsContent value="write" className="mt-6">
+              <div className="space-y-4">
+                <textarea
+                  value={content}
+                  onChange={(e) => handleContentUpdate(e.target.value)}
+                  className="w-full min-h-[400px] p-4 border rounded-md resize-none"
+                  placeholder="Start writing your blog post..."
+                />
+                
+                {/* Before/After Preview */}
+                {initialContent && content !== initialContent && (
+                  <BeforeAfterPreview
+                    originalContent={initialContent}
+                    currentContent={content}
+                  />
+                )}
+              </div>
+            </TabsContent>
 
-        {/* Before/After Preview */}
-        {initialContent && content !== initialContent && (
-          <BeforeAfterPreview
-            originalContent={initialContent}
-            currentContent={content}
-          />
-        )}
-      </div>
+            <TabsContent value="ai-assistant" className="mt-6">
+              <div className="space-y-4">
+                <div className="p-4 border rounded-md bg-muted/50">
+                  <h3 className="text-lg font-semibold mb-2">AI Writing Assistant</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Get AI-powered suggestions, research, and content enhancement.
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Button variant="outline" className="h-auto p-4 flex flex-col items-start">
+                      <Search className="w-5 h-5 mb-2" />
+                      <span className="font-medium">Research Topic</span>
+                      <span className="text-xs text-muted-foreground">Find relevant information</span>
+                    </Button>
+                    <Button variant="outline" className="h-auto p-4 flex flex-col items-start">
+                      <Lightbulb className="w-5 h-5 mb-2" />
+                      <span className="font-medium">Generate Ideas</span>
+                      <span className="text-xs text-muted-foreground">Get content suggestions</span>
+                    </Button>
+                    <Button variant="outline" className="h-auto p-4 flex flex-col items-start">
+                      <Wand2 className="w-5 h-5 mb-2" />
+                      <span className="font-medium">Improve Writing</span>
+                      <span className="text-xs text-muted-foreground">Enhance your content</span>
+                    </Button>
+                    <Button variant="outline" className="h-auto p-4 flex flex-col items-start">
+                      <Quote className="w-5 h-5 mb-2" />
+                      <span className="font-medium">Add Citations</span>
+                      <span className="text-xs text-muted-foreground">Include references</span>
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="ai-review" className="mt-6">
+              <AIReviewPanel
+                content={content}
+                onContentUpdate={handleContentUpdate}
+                keywords={keywords}
+                aiMode={aiMode}
+                title={title}
+              />
+            </TabsContent>
+
+            <TabsContent value="social-media" className="mt-6">
+              <div className="space-y-4">
+                <div className="p-4 border rounded-md bg-muted/50">
+                  <h3 className="text-lg font-semibold mb-2">Social Media Campaign</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Create social media content from your blog post.
+                  </p>
+                  {contentScore >= 70 ? (
+                    <BlogToCampaignBridge
+                      blogId={postId || ''}
+                      blogTitle={title}
+                      blogContent={content}
+                      blogScore={contentScore}
+                      keywords={keywords}
+                      userId={userId}
+                    />
+                  ) : (
+                    <div className="text-center py-8">
+                      <div className="text-muted-foreground mb-2">
+                        Content score: {contentScore}%
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Improve your content quality to unlock social media campaign creation.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
 
       {/* Floating Action Bar */}
       <div className="fixed bottom-4 right-4 flex items-center gap-2 bg-background border rounded-lg p-2 shadow-lg">

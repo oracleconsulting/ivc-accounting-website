@@ -19,7 +19,25 @@ export default function TestAIBlogEditorPage() {
         </div>
         
         <AIBlogEditor
-          initialContent="This is a test blog post about AI-powered content creation. The AI Blog Editor provides comprehensive tools for writing, reviewing, and optimizing content for maximum impact."
+          initialContent="This is a test blog post about AI-powered content creation. The AI Blog Editor provides comprehensive tools for writing, reviewing, and optimizing content for maximum impact. 
+
+## Key Features
+
+The AI Blog Editor includes:
+
+1. **Write Tab**: Main content editor with real-time scoring
+2. **AI Assistant**: Research, idea generation, and writing improvements
+3. **AI Review**: Comprehensive content analysis and optimization
+4. **Social Media**: Campaign creation from blog content
+
+### Benefits
+
+- Real-time content scoring and suggestions
+- AI-powered writing assistance
+- Automatic social media campaign generation
+- Comprehensive content optimization
+
+This editor is designed to help you create high-quality, engaging content that performs well across all platforms."
           postId="test-post-123"
           userId="test-user-456"
           onSave={handleSave}

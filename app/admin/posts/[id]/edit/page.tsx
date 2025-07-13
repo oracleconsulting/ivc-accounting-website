@@ -44,7 +44,13 @@ export default function EditPostPage() {
           return;
         }
         
-        setPost(postData);
+        // Ensure content is a string, not an object
+        const processedPost = {
+          ...postData,
+          content: typeof postData.content === 'string' ? postData.content : JSON.stringify(postData.content) || ''
+        };
+        
+        setPost(processedPost);
       } catch (error) {
         console.error('Error initializing page:', error);
       } finally {
