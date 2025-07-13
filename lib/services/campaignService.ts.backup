@@ -205,37 +205,39 @@ export class CampaignService {
     keywords: string[]
   ) {
     try {
-      const platforms = ['linkedin', 'twitter', 'facebook', 'instagram'];
-      const seriesPromises = platforms.map(platform => 
-        fetch(`/api/ai/generate-series/${platform}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            title,
-            content,
-            keywords,
-            style: 'professional-engaging'
-          })
-        }).then(res => res.json())
-      );
+      const series = await aiSeriesGenerator.generateCompleteSeries({
+        title,
+        content,
+        keywords,
+        platforms: ['linkedin', 'twitter', 'facebook', 'instagram'],
+        seriesLength: {
+          linkedin: 5,
+          twitter: 10,
+          facebook: 3,
+          instagram: 5
+        }
+      });
 
-      const seriesResults = await Promise.all(seriesPromises);
+      // Save each series to database
+      const savedSeries: any = {};
       
-      // Save to social_series table
-      const seriesData = platforms.map((platform, index) => ({
-        platform,
-        posts: seriesResults[index].posts,
-        theme: seriesResults[index].theme,
-        hook: seriesResults[index].hook || seriesResults[index].opener
-      }));
+      for (const [platform, platformSeries] of Object.entries(series)) {
+        const { data, error } = await supabase
+          .from('campaign_social_series')
+          .insert({
+            platform,
+            series_type: this.getSeriesType(platform),
+            posts: platformSeries,
+            status: 'draft'
+          })
+          .select()
+          .single();
 
-      const { data, error } = await supabase
-        .from('social_series')
-        .insert(seriesData)
-        .select();
+        if (error) throw error;
+        savedSeries[platform] = data;
+      }
 
-      if (error) throw error;
-      return seriesData;
+      return savedSeries;
       
     } catch (error) {
       console.error('Error generating social series:', error);
@@ -246,25 +248,21 @@ export class CampaignService {
   // Generate PDF guide
   private async generatePDFGuide(title: string, content: string) {
     try {
-      const pdfContent = await exportService.generatePDF({
+      const pdfData = await exportService.generatePDF({
         title,
         content,
         format: 'guide',
-        includeWorksheets: true,
-        branding: {
-          primaryColor: '#7C3AED',
-          secondaryColor: '#6B7280'
-        }
+        includeWorksheets: true
       });
 
-      // Save to campaign_downloads table
+      // Save to downloads table
       const { data, error } = await supabase
         .from('campaign_downloads')
         .insert({
           type: 'pdf',
-          file_url: pdfContent.url,
-          download_count: 0,
-          is_active: false
+          file_url: pdfData.url,
+          title: `${title} - Complete Guide`,
+          download_count: 0
         })
         .select()
         .single();
@@ -273,7 +271,7 @@ export class CampaignService {
       return data;
       
     } catch (error) {
-      console.error('Error generating PDF guide:', error);
+      console.error('Error generating PDF:', error);
       throw error;
     }
   }
@@ -281,25 +279,26 @@ export class CampaignService {
   // Generate video script
   private async generateVideoScript(title: string, content: string) {
     try {
-      const scriptContent = await fetch('/api/ai/video-script', {
+      const scriptData = await fetch('/api/ai/video-script', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title,
           content,
-          style: 'professional-educational',
-          duration: '3-5 minutes'
+          duration: '5-7 minutes',
+          style: 'educational-engaging'
         })
       }).then(res => res.json());
 
-      // Save to campaign_downloads table
+      // Save to downloads table
       const { data, error } = await supabase
         .from('campaign_downloads')
         .insert({
           type: 'video_script',
-          file_url: scriptContent.url,
-          download_count: 0,
-          is_active: false
+          file_url: scriptData.url,
+          title: `${title} - Video Script`,
+          content: scriptData.script,
+          download_count: 0
         })
         .select()
         .single();
@@ -313,13 +312,13 @@ export class CampaignService {
     }
   }
 
-  // Save campaign components
+  // Save all campaign components
   private async saveCampaignComponents(
     campaignId: string,
     components: any
   ) {
     try {
-      // Link newsletter
+      // Link newsletter to campaign
       if (components.newsletter) {
         await supabase
           .from('campaigns')
@@ -327,57 +326,62 @@ export class CampaignService {
           .eq('id', campaignId);
       }
 
-      // Link social series
+      // Link social series to campaign
       if (components.socialSeries) {
-        for (const series of components.socialSeries) {
+        for (const [platform, series] of Object.entries(components.socialSeries)) {
           await supabase
             .from('campaign_social_series')
-            .insert({
-              campaign_id: campaignId,
-              series_id: series.id
-            });
+            .update({ campaign_id: campaignId })
+            .eq('id', (series as any).id);
         }
       }
 
-      // Link downloads
+      // Link downloads to campaign
       if (components.downloads) {
-        for (const [type, download] of Object.entries(components.downloads)) {
-          await supabase
-            .from('campaign_downloads')
-            .update({ campaign_id: campaignId })
-            .eq('id', (download as any).id);
+        for (const download of Object.values(components.downloads)) {
+          if (download) {
+            await supabase
+              .from('campaign_downloads')
+              .update({ campaign_id: campaignId })
+              .eq('id', (download as any).id);
+          }
         }
       }
+      
     } catch (error) {
       console.error('Error saving campaign components:', error);
       throw error;
     }
   }
 
-  // Get campaign by ID
+  // Get complete campaign data
   async getCampaign(campaignId: string): Promise<Campaign> {
     try {
-      const { data, error } = await supabase
+      // Fetch campaign with all related data
+      const { data: campaign, error } = await supabase
         .from('campaigns')
         .select(`
           *,
-          blog_post:posts(*),
-          newsletter:newsletters(*),
-          social_series:campaign_social_series(social_series(*)),
-          downloads:campaign_downloads(*)
+          blog_post:posts(id, title, content, score, published_at),
+          newsletter:newsletters(id, subject, content, sent_at, recipient_count),
+          social_series:campaign_social_series(id, platform, series_type, posts, status),
+          downloads:campaign_downloads(id, type, file_url, download_count)
         `)
         .eq('id', campaignId)
         .single();
 
       if (error) throw error;
-      return this.formatCampaignData(data);
+
+      // Format the response
+      return this.formatCampaignData(campaign);
+      
     } catch (error) {
       console.error('Error fetching campaign:', error);
       throw error;
     }
   }
 
-  // Publish campaign
+  // Publish campaign to all channels
   async publishCampaign(campaignId: string): Promise<void> {
     try {
       const campaign = await this.getCampaign(campaignId);
@@ -388,49 +392,17 @@ export class CampaignService {
         .update({ status: 'publishing' })
         .eq('id', campaignId);
 
-      let hasFailures = false;
+      // Publish in parallel with error handling for each channel
+      const publishResults = await Promise.allSettled([
+        this.publishBlog(campaign.components.blog),
+        this.sendNewsletter(campaign.components.newsletter),
+        this.publishSocialSeries(campaign.components.socialSeries),
+        this.activateDownloads(campaign.components.downloads)
+      ]);
 
-      // Publish blog
-      if (campaign.components.blog) {
-        try {
-          await this.publishBlog(campaign.components.blog);
-        } catch (error) {
-          console.error('Failed to publish blog:', error);
-          hasFailures = true;
-        }
-      }
-
-      // Send newsletter
-      if (campaign.components.newsletter) {
-        try {
-          await this.sendNewsletter(campaign.components.newsletter);
-        } catch (error) {
-          console.error('Failed to send newsletter:', error);
-          hasFailures = true;
-        }
-      }
-
-      // Publish social series
-      if (campaign.components.socialSeries) {
-        try {
-          await this.publishSocialSeries(campaign.components.socialSeries);
-        } catch (error) {
-          console.error('Failed to publish social series:', error);
-          hasFailures = true;
-        }
-      }
-
-      // Activate downloads
-      if (campaign.components.downloads) {
-        try {
-          await this.activateDownloads(campaign.components.downloads);
-        } catch (error) {
-          console.error('Failed to activate downloads:', error);
-          hasFailures = true;
-        }
-      }
-
-      // Update final status
+      // Check results and update status
+      const hasFailures = publishResults.some(r => r.status === 'rejected');
+      
       await supabase
         .from('campaigns')
         .update({ 
@@ -630,4 +602,4 @@ export class CampaignService {
   }
 }
 
-export const campaignService = new CampaignService(); 
+export const campaignService = new CampaignService();
