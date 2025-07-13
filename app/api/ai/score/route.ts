@@ -1,57 +1,56 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-export async function POST(request: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
-    const { content, keywords } = await request.json();
+    const { content, keywords } = await req.json();
     
     // Calculate various scores
-    const wordCount = content.split(/\s+/).length;
-    const sentenceCount = content.split(/[.!?]+/).filter(Boolean).length;
+    const wordCount = content.split(/\s+/).filter((w: string) => w.length > 0).length;
+    const sentenceCount = content.split(/[.!?]+/).filter((s: string) => s.trim().length > 0).length;
     const avgWordsPerSentence = wordCount / sentenceCount;
     
-    // Readability score (simplified Flesch Reading Ease)
-    const readabilityScore = Math.min(100, Math.max(0, 
-      206.835 - 1.015 * avgWordsPerSentence - 84.6 * (content.length / wordCount)
-    ));
+    // Basic scoring logic
+    let score = 100;
     
-    // SEO score based on keyword usage
-    let seoScore = 50;
-    keywords.forEach((keyword: string) => {
+    // Length scoring
+    if (wordCount < 300) score -= 30;
+    else if (wordCount < 600) score -= 15;
+    else if (wordCount < 800) score -= 5;
+    
+    // Keyword density
+    const keywordDensity = keywords.reduce((acc: number, keyword: string) => {
       const regex = new RegExp(keyword, 'gi');
-      const matches = content.match(regex) || [];
-      const density = (matches.length / wordCount) * 100;
-      
-      // Optimal keyword density is 1-2%
-      if (density >= 0.5 && density <= 2.5) {
-        seoScore += 10;
-      } else if (density > 2.5) {
-        seoScore -= 5; // Over-optimization penalty
-      }
-    });
+      const matches = content.match(regex);
+      return acc + (matches ? matches.length : 0);
+    }, 0) / wordCount * 100;
     
-    // Content structure score
-    const hasHeadings = /^#{1,6}\s/m.test(content);
-    const hasList = /^[\*\-\+]\s/m.test(content) || /^\d+\.\s/m.test(content);
-    const structureScore = (hasHeadings ? 50 : 0) + (hasList ? 30 : 0) + (wordCount > 300 ? 20 : 0);
+    if (keywordDensity < 1) score -= 10;
+    if (keywordDensity > 5) score -= 5;
     
-    // Overall score
-    const overallScore = Math.round(
-      (readabilityScore * 0.3) + 
-      (Math.min(100, seoScore) * 0.4) + 
-      (structureScore * 0.3)
-    );
+    // Readability
+    if (avgWordsPerSentence > 25) score -= 10;
+    if (avgWordsPerSentence < 10) score -= 5;
+    
+    // Check for headings
+    const hasHeadings = content.includes('#');
+    if (!hasHeadings) score -= 10;
+    
+    // Check for questions
+    const questionCount = (content.match(/\?/g) || []).length;
+    if (questionCount < 1) score -= 5;
+    
+    score = Math.max(0, Math.min(100, score));
     
     return NextResponse.json({ 
-      score: overallScore,
+      score,
       details: {
-        readability: Math.round(readabilityScore),
-        seo: Math.min(100, seoScore),
-        structure: structureScore,
-        wordCount
+        wordCount,
+        readability: Math.round(100 - avgWordsPerSentence * 2),
+        keywordDensity: Math.round(keywordDensity * 100) / 100,
+        structure: hasHeadings ? 'good' : 'needs improvement'
       }
     });
   } catch (error) {
-    console.error('Content scoring error:', error);
-    return NextResponse.json({ score: 0 }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to analyze content' }, { status: 500 });
   }
 } 

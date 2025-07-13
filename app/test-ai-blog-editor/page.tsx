@@ -1,6 +1,6 @@
 'use client';
 
-import { AIBlogEditor } from '@/components/admin/AIBlogEditor';
+import AIBlogEditor from '@/components/admin/AIBlogEditor';
 
 export default function TestAIBlogEditorPage() {
   const handleSave = (content: string, metadata: any) => {

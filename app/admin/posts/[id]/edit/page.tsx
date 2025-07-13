@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { AIBlogEditor } from '@/components/admin/AIBlogEditor';
+import AIBlogEditor from '@/components/admin/AIBlogEditor';
 import { useParams, useRouter } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import Link from 'next/link';

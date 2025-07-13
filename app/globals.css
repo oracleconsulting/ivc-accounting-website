@@ -382,3 +382,210 @@
 .progress-indicator-red {
   background-color: #dc2626 !important;
 }
+
+/* AI Blog Editor Contrast Improvements */
+/* Reset any cream/beige backgrounds to white */
+.bg-cream,
+.bg-beige,
+[class*="bg-yellow-50"],
+[class*="bg-orange-50"] {
+  background-color: white !important;
+}
+
+/* Ensure proper text contrast */
+.text-muted,
+.text-muted-foreground {
+  color: #6b7280 !important; /* gray-600 */
+}
+
+.text-primary {
+  color: #111827 !important; /* gray-900 */
+}
+
+/* Fix card backgrounds */
+.card,
+[class*="Card"] {
+  background-color: white !important;
+  border: 1px solid #e5e7eb !important; /* gray-200 */
+}
+
+/* Fix form inputs */
+input,
+textarea,
+select {
+  background-color: white !important;
+  border-color: #d1d5db !important; /* gray-300 */
+  color: #111827 !important; /* gray-900 */
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #9ca3af !important; /* gray-400 */
+}
+
+/* Fix buttons */
+button {
+  transition: all 0.2s ease;
+}
+
+button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Primary buttons */
+button[class*="bg-purple"],
+.btn-primary {
+  background-color: #7c3aed !important; /* purple-600 */
+  color: white !important;
+}
+
+button[class*="bg-purple"]:hover,
+.btn-primary:hover {
+  background-color: #6d28d9 !important; /* purple-700 */
+}
+
+/* Secondary buttons */
+button[class*="bg-gray"],
+.btn-secondary {
+  background-color: #f3f4f6 !important; /* gray-100 */
+  color: #374151 !important; /* gray-700 */
+  border: 1px solid #d1d5db !important; /* gray-300 */
+}
+
+button[class*="bg-gray"]:hover,
+.btn-secondary:hover {
+  background-color: #e5e7eb !important; /* gray-200 */
+}
+
+/* Tabs */
+[role="tablist"] {
+  background-color: #f3f4f6 !important; /* gray-100 */
+  border-bottom: 1px solid #e5e7eb !important; /* gray-200 */
+}
+
+[role="tab"][data-state="active"] {
+  background-color: white !important;
+  border-color: #e5e7eb !important;
+  color: #111827 !important; /* gray-900 */
+}
+
+[role="tab"][data-state="inactive"] {
+  color: #6b7280 !important; /* gray-600 */
+}
+
+/* Badges */
+.badge {
+  font-weight: 500;
+}
+
+.badge-success,
+[class*="bg-green"] {
+  background-color: #dcfce7 !important; /* green-100 */
+  color: #166534 !important; /* green-800 */
+  border: 1px solid #86efac !important; /* green-300 */
+}
+
+.badge-warning,
+[class*="bg-yellow"] {
+  background-color: #fef3c7 !important; /* yellow-100 */
+  color: #92400e !important; /* yellow-800 */
+  border: 1px solid #fcd34d !important; /* yellow-300 */
+}
+
+.badge-error,
+[class*="bg-red"] {
+  background-color: #fee2e2 !important; /* red-100 */
+  color: #991b1b !important; /* red-800 */
+  border: 1px solid #fca5a5 !important; /* red-300 */
+}
+
+/* Alerts */
+.alert {
+  border-width: 1px !important;
+}
+
+.alert-info {
+  background-color: #dbeafe !important; /* blue-100 */
+  border-color: #93c5fd !important; /* blue-300 */
+  color: #1e40af !important; /* blue-800 */
+}
+
+.alert-success {
+  background-color: #dcfce7 !important; /* green-100 */
+  border-color: #86efac !important; /* green-300 */
+  color: #166534 !important; /* green-800 */
+}
+
+.alert-warning {
+  background-color: #fef3c7 !important; /* yellow-100 */
+  border-color: #fcd34d !important; /* yellow-300 */
+  color: #92400e !important; /* yellow-800 */
+}
+
+/* Progress bars */
+.progress {
+  background-color: #e5e7eb !important; /* gray-200 */
+}
+
+.progress-bar,
+[class*="Progress"] > div {
+  background-color: #7c3aed !important; /* purple-600 */
+}
+
+/* Hover states */
+[class*="hover:bg-gray"]:hover {
+  background-color: #f3f4f6 !important; /* gray-100 */
+}
+
+[class*="hover:bg-purple"]:hover {
+  background-color: #ede9fe !important; /* purple-100 */
+}
+
+/* Focus states */
+*:focus {
+  outline: 2px solid #7c3aed !important; /* purple-600 */
+  outline-offset: 2px;
+}
+
+/* Loading states */
+.animate-spin {
+  color: #7c3aed !important; /* purple-600 */
+}
+
+/* Shadows for depth */
+.card,
+[class*="Card"],
+.shadow-sm {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06) !important;
+}
+
+.shadow-md {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+}
+
+.shadow-lg {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Dark mode overrides (if applicable) */
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #111827 !important; /* gray-900 */
+    color: #f3f4f6 !important; /* gray-100 */
+  }
+  
+  .card,
+  [class*="Card"] {
+    background-color: #1f2937 !important; /* gray-800 */
+    border-color: #374151 !important; /* gray-700 */
+  }
+  
+  input,
+  textarea,
+  select {
+    background-color: #1f2937 !important; /* gray-800 */
+    border-color: #4b5563 !important; /* gray-600 */
+    color: #f3f4f6 !important; /* gray-100 */
+  }
+}

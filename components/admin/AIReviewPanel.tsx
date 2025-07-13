@@ -60,7 +60,7 @@ interface OverallReview {
   readabilityScore: number;
 }
 
-export function AIReviewPanel({ 
+export default function ImprovedAIReviewPanel({ 
   content, 
   onContentUpdate, 
   keywords, 
@@ -87,25 +87,21 @@ export function AIReviewPanel({
   const analyzeContent = async () => {
     setAnalyzing(true);
     try {
-      // Simulate comprehensive AI analysis
+      // For now, use the existing logic, but we'll add real API calls
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      // Calculate various scores
       const wordCount = content.split(/\s+/).filter(word => word.length > 0).length;
       const readingTime = Math.ceil(wordCount / 200);
       const sentenceCount = content.split(/[.!?]+/).filter(s => s.trim().length > 0).length;
       const avgWordsPerSentence = wordCount / sentenceCount;
       
-      // Readability score (simplified Flesch Reading Ease)
       const readabilityScore = Math.max(0, Math.min(100, 100 - (avgWordsPerSentence * 2)));
       
-      // SEO Analysis
       const seoScore = calculateSEOScore();
       const structureScore = calculateStructureScore();
       const engagementScore = calculateEngagementScore();
       const technicalScore = calculateTechnicalScore();
 
-      // Overall score calculation
       const overallScore = Math.round(
         (seoScore * 0.3 + 
          structureScore * 0.25 + 
@@ -113,7 +109,6 @@ export function AIReviewPanel({
          technicalScore * 0.2)
       );
 
-      // Set overall review
       setOverallReview({
         score: overallScore,
         grade: getGrade(overallScore),
@@ -122,11 +117,10 @@ export function AIReviewPanel({
         improvements: generateImprovements(),
         readingTime,
         wordCount,
-        sentimentScore: 75, // Placeholder
+        sentimentScore: 75,
         readabilityScore
       });
 
-      // Set detailed review sections
       setReviewSections([
         {
           category: 'SEO Optimization',
@@ -162,7 +156,6 @@ export function AIReviewPanel({
         }
       ]);
 
-      // Generate AI suggestions
       generateAISuggestions();
 
     } catch (error) {
@@ -174,8 +167,6 @@ export function AIReviewPanel({
 
   const calculateSEOScore = () => {
     let score = 100;
-    
-    // Check keyword density
     const keywordDensity = keywords.reduce((acc, keyword) => {
       const regex = new RegExp(keyword, 'gi');
       const matches = content.match(regex);
@@ -184,16 +175,10 @@ export function AIReviewPanel({
     
     if (keywordDensity < 1) score -= 20;
     if (keywordDensity > 3) score -= 10;
-    
-    // Check title
     if (!title) score -= 15;
     if (title && !keywords.some(k => title.toLowerCase().includes(k.toLowerCase()))) score -= 10;
-    
-    // Check meta description length (simulated)
     if (content.length < 1500) score -= 10;
     if (content.length > 5000) score -= 5;
-    
-    // Check headings
     const headingCount = (content.match(/#{1,6}\s/g) || []).length;
     if (headingCount < 3) score -= 15;
     
@@ -202,20 +187,12 @@ export function AIReviewPanel({
 
   const calculateStructureScore = () => {
     let score = 100;
-    
-    // Check paragraphs
     const paragraphs = content.split('\n\n').filter(p => p.trim().length > 0);
     if (paragraphs.length < 5) score -= 20;
-    
-    // Check average paragraph length
     const avgParagraphLength = paragraphs.reduce((acc, p) => acc + p.split(/\s+/).length, 0) / paragraphs.length;
     if (avgParagraphLength > 150) score -= 15;
-    
-    // Check for lists
     const hasBulletPoints = content.includes('•') || content.includes('-') || content.includes('*');
     if (!hasBulletPoints) score -= 10;
-    
-    // Check for sections
     const hasHeadings = content.includes('#');
     if (!hasHeadings) score -= 20;
     
@@ -224,21 +201,13 @@ export function AIReviewPanel({
 
   const calculateEngagementScore = () => {
     let score = 100;
-    
-    // Check for questions
     const questionCount = (content.match(/\?/g) || []).length;
     if (questionCount < 2) score -= 15;
-    
-    // Check for call-to-actions
     const ctaKeywords = ['learn more', 'contact us', 'get started', 'discover', 'find out'];
     const hasCTA = ctaKeywords.some(cta => content.toLowerCase().includes(cta));
     if (!hasCTA) score -= 20;
-    
-    // Check for statistics or numbers
     const hasNumbers = /\d+/.test(content);
     if (!hasNumbers) score -= 10;
-    
-    // Check opening hook (first 100 characters)
     const opening = content.substring(0, 100);
     if (!opening.includes('?') && !opening.includes('!')) score -= 10;
     
@@ -247,20 +216,14 @@ export function AIReviewPanel({
 
   const calculateTechnicalScore = () => {
     let score = 100;
-    
-    // Check for spelling errors (simulated)
     const commonMisspellings = ['teh', 'recieve', 'occured', 'seperate'];
     commonMisspellings.forEach(word => {
       if (content.toLowerCase().includes(word)) score -= 5;
     });
-    
-    // Check sentence variety
     const sentences = content.split(/[.!?]+/);
     const avgSentenceLength = sentences.reduce((acc, s) => acc + s.split(/\s+/).length, 0) / sentences.length;
     if (avgSentenceLength > 25) score -= 15;
     if (avgSentenceLength < 10) score -= 10;
-    
-    // Check for passive voice indicators
     const passiveIndicators = ['was', 'were', 'been', 'being'];
     const passiveCount = passiveIndicators.reduce((acc, word) => {
       const regex = new RegExp(`\\b${word}\\b`, 'gi');
@@ -408,7 +371,6 @@ export function AIReviewPanel({
   };
 
   const generateAISuggestions = async () => {
-    // Simulate AI suggestions based on content analysis
     const suggestions = [
       {
         id: 1,
@@ -441,102 +403,180 @@ export function AIReviewPanel({
 
   const autoFixSEO = async () => {
     setAutoFixing(true);
-    // Implement SEO auto-fixes
-    let updatedContent = content;
-    
-    // Add keywords if missing
-    if (!keywords.some(k => content.toLowerCase().includes(k.toLowerCase()))) {
-      updatedContent = `${keywords[0]} ${content}`;
+    try {
+      // Make API call to fix SEO
+      const response = await fetch('/api/ai/fix-seo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content, keywords, title })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        onContentUpdate(data.improvedContent);
+        alert('SEO improvements applied!');
+      }
+    } catch (error) {
+      console.error('SEO fix failed:', error);
+      // Fallback to simple fix
+      let updatedContent = content;
+      if (!keywords.some(k => content.toLowerCase().includes(k.toLowerCase()))) {
+        updatedContent = `${keywords[0]} ${content}`;
+      }
+      onContentUpdate(updatedContent);
+    } finally {
+      setAutoFixing(false);
     }
-    
-    onContentUpdate(updatedContent);
-    setTimeout(() => setAutoFixing(false), 1000);
   };
 
   const autoFixStructure = async () => {
     setAutoFixing(true);
-    // Implement structure auto-fixes
-    let updatedContent = content;
-    
-    // Add headings if missing
-    if (!content.includes('#')) {
-      const paragraphs = content.split('\n\n');
-      updatedContent = paragraphs.map((p, i) => {
-        if (i % 3 === 0 && i > 0) {
-          return `## Section ${Math.floor(i/3) + 1}\n\n${p}`;
-        }
-        return p;
-      }).join('\n\n');
+    try {
+      const response = await fetch('/api/ai/fix-structure', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        onContentUpdate(data.improvedContent);
+        alert('Structure improvements applied!');
+      }
+    } catch (error) {
+      console.error('Structure fix failed:', error);
+      let updatedContent = content;
+      if (!content.includes('#')) {
+        const paragraphs = content.split('\n\n');
+        updatedContent = paragraphs.map((p, i) => {
+          if (i % 3 === 0 && i > 0) {
+            return `## Section ${Math.floor(i/3) + 1}\n\n${p}`;
+          }
+          return p;
+        }).join('\n\n');
+      }
+      onContentUpdate(updatedContent);
+    } finally {
+      setAutoFixing(false);
     }
-    
-    onContentUpdate(updatedContent);
-    setTimeout(() => setAutoFixing(false), 1000);
   };
 
   const autoFixEngagement = async () => {
     setAutoFixing(true);
-    // Implement engagement auto-fixes
-    let updatedContent = content;
-    
-    // Add a question if missing
-    if (!content.includes('?')) {
-      updatedContent = content.replace(
-        /\.$/, 
-        '. Have you considered how this impacts your business?'
-      );
+    try {
+      const response = await fetch('/api/ai/fix-engagement', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        onContentUpdate(data.improvedContent);
+        alert('Engagement improvements applied!');
+      }
+    } catch (error) {
+      console.error('Engagement fix failed:', error);
+      let updatedContent = content;
+      if (!content.includes('?')) {
+        updatedContent = content.replace(
+          /\.$/, 
+          '. Have you considered how this impacts your business?'
+        );
+      }
+      onContentUpdate(updatedContent);
+    } finally {
+      setAutoFixing(false);
     }
-    
-    onContentUpdate(updatedContent);
-    setTimeout(() => setAutoFixing(false), 1000);
   };
 
   const autoFixTechnical = async () => {
     setAutoFixing(true);
-    // Implement technical auto-fixes
-    let updatedContent = content;
-    
-    // Fix common misspellings
-    updatedContent = updatedContent
-      .replace(/\bteh\b/gi, 'the')
-      .replace(/\brecieve\b/gi, 'receive')
-      .replace(/\boccured\b/gi, 'occurred');
-    
-    onContentUpdate(updatedContent);
-    setTimeout(() => setAutoFixing(false), 1000);
+    try {
+      const response = await fetch('/api/ai/fix-technical', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        onContentUpdate(data.improvedContent);
+        alert('Technical improvements applied!');
+      }
+    } catch (error) {
+      console.error('Technical fix failed:', error);
+      let updatedContent = content;
+      updatedContent = updatedContent
+        .replace(/\bteh\b/gi, 'the')
+        .replace(/\brecieve\b/gi, 'receive')
+        .replace(/\boccured\b/gi, 'occurred');
+      onContentUpdate(updatedContent);
+    } finally {
+      setAutoFixing(false);
+    }
   };
 
   const applyAllSuggestions = async () => {
     setAutoFixing(true);
     
-    // Apply all auto-fixes sequentially
-    await autoFixSEO();
-    await new Promise(resolve => setTimeout(resolve, 500));
-    await autoFixStructure();
-    await new Promise(resolve => setTimeout(resolve, 500));
-    await autoFixEngagement();
-    await new Promise(resolve => setTimeout(resolve, 500));
-    await autoFixTechnical();
-    
-    setAutoFixing(false);
-    analyzeContent();
+    try {
+      const response = await fetch('/api/ai/apply-all-fixes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content, keywords, title })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        onContentUpdate(data.improvedContent);
+        alert('All improvements applied successfully!');
+        analyzeContent();
+      }
+    } catch (error) {
+      console.error('Apply all fixes failed:', error);
+      // Apply fixes sequentially
+      await autoFixSEO();
+      await new Promise(resolve => setTimeout(resolve, 500));
+      await autoFixStructure();
+      await new Promise(resolve => setTimeout(resolve, 500));
+      await autoFixEngagement();
+      await new Promise(resolve => setTimeout(resolve, 500));
+      await autoFixTechnical();
+    } finally {
+      setAutoFixing(false);
+    }
   };
 
-  const applySuggestion = (suggestion: any) => {
-    // Apply individual AI suggestion
-    console.log('Applying suggestion:', suggestion);
-    // Implementation would depend on suggestion type
+  const applySuggestion = async (suggestion: any) => {
+    try {
+      const response = await fetch('/api/ai/apply-suggestion', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content, suggestion })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        onContentUpdate(data.improvedContent);
+        alert(`Applied: ${suggestion.title}`);
+      }
+    } catch (error) {
+      console.error('Apply suggestion failed:', error);
+      alert('Failed to apply suggestion. Please try again.');
+    }
   };
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className="bg-white border-gray-200">
+      <CardHeader className="bg-gray-50 border-b">
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="flex items-center gap-2">
-              <Brain className="w-5 h-5" />
+            <CardTitle className="flex items-center gap-2 text-gray-900">
+              <Brain className="w-5 h-5 text-purple-600" />
               AI Content Review
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-gray-600">
               Comprehensive analysis and optimization suggestions
             </CardDescription>
           </div>
@@ -546,6 +586,7 @@ export function AIReviewPanel({
               variant="outline"
               onClick={analyzeContent}
               disabled={analyzing}
+              className="border-gray-300 hover:bg-gray-100"
             >
               {analyzing ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -556,7 +597,11 @@ export function AIReviewPanel({
             {overallReview && (
               <Badge 
                 variant={overallReview.score >= 80 ? 'default' : overallReview.score >= 60 ? 'secondary' : 'destructive'}
-                className="text-lg px-3 py-1"
+                className={`text-lg px-3 py-1 ${
+                  overallReview.score >= 80 ? 'bg-green-100 text-green-800 border-green-300' : 
+                  overallReview.score >= 60 ? 'bg-yellow-100 text-yellow-800 border-yellow-300' : 
+                  'bg-red-100 text-red-800 border-red-300'
+                }`}
               >
                 {overallReview.grade} · {overallReview.score}%
               </Badge>
@@ -564,59 +609,72 @@ export function AIReviewPanel({
           </div>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-6">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="details">Detailed Analysis</TabsTrigger>
-            <TabsTrigger value="suggestions">AI Suggestions</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 bg-gray-100">
+            <TabsTrigger value="overview" className="data-[state=active]:bg-white">Overview</TabsTrigger>
+            <TabsTrigger value="details" className="data-[state=active]:bg-white">Detailed Analysis</TabsTrigger>
+            <TabsTrigger value="suggestions" className="data-[state=active]:bg-white">AI Suggestions</TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
-          <TabsContent value="overview" className="space-y-4">
+          <TabsContent value="overview" className="space-y-4 mt-6">
             {overallReview && (
               <>
                 {/* Summary Card */}
-                <Alert className={overallReview.score >= 70 ? 'border-green-200' : 'border-yellow-200'}>
-                  <AlertDescription className="text-base">
+                <Alert className={`${
+                  overallReview.score >= 70 ? 'border-green-200 bg-green-50' : 'border-yellow-200 bg-yellow-50'
+                }`}>
+                  <AlertDescription className="text-base text-gray-800">
                     {overallReview.summary}
                   </AlertDescription>
                 </Alert>
 
                 {/* Quick Stats */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Word Count</p>
-                    <p className="text-2xl font-bold">{overallReview.wordCount}</p>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <p className="text-sm text-gray-600">Word Count</p>
+                    <p className="text-2xl font-bold text-gray-900">{overallReview.wordCount}</p>
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Reading Time</p>
-                    <p className="text-2xl font-bold">{overallReview.readingTime} min</p>
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <p className="text-sm text-gray-600">Reading Time</p>
+                    <p className="text-2xl font-bold text-gray-900">{overallReview.readingTime} min</p>
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Readability</p>
-                    <p className="text-2xl font-bold">{overallReview.readabilityScore}%</p>
+                  <div className="bg-purple-50 p-4 rounded-lg">
+                    <p className="text-sm text-gray-600">Readability</p>
+                    <p className="text-2xl font-bold text-gray-900">{overallReview.readabilityScore}%</p>
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Overall Score</p>
-                    <p className="text-2xl font-bold">{overallReview.score}%</p>
+                  <div className={`${
+                    overallReview.score >= 80 ? 'bg-green-50' : 
+                    overallReview.score >= 60 ? 'bg-yellow-50' : 
+                    'bg-red-50'
+                  } p-4 rounded-lg`}>
+                    <p className="text-sm text-gray-600">Overall Score</p>
+                    <p className="text-2xl font-bold text-gray-900">{overallReview.score}%</p>
                   </div>
                 </div>
 
                 {/* Score Breakdown */}
-                <div className="space-y-3">
-                  <h4 className="font-medium">Score Breakdown</h4>
+                <div className="bg-white border rounded-lg p-4">
+                  <h4 className="font-medium text-gray-900 mb-4">Score Breakdown</h4>
                   {reviewSections.map((section) => (
-                    <div key={section.category} className="flex items-center justify-between">
+                    <div key={section.category} className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
                         {section.status === 'good' && <CheckCircle2 className="w-4 h-4 text-green-600" />}
                         {section.status === 'warning' && <AlertCircle className="w-4 h-4 text-yellow-600" />}
                         {section.status === 'error' && <XCircle className="w-4 h-4 text-red-600" />}
-                        <span className="text-sm">{section.category}</span>
+                        <span className="text-sm text-gray-700">{section.category}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Progress value={section.score} className="w-24 h-2" />
-                        <span className="text-sm font-medium w-12 text-right">{section.score}%</span>
+                        <Progress 
+                          value={section.score} 
+                          className="w-24 h-2" 
+                          style={{
+                            '--progress-background': section.status === 'good' ? '#10b981' : 
+                              section.status === 'warning' ? '#f59e0b' : '#ef4444'
+                          } as any}
+                        />
+                        <span className="text-sm font-medium text-gray-900 w-12 text-right">{section.score}%</span>
                       </div>
                     </div>
                   ))}
@@ -624,28 +682,28 @@ export function AIReviewPanel({
 
                 {/* Strengths & Improvements */}
                 <div className="grid md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <h4 className="font-medium flex items-center gap-2">
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <h4 className="font-medium flex items-center gap-2 text-gray-900 mb-3">
                       <CheckCircle2 className="w-4 h-4 text-green-600" />
                       Strengths
                     </h4>
-                    <ul className="space-y-1">
+                    <ul className="space-y-2">
                       {overallReview.strengths.map((strength, i) => (
-                        <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
+                        <li key={i} className="text-sm text-gray-700 flex items-start gap-2">
                           <span className="text-green-600 mt-0.5">•</span>
                           {strength}
                         </li>
                       ))}
                     </ul>
                   </div>
-                  <div className="space-y-2">
-                    <h4 className="font-medium flex items-center gap-2">
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <h4 className="font-medium flex items-center gap-2 text-gray-900 mb-3">
                       <Lightbulb className="w-4 h-4 text-yellow-600" />
                       Areas for Improvement
                     </h4>
-                    <ul className="space-y-1">
+                    <ul className="space-y-2">
                       {overallReview.improvements.map((improvement, i) => (
-                        <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
+                        <li key={i} className="text-sm text-gray-700 flex items-start gap-2">
                           <span className="text-yellow-600 mt-0.5">•</span>
                           {improvement}
                         </li>
@@ -659,7 +717,7 @@ export function AIReviewPanel({
                   <Button 
                     onClick={applyAllSuggestions}
                     disabled={autoFixing}
-                    className="w-full"
+                    className="w-full bg-purple-600 hover:bg-purple-700 text-white"
                   >
                     {autoFixing ? (
                       <>
@@ -679,32 +737,40 @@ export function AIReviewPanel({
           </TabsContent>
 
           {/* Detailed Analysis Tab */}
-          <TabsContent value="details" className="space-y-4">
+          <TabsContent value="details" className="space-y-4 mt-6">
             <ScrollArea className="h-[500px]">
               <div className="space-y-4">
                 {reviewSections.map((section) => (
-                  <Card key={section.category}>
-                    <CardHeader className="pb-3">
+                  <Card key={section.category} className="bg-white border-gray-200">
+                    <CardHeader className={`pb-3 ${
+                      section.status === 'good' ? 'bg-green-50' : 
+                      section.status === 'warning' ? 'bg-yellow-50' : 
+                      'bg-red-50'
+                    }`}>
                       <div className="flex items-center justify-between">
-                        <CardTitle className="text-base flex items-center gap-2">
+                        <CardTitle className="text-base flex items-center gap-2 text-gray-900">
                           {section.status === 'good' && <CheckCircle2 className="w-5 h-5 text-green-600" />}
                           {section.status === 'warning' && <AlertCircle className="w-5 h-5 text-yellow-600" />}
                           {section.status === 'error' && <XCircle className="w-5 h-5 text-red-600" />}
                           {section.category}
                         </CardTitle>
-                        <Badge variant={section.status === 'good' ? 'default' : section.status === 'warning' ? 'secondary' : 'destructive'}>
+                        <Badge className={
+                          section.status === 'good' ? 'bg-green-100 text-green-800' : 
+                          section.status === 'warning' ? 'bg-yellow-100 text-yellow-800' : 
+                          'bg-red-100 text-red-800'
+                        }>
                           {section.score}%
                         </Badge>
                       </div>
                     </CardHeader>
-                    <CardContent className="space-y-3">
+                    <CardContent className="space-y-3 pt-4">
                       {/* Issues */}
                       {section.issues.length > 0 && (
                         <div>
-                          <h5 className="text-sm font-medium mb-2">Issues Found:</h5>
+                          <h5 className="text-sm font-medium text-gray-900 mb-2">Issues Found:</h5>
                           <ul className="space-y-1">
                             {section.issues.map((issue, i) => (
-                              <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
+                              <li key={i} className="text-sm text-gray-700 flex items-start gap-2">
                                 <XCircle className="w-3 h-3 text-red-500 mt-0.5 flex-shrink-0" />
                                 {issue}
                               </li>
@@ -715,10 +781,10 @@ export function AIReviewPanel({
 
                       {/* Suggestions */}
                       <div>
-                        <h5 className="text-sm font-medium mb-2">Suggestions:</h5>
+                        <h5 className="text-sm font-medium text-gray-900 mb-2">Suggestions:</h5>
                         <ul className="space-y-1">
                           {section.suggestions.map((suggestion, i) => (
-                            <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
+                            <li key={i} className="text-sm text-gray-700 flex items-start gap-2">
                               <Lightbulb className="w-3 h-3 text-yellow-500 mt-0.5 flex-shrink-0" />
                               {suggestion}
                             </li>
@@ -733,7 +799,7 @@ export function AIReviewPanel({
                           variant="outline"
                           onClick={section.autoFix}
                           disabled={autoFixing}
-                          className="mt-3"
+                          className="mt-3 border-purple-300 text-purple-700 hover:bg-purple-50"
                         >
                           <Wand2 className="w-4 h-4 mr-2" />
                           Auto-fix {section.category}
@@ -747,23 +813,25 @@ export function AIReviewPanel({
           </TabsContent>
 
           {/* AI Suggestions Tab */}
-          <TabsContent value="suggestions" className="space-y-4">
+          <TabsContent value="suggestions" className="space-y-4 mt-6">
             <div className="space-y-3">
               {aiSuggestions.map((suggestion) => (
-                <Card key={suggestion.id} className="hover:shadow-md transition-shadow">
+                <Card key={suggestion.id} className="hover:shadow-md transition-shadow bg-white border-gray-200">
                   <CardContent className="pt-6">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
-                          <h4 className="font-medium">{suggestion.title}</h4>
-                          <Badge variant={suggestion.impact === 'high' ? 'default' : 'secondary'}>
+                          <h4 className="font-medium text-gray-900">{suggestion.title}</h4>
+                          <Badge className={
+                            suggestion.impact === 'high' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'
+                          }>
                             {suggestion.impact} impact
                           </Badge>
                         </div>
-                        <p className="text-sm text-muted-foreground mb-2">
+                        <p className="text-sm text-gray-600 mb-2">
                           {suggestion.description}
                         </p>
-                        <p className="text-sm">
+                        <p className="text-sm text-gray-800">
                           <strong>Suggestion:</strong> {suggestion.suggestion}
                         </p>
                       </div>
@@ -771,6 +839,7 @@ export function AIReviewPanel({
                         size="sm"
                         variant="outline"
                         onClick={() => applySuggestion(suggestion)}
+                        className="border-purple-300 text-purple-700 hover:bg-purple-50"
                       >
                         Apply
                       </Button>
@@ -780,14 +849,35 @@ export function AIReviewPanel({
               ))}
 
               {/* Generate More Suggestions */}
-              <Card className="border-dashed">
+              <Card className="border-dashed border-gray-300 bg-gray-50">
                 <CardContent className="flex flex-col items-center justify-center py-8 text-center">
-                  <Sparkles className="w-8 h-8 text-muted-foreground mb-3" />
-                  <h4 className="font-medium mb-2">Need More Ideas?</h4>
-                  <p className="text-sm text-muted-foreground mb-4">
+                  <Sparkles className="w-8 h-8 text-purple-600 mb-3" />
+                  <h4 className="font-medium text-gray-900 mb-2">Need More Ideas?</h4>
+                  <p className="text-sm text-gray-600 mb-4">
                     Get advanced AI suggestions based on your content
                   </p>
-                  <Button variant="outline">
+                  <Button 
+                    variant="outline"
+                    onClick={async () => {
+                      try {
+                        const response = await fetch('/api/ai/generate-suggestions', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ content, keywords, title })
+                        });
+                        
+                        if (response.ok) {
+                          const data = await response.json();
+                          setAiSuggestions(prev => [...prev, ...data.suggestions]);
+                          alert('New suggestions generated!');
+                        }
+                      } catch (error) {
+                        console.error('Generate suggestions failed:', error);
+                        alert('Failed to generate suggestions. Please try again.');
+                      }
+                    }}
+                    className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                  >
                     <Brain className="w-4 h-4 mr-2" />
                     Generate Advanced Suggestions
                   </Button>
@@ -799,4 +889,4 @@ export function AIReviewPanel({
       </CardContent>
     </Card>
   );
-} 
+}
