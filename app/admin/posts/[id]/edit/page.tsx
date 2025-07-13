@@ -7,14 +7,14 @@ import { ArrowLeft } from 'lucide-react';
 import { SafeDate } from '@/components/ui/SafeDate';
 import ErrorBoundary from '@/components/ErrorBoundary';
 
-// Dynamically import BlogEditor to avoid SSR issues
-const BlogEditor = dynamic(() => import('@/components/admin/BlogEditor'), {
+// Dynamically import AIBlogEditor to avoid SSR issues
+const AIBlogEditor = dynamic(() => import('@/components/admin/AIBlogEditor').then(mod => ({ default: mod.AIBlogEditor })), {
   ssr: false,
   loading: () => (
     <div className="min-h-screen bg-[#f5f1e8] flex items-center justify-center">
       <div className="flex items-center gap-3">
         <div className="w-8 h-8 border-4 border-[#ff6b35] border-t-transparent rounded-full animate-spin" />
-        <span className="text-lg font-medium text-[#1a2b4a]">Loading editor...</span>
+        <span className="text-lg font-medium text-[#1a2b4a]">Loading AI editor...</span>
       </div>
     </div>
   )
@@ -100,9 +100,15 @@ export default async function EditPostPage({ params }: EditPostPageProps) {
       {/* Editor */}
       <div className="p-6">
         <ErrorBoundary>
-          <BlogEditor 
-            post={post}
+          <AIBlogEditor 
+            initialContent={post.content || ''}
             postId={params.id}
+            userId={user.id}
+            onSave={async (content: string, metadata: any) => {
+              // Handle save logic here
+              console.log('Saving content:', { content, metadata });
+              // You can implement the actual save logic here
+            }}
           />
         </ErrorBoundary>
       </div>
