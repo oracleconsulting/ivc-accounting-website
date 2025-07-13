@@ -1,54 +1,108 @@
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
-import { notFound, redirect } from 'next/navigation';
+'use client';
+
+import { useState, useEffect } from 'react';
+import { AIBlogEditor } from '@/components/admin/AIBlogEditor';
+import { useParams, useRouter } from 'next/navigation';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import Link from 'next/link';
-import dynamic from 'next/dynamic';
 import { ArrowLeft } from 'lucide-react';
 import { SafeDate } from '@/components/ui/SafeDate';
 import ErrorBoundary from '@/components/ErrorBoundary';
 
-// Dynamically import AIBlogEditor to avoid SSR issues
-const AIBlogEditor = dynamic(() => import('@/components/admin/AIBlogEditor').then(mod => ({ default: mod.AIBlogEditor })), {
-  ssr: false,
-  loading: () => (
-    <div className="min-h-screen bg-[#f5f1e8] flex items-center justify-center">
-      <div className="flex items-center gap-3">
-        <div className="w-8 h-8 border-4 border-[#ff6b35] border-t-transparent rounded-full animate-spin" />
-        <span className="text-lg font-medium text-[#1a2b4a]">Loading AI editor...</span>
-      </div>
-    </div>
-  )
-});
+export default function EditPostPage() {
+  const params = useParams();
+  const router = useRouter();
+  const postId = params.id as string;
+  const supabase = createClientComponentClient();
+  
+  const [post, setPost] = useState<any>(null);
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-interface EditPostPageProps {
-  params: {
-    id: string;
+  useEffect(() => {
+    // Check authentication and fetch post data
+    const initializePage = async () => {
+      try {
+        // Check authentication
+        const { data: { user: currentUser } } = await supabase.auth.getUser();
+        if (!currentUser) {
+          router.push('/login');
+          return;
+        }
+        setUser(currentUser);
+
+        // Fetch the post data
+        const { data: postData, error } = await supabase
+          .from('posts')
+          .select('*')
+          .eq('id', postId)
+          .single();
+        
+        if (error || !postData) {
+          console.log('Post not found:', postId, error);
+          router.push('/admin/posts');
+          return;
+        }
+        
+        setPost(postData);
+      } catch (error) {
+        console.error('Error initializing page:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    initializePage();
+  }, [postId, router, supabase]);
+
+  const handleSave = async (content: string, metadata: any) => {
+    try {
+      const { error } = await supabase
+        .from('posts')
+        .update({
+          content,
+          title: metadata.title,
+          keywords: metadata.keywords,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', postId);
+
+      if (!error) {
+        console.log('Post saved successfully');
+        // You could show a success toast here
+      } else {
+        console.error('Error saving post:', error);
+      }
+    } catch (error) {
+      console.error('Error saving post:', error);
+    }
   };
-}
 
-export default async function EditPostPage({ params }: EditPostPageProps) {
-  console.log('EditPostPage: Loading with ID:', params.id);
-  
-  const supabase = createServerComponentClient({ cookies });
-  
-  // Check authentication
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    redirect('/login');
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#f5f1e8] flex items-center justify-center">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 border-4 border-[#ff6b35] border-t-transparent rounded-full animate-spin" />
+          <span className="text-lg font-medium text-[#1a2b4a]">Loading editor...</span>
+        </div>
+      </div>
+    );
   }
 
-  // Fetch post data - SIMPLIFIED QUERY
-  const { data: post, error } = await supabase
-    .from('posts')
-    .select('*')  // Just get the post without joins
-    .eq('id', params.id)
-    .single();
-
-  console.log('EditPostPage: Post query result:', { post: post?.id, error });
-
-  if (error || !post) {
-    console.log('Post not found:', params.id, error);
-    notFound();
+  if (!post || !user) {
+    return (
+      <div className="min-h-screen bg-[#f5f1e8] flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-[#1a2b4a] mb-4">Post not found</h1>
+          <Link
+            href="/admin/posts"
+            className="px-4 py-2 bg-[#ff6b35] text-white rounded-lg hover:bg-[#e55a2b] transition-colors"
+          >
+            Back to Posts
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -102,13 +156,9 @@ export default async function EditPostPage({ params }: EditPostPageProps) {
         <ErrorBoundary>
           <AIBlogEditor 
             initialContent={post.content || ''}
-            postId={params.id}
+            postId={postId}
             userId={user.id}
-            onSave={async (content: string, metadata: any) => {
-              // Handle save logic here
-              console.log('Saving content:', { content, metadata });
-              // You can implement the actual save logic here
-            }}
+            onSave={handleSave}
           />
         </ErrorBoundary>
       </div>
