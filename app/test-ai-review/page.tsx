@@ -92,10 +92,7 @@ Effective tax planning requires ongoing attention and professional expertise. Co
             content={content}
             onContentUpdate={setContent}
             keywords={keywords.split(',').map(k => k.trim()).filter(k => k)}
-            previousSuggestions={{
-              research: "Research shows that 60% of small businesses overpay on taxes due to poor planning.",
-              improvements: "Consider adding more specific examples and actionable steps."
-            }}
+            aiMode="comprehensive"
           />
         </div>
       </div>

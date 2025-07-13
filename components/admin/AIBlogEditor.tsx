@@ -31,12 +31,6 @@ import {
 // Import all our AI components
 import { AIReviewPanel } from './AIReviewPanel';
 import { ContentScoreBadge } from './ContentScoreBadge';
-import { InlineSuggestions } from './InlineSuggestions';
-import { ContentTemplates } from './ContentTemplates';
-import { CompetitiveAnalysis } from './CompetitiveAnalysis';
-import { AutoEnhancements } from './AutoEnhancements';
-import { ContentExporter } from './ContentExporter';
-import { SuggestionHistory } from './SuggestionHistory';
 import { BeforeAfterPreview } from './BeforeAfterPreview';
 import { BlogToCampaignBridge } from './BlogToCampaignBridge';
 
@@ -192,43 +186,11 @@ export function AIBlogEditor({ initialContent = '', postId, userId = 'current-us
       </div>
 
       {/* Main Editor Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Left Panel - Templates and Tools */}
-        <div className="lg:col-span-1 space-y-4">
-          <ContentTemplates 
-            onSelectTemplate={(template) => {
-              setContent(template.content);
-              setTitle(template.title);
-              setKeywords(template.keywords);
-            }}
-          />
-          
-          <CompetitiveAnalysis 
-            keywords={keywords}
-            onInsightApply={(insight) => {
-              toast({
-                title: "Competitive Insight Applied",
-                description: insight,
-              });
-            }}
-          />
-
-          <SuggestionHistory 
-            history={history}
-            onRestore={(entry) => {
-              setContent(entry.content);
-              toast({
-                title: "Content Restored",
-                description: `Restored to version from ${new Date(entry.timestamp).toLocaleString()}`,
-              });
-            }}
-          />
-        </div>
-
-        {/* Center Panel - Main Editor */}
-        <div className="lg:col-span-2 space-y-4">
-          <Card>
-            <CardHeader>
+      <div className="space-y-4">
+        {/* Main Editor */}
+        <Card>
+          <CardHeader>
+            <div className="space-y-4">
               <input
                 type="text"
                 placeholder="Blog Title"
@@ -243,61 +205,34 @@ export function AIBlogEditor({ initialContent = '', postId, userId = 'current-us
                 onChange={(e) => setKeywords(e.target.value.split(',').map(k => k.trim()))}
                 className="text-sm text-muted-foreground border-none outline-none w-full"
               />
-            </CardHeader>
-            <CardContent>
-              {isAutoEnhanceEnabled ? (
-                <InlineSuggestions
-                  content={content}
-                  onChange={handleContentUpdate}
-                  aiMode={aiMode}
-                  suggestions={suggestions}
-                />
-              ) : (
-                <textarea
-                  value={content}
-                  onChange={(e) => handleContentUpdate(e.target.value)}
-                  className="w-full min-h-[400px] p-4 border rounded-md"
-                  placeholder="Start writing your blog post..."
-                />
-              )}
-            </CardContent>
-          </Card>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <textarea
+              value={content}
+              onChange={(e) => handleContentUpdate(e.target.value)}
+              className="w-full min-h-[400px] p-4 border rounded-md"
+              placeholder="Start writing your blog post..."
+            />
+          </CardContent>
+        </Card>
 
-          {/* Auto-Enhancement Tools */}
-          <AutoEnhancements
-            content={content}
-            onEnhance={handleContentUpdate}
-            isEnabled={isAutoEnhanceEnabled}
-            aiMode={aiMode}
-          />
+        {/* AI Review Panel */}
+        <AIReviewPanel
+          content={content}
+          onContentUpdate={handleContentUpdate}
+          keywords={keywords}
+          aiMode={aiMode}
+          title={title}
+        />
 
-          {/* AI Review Panel */}
-          <AIReviewPanel
-            content={content}
-            onContentUpdate={handleContentUpdate}
-            keywords={keywords}
-            aiMode={aiMode}
-          />
-
-          {/* Before/After Preview */}
+        {/* Before/After Preview */}
+        {initialContent && content !== initialContent && (
           <BeforeAfterPreview
             originalContent={initialContent}
             currentContent={content}
           />
-
-          {/* Export Options */}
-          <ContentExporter
-            content={content}
-            title={title}
-            keywords={keywords}
-            onExport={(format, exportedContent) => {
-              toast({
-                title: `Exported as ${format}`,
-                description: "Content has been prepared for export",
-              });
-            }}
-          />
-        </div>
+        )}
       </div>
 
       {/* Floating Action Bar */}
