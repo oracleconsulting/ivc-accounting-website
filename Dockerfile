@@ -20,7 +20,7 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED 1
 
 # Install additional build dependencies
-RUN npm install -D postcss-loader style-loader css-loader
+RUN npm install -D postcss-loader style-loader css-loader --legacy-peer-deps
 
 # IMPORTANT: Add build-time arguments for all env vars
 ARG NEXT_PUBLIC_SUPABASE_URL
