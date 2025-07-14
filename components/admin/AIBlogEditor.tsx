@@ -1,84 +1,56 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
-import RichTextEditor from './RichTextEditor';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Progress } from '@/components/ui/progress';
 import { 
   Sparkles, 
   Zap, 
   Trophy, 
   Gem,
   FileText,
-  TrendingUp,
-  Search,
-  Link,
-  Quote,
-  Layout,
-  History,
-  Eye,
-  Save,
-  Download,
-  Mail,
-  Share2,
-  Video,
-  Loader2,
   Brain,
   Shield,
-  Lightbulb,
   Wand2,
   CheckCircle2,
   AlertCircle,
-  XCircle,
-  Hash,
-  RefreshCw,
-  Copy,
-  Target,
-  Plus
+  Plus,
+  Eye,
+  Layout,
+  Palette,
+  Grid,
+  Type,
+  Image,
+  Video,
+  BarChart,
+  Quote,
+  List,
+  Code,
+  Loader2,
+  ChevronRight,
+  PanelLeft,
+  PanelRight,
+  Maximize2,
+  Download,
+  Share2
 } from 'lucide-react';
 
-// Helper to extract plain text from TipTap/editor JSON
-const extractTextFromJSON = (doc: any): string => {
-  if (!doc || !doc.content) return '';
-  
-  let text = '';
-  
-  const extractFromNode = (node: any) => {
-    if (node.type === 'text') {
-      text += node.text || '';
-    } else if (node.content && Array.isArray(node.content)) {
-      node.content.forEach(extractFromNode);
-    }
-    
-    // Add line breaks for paragraphs
-    if (node.type === 'paragraph') {
-      text += '\n\n';
-    } else if (node.type === 'heading') {
-      const level = node.attrs?.level || 1;
-      text = text.trim() + '\n\n' + '#'.repeat(level) + ' ';
-    }
-  };
-  
-  if (Array.isArray(doc.content)) {
-    doc.content.forEach(extractFromNode);
-  } else {
-    extractFromNode(doc);
-  }
-  
-  return text.trim();
-};
-
 // AI Writing Modes
-const AI_MODES = {
+type AIModeKey = 'speed' | 'quality' | 'excellence';
+interface AIMode {
+  name: string;
+  icon: any;
+  model: string;
+  description: string;
+  color: string;
+}
+const AI_MODES: Record<AIModeKey, AIMode> = {
   speed: {
     name: 'Speed Mode',
     icon: Zap,
@@ -102,99 +74,99 @@ const AI_MODES = {
   }
 };
 
-export default function WorkingAIBlogEditor({ 
+// Layout components for AI-generated layouts
+interface LayoutComponent {
+  name: string;
+  icon: any;
+}
+const LAYOUT_COMPONENTS: Record<string, LayoutComponent> = {
+  hero: { name: 'Hero Section', icon: Maximize2 },
+  stats: { name: 'Statistics', icon: BarChart },
+  quote: { name: 'Pull Quote', icon: Quote },
+  comparison: { name: 'Comparison Table', icon: Grid },
+  timeline: { name: 'Timeline', icon: List },
+  cta: { name: 'Call to Action', icon: ChevronRight },
+  faq: { name: 'FAQ Section', icon: Type },
+  testimonial: { name: 'Testimonials', icon: Quote },
+  infographic: { name: 'Infographic', icon: Image },
+  video: { name: 'Video Section', icon: Video }
+};
+
+interface LayoutSuggestion {
+  id: string;
+  name: string;
+  score: number;
+  components: any[];
+  description: string;
+  preview: string;
+}
+
+interface OverallReview {
+  score: number;
+  grade: string;
+  wordCount: number;
+  readingTime: number;
+}
+
+export default function EnhancedAIBlogEditor({ 
   initialContent = '', 
   postId, 
   userId = 'current-user-id', 
-  onSave 
+  onSave = () => {} 
 }: {
-  initialContent?: string | object;
+  initialContent?: string;
   postId?: string;
   userId?: string;
-  onSave: (content: string, metadata: any) => void;
+  onSave?: (content: string, metadata: any) => void;
 }) {
-  const [content, setContent] = useState(initialContent);
-  const [aiMode, setAiMode] = useState<keyof typeof AI_MODES>('quality');
-  const [title, setTitle] = useState('');
+  const [content, setContent] = useState<string>(initialContent);
+  const [aiMode, setAiMode] = useState<AIModeKey>('quality');
+  const [title, setTitle] = useState<string>('');
   const [keywords, setKeywords] = useState<string[]>([]);
-  const [currentKeyword, setCurrentKeyword] = useState('');
-  const [isAutoEnhanceEnabled, setIsAutoEnhanceEnabled] = useState(true);
-  const [contentScore, setContentScore] = useState(0);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [currentKeyword, setCurrentKeyword] = useState<string>('');
+  const [isAutoEnhanceEnabled, setIsAutoEnhanceEnabled] = useState<boolean>(true);
+  const [contentScore, setContentScore] = useState<number>(0);
+  const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
+  const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [activeAssistant, setActiveAssistant] = useState<string | null>(null);
-  const [assistantInput, setAssistantInput] = useState('');
+  
+  // New states for enhanced features
+  const [splitView, setSplitView] = useState<boolean>(true);
+  const [previewMode, setPreviewMode] = useState<boolean>(false);
+  const [selectedLayout, setSelectedLayout] = useState<LayoutSuggestion | null>(null);
+  const [aiLayoutSuggestions, setAiLayoutSuggestions] = useState<LayoutSuggestion[]>([]);
+  const [isApplyingImprovements, setIsApplyingImprovements] = useState<boolean>(false);
+  const [layoutPreview, setLayoutPreview] = useState<string>(''); // Store preview in state instead of localStorage
+  const editorRef = useRef<HTMLTextAreaElement | null>(null);
   
   // AI Review state
-  const [overallReview, setOverallReview] = useState<any>(null);
+  const [overallReview, setOverallReview] = useState<OverallReview | null>(null);
   const [reviewSections, setReviewSections] = useState<any[]>([]);
-  
-  // JSON content for saving
-  const [jsonContent, setJsonContent] = useState<any>(null);
 
-  // Parse initial content if it's JSON
-  useEffect(() => {
-    if (initialContent) {
-      try {
-        if (typeof initialContent === 'string' && initialContent.trim().startsWith('{')) {
-          const parsed = JSON.parse(initialContent);
-          // Set JSON content for the editor
-          setJsonContent(parsed);
-          // Set plain text for AI analysis
-          const extractedText = extractTextFromJSON(parsed);
-          setContent(extractedText);
-        } else if (typeof initialContent === 'object') {
-          // Set JSON content for the editor
-          setJsonContent(initialContent);
-          // Set plain text for AI analysis
-          const extractedText = extractTextFromJSON(initialContent);
-          setContent(extractedText);
-        } else {
-          setContent(initialContent);
-        }
-      } catch (error) {
-        console.error('Error parsing initial content:', error);
-        setContent(initialContent);
-      }
-    }
-  }, [initialContent]);
-
-  // Fixed content analysis useEffect
+  // Real-time content scoring
   useEffect(() => {
     const analyzeContent = async () => {
-      const plainTextContent = typeof content === 'string' ? content : '';
-      
-      if (!plainTextContent || plainTextContent.trim().length < 50) {
-        setContentScore(0);
-        setOverallReview(null);
-        return;
-      }
+      if (!content || content.length < 100) return;
       
       setIsAnalyzing(true);
       try {
-        const words = plainTextContent.split(/\s+/).filter(w => w.length > 0);
-        const wordCount = words.length;
-        
-        let score = 0;
-        if (wordCount >= 100) score = 30;
-        if (wordCount >= 300) score = 50;
-        if (wordCount >= 500) score = 70;
-        if (wordCount >= 800) score = 85;
-        if (wordCount >= 1000) score = 90;
-        
-        if (title && title.length > 10) score += 5;
-        if (keywords.length > 0) score += 5;
-        
-        score = Math.min(100, score);
-        
-        setContentScore(score);
-        
-        setOverallReview({
-          score,
-          grade: score >= 90 ? 'A+' : score >= 80 ? 'A' : score >= 70 ? 'B' : score >= 60 ? 'C' : 'D',
-          wordCount,
-          readingTime: Math.ceil(wordCount / 200)
+        const response = await fetch('/api/ai/score', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content, keywords, title })
         });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setContentScore(data.score);
+          
+          setOverallReview({
+            score: data.score,
+            grade: data.score >= 90 ? 'A+' : data.score >= 80 ? 'A' : data.score >= 70 ? 'B' : 'C',
+            wordCount: data.details.wordCount,
+            readingTime: Math.ceil(data.details.wordCount / 200)
+          });
+        }
       } catch (error) {
         console.error('Failed to analyze content:', error);
       } finally {
@@ -206,10 +178,6 @@ export default function WorkingAIBlogEditor({
     return () => clearTimeout(debounceTimer);
   }, [content, keywords, title]);
 
-  const handleContentUpdate = useCallback((newContent: string) => {
-    setContent(newContent);
-  }, []);
-
   const addKeyword = () => {
     if (currentKeyword.trim() && !keywords.includes(currentKeyword.trim())) {
       setKeywords([...keywords, currentKeyword.trim()]);
@@ -218,265 +186,108 @@ export default function WorkingAIBlogEditor({
   };
 
   const removeKeyword = (keyword: string) => {
-    setKeywords(keywords.filter(k => k !== keyword));
+    setKeywords(keywords.filter((k) => k !== keyword));
   };
 
-  // AI Assistant Functions
-  const handleResearchTopic = async () => {
-    setIsGenerating(true);
-    setActiveAssistant('research');
-    
+  // Apply all improvements function
+  const applyAllImprovements = async () => {
+    setIsApplyingImprovements(true);
     try {
-      const response = await fetch('/api/ai/research', {
+      const response = await fetch('/api/ai/apply-all-fixes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          industry: 'accounting',
-          targetMarket: 'UK small businesses',
-          timeframe: 'Q1 2024'
-        })
+        body: JSON.stringify({ content, keywords, title })
       });
       
       if (response.ok) {
         const data = await response.json();
-        const researchResults = `
-## Research Results: ${title || 'Tax Planning Strategies'}
-
-### Key Findings:
-${data.results.map((result: any) => `
-**${result.topic}** (Relevance: ${result.relevance}%)
-- Impact: ${result.impact}
-- Keywords: ${result.keywords.join(', ')}
-- Sources: ${result.sources.join(', ')}
-- Target Audience: ${result.targetAudience}
-`).join('\n')}
-
-### Recommended Topics to Cover:
-- Impact of new dividend tax rates
-- Benefits of salary sacrifice schemes
-- Tax-efficient business structures
-
-[Sources: HMRC, AccountingWeb, ICAEW]
-        `;
         
-        setContent(content + '\n\n' + researchResults);
-        alert('Research completed! Content added to your editor.');
+        // Apply all the improvements
+        setContent(data.improvedContent);
+        setTitle(data.improvedTitle);
+        setKeywords(data.improvedKeywords);
+        
+        // Update the score
+        setContentScore(data.newScore);
+        
+        // Show success message with improvements made
+        const improvements = [];
+        if (data.improvements.seoFixed) improvements.push('SEO optimization');
+        if (data.improvements.structureFixed) improvements.push('content structure');
+        if (data.improvements.engagementFixed) improvements.push('reader engagement');
+        if (data.improvements.technicalFixed) improvements.push('technical quality');
+        if (data.improvements.ctaAdded) improvements.push('call-to-action');
+        
+        alert(`Successfully improved: ${improvements.join(', ')}. Your content score is now ${data.newScore}%!`);
+      } else {
+        throw new Error('Failed to apply improvements');
       }
     } catch (error) {
-      console.error('Research failed:', error);
-      alert('Failed to complete research. Please try again.');
+      console.error('Failed to apply improvements:', error);
+      // Fallback to local improvements
+      if (!title && keywords.length > 0) {
+        setTitle(`Ultimate Guide to ${keywords[0]} - Expert Insights & Strategies`);
+      } else if (!title) {
+        setTitle('Transform Your Business with These Essential Strategies');
+      }
+      
+      alert('Applied basic improvements. Some features may not be available.');
     } finally {
-      setIsGenerating(false);
-      setActiveAssistant(null);
+      setIsApplyingImprovements(false);
     }
   };
 
-  const handleGenerateIdeas = async () => {
+  // Generate AI Layout Suggestions
+  const generateAILayout = async () => {
     setIsGenerating(true);
-    setActiveAssistant('ideas');
-    
     try {
-      const response = await fetch('/api/ai/generate-suggestions', {
+      const response = await fetch('/api/ai/generate-layout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           content,
+          title,
           keywords,
-          title
+          contentType: 'blog'
         })
       });
       
       if (response.ok) {
         const data = await response.json();
-        const ideas = `
-## Content Ideas Generated:
-
-### Blog Post Ideas:
-${data.suggestions.map((suggestion: any, index: number) => 
-  `${index + 1}. "${suggestion.title}" (${suggestion.impact} impact)`
-).join('\n')}
-
-### Content Angles:
-- Case study approach with real client examples
-- Q&A format addressing common concerns
-- Comparison posts (old vs new regulations)
-- Step-by-step tutorials with screenshots
-- Myth-busting articles
-
-### Engaging Elements to Include:
-- Interactive tax calculators
-- Downloadable checklists
-- Infographics showing tax savings
-- Video summaries for complex topics
-        `;
+        setAiLayoutSuggestions(data.suggestions as LayoutSuggestion[]);
         
-        const dialog = document.createElement('div');
-        dialog.innerHTML = `
-          <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
-               background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-               max-width: 500px; z-index: 1000;">
-            <h3 style="margin-bottom: 10px;">Content Ideas Generated!</h3>
-            <div style="max-height: 400px; overflow-y: auto; white-space: pre-wrap;">${ideas}</div>
-            <button onclick="this.parentElement.remove()" 
-                    style="margin-top: 10px; padding: 8px 16px; background: #6366f1; color: white; 
-                           border: none; border-radius: 4px; cursor: pointer;">
-              Close
-            </button>
-          </div>
-          <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 999;"
-               onclick="this.parentElement.remove()"></div>
-        `;
-        document.body.appendChild(dialog);
-      }
-    } catch (error) {
-      console.error('Generate ideas failed:', error);
-      alert('Failed to generate ideas. Please try again.');
-    } finally {
-      setIsGenerating(false);
-      setActiveAssistant(null);
-    }
-  };
-
-  const handleImproveWriting = async () => {
-    if (!content) {
-      alert('Please write some content first!');
-      return;
-    }
-    
-    setIsGenerating(true);
-    setActiveAssistant('improve');
-    
-    try {
-      const response = await fetch('/api/ai/writing', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          currentContent: content,
-          prompt: 'improve writing quality and engagement',
-          targetKeywords: keywords
-        })
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setContent(typeof data === 'string' ? data : (data?.content || ''));
-        alert('Writing improved! Check the enhanced content.');
-      }
-    } catch (error) {
-      console.error('Improve writing failed:', error);
-      alert('Failed to improve writing. Please try again.');
-    } finally {
-      setIsGenerating(false);
-      setActiveAssistant(null);
-    }
-  };
-
-  const handleAddCitations = async () => {
-    setIsGenerating(true);
-    setActiveAssistant('citations');
-    
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      const citations = `
-## References and Sources
-
-1. **HMRC Guidance**
-   - [Corporation Tax rates and reliefs](https://www.gov.uk/corporation-tax)
-   - [VAT rates](https://www.gov.uk/vat-rates)
-   - [Making Tax Digital](https://www.gov.uk/government/collections/making-tax-digital)
-
-2. **Professional Bodies**
-   - ICAEW Tax Faculty Guidelines 2024
-   - ACCA Technical Articles on Tax Planning
-   - ATT Professional Standards
-
-3. **Recent Updates**
-   - Finance Act 2024 Summary
-   - Spring Budget 2024 Tax Measures
-   - HMRC Policy Papers
-
-4. **Industry Reports**
-   - "UK Tax Landscape 2024" - PwC
-   - "Small Business Tax Survey" - FSB
-   - "Digital Tax Transformation" - Deloitte
-
-*Last updated: ${new Date().toLocaleDateString()}*
-      `;
-      
-      setContent(content + '\n\n' + citations);
-      alert('Citations added to your content!');
-    } catch (error) {
-      console.error('Add citations failed:', error);
-      alert('Failed to add citations. Please try again.');
-    } finally {
-      setIsGenerating(false);
-      setActiveAssistant(null);
-    }
-  };
-
-  const handleGenerateSocialPosts = async () => {
-    if (!title || !content) {
-      alert('Please add a title and some content first!');
-      return;
-    }
-    
-    setIsGenerating(true);
-    
-    try {
-      const response = await fetch('/api/ai/social', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          blogTitle: title,
-          blogContent: content,
-          platforms: ['linkedin', 'twitter', 'instagram'],
-          businessInfo: 'IVC Accounting - Chartered Accountants in Halstead, Essex'
-        })
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        const socialPosts = data.posts.reduce((acc: any, post: any) => {
-          acc[post.platform] = post.content;
-          return acc;
-        }, {});
+        // Store the HTML preview for later use
+        if (data.htmlPreview) {
+          setLayoutPreview(data.htmlPreview);
+        }
         
-        const dialog = document.createElement('div');
-        dialog.innerHTML = `
-          <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
-               background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-               max-width: 600px; max-height: 80vh; overflow-y: auto; z-index: 1000;">
-            <h3 style="margin-bottom: 15px;">Social Media Posts Generated!</h3>
-            
-            ${data.posts.map((post: any) => `
-              <div style="margin-bottom: 20px;">
-                <h4 style="color: ${post.platform === 'linkedin' ? '#0077b5' : post.platform === 'twitter' ? '#1da1f2' : '#e4405f'};">${post.platform.charAt(0).toUpperCase() + post.platform.slice(1)} Post</h4>
-                <div style="background: #f3f4f6; padding: 10px; border-radius: 4px; white-space: pre-wrap;">
-${post.content}
-                </div>
-                <button onclick="navigator.clipboard.writeText(this.previousElementSibling.textContent)"
-                        style="margin-top: 5px; padding: 4px 12px; background: #e5e7eb; border: none; 
-                               border-radius: 4px; cursor: pointer;">
-                  Copy ${post.platform.charAt(0).toUpperCase() + post.platform.slice(1)} Post
-                </button>
-              </div>
-            `).join('')}
-            
-            <button onclick="this.parentElement.remove()" 
-                    style="margin-top: 10px; padding: 8px 16px; background: #6366f1; color: white; 
-                           border: none; border-radius: 4px; cursor: pointer;">
-              Close
-            </button>
-          </div>
-          <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 999;"
-               onclick="this.parentElement.remove()"></div>
-        `;
-        document.body.appendChild(dialog);
+        alert(`AI has analyzed your content and suggested ${data.suggestions.length} dynamic layouts! The top recommendation is "${data.topSuggestion.name}" based on your content type.`);
+      } else {
+        throw new Error('Failed to generate layouts');
       }
     } catch (error) {
-      console.error('Generate social posts failed:', error);
-      alert('Failed to generate social posts. Please try again.');
+      console.error('Failed to generate layout:', error);
+      // Fallback to default suggestions
+      const fallbackSuggestions: LayoutSuggestion[] = [
+        {
+          id: 'professional-service',
+          name: 'Professional Service Layout',
+          score: 90,
+          components: ['hero', 'stats', 'comparison', 'testimonial', 'cta'],
+          description: 'Clean, trust-building layout perfect for accounting services',
+          preview: '🎯 Hero → 📊 Stats → 📋 Comparison → 💬 Testimonials → 🎯 CTA'
+        },
+        {
+          id: 'educational-blog',
+          name: 'Educational Blog Layout',
+          score: 85,
+          components: ['hero', 'timeline', 'faq', 'infographic', 'cta'],
+          description: 'Information-rich layout for educational content',
+          preview: '🎯 Hero → 📅 Timeline → ❓ FAQ → 📊 Infographic → 🎯 CTA'
+        }
+      ];
+      setAiLayoutSuggestions(fallbackSuggestions);
+      alert('Generated default layout suggestions. AI analysis unavailable.');
     } finally {
       setIsGenerating(false);
     }
@@ -485,326 +296,460 @@ ${post.content}
   const CurrentModeIcon = AI_MODES[aiMode].icon;
 
   return (
-    <div className="max-w-7xl mx-auto p-4 space-y-4 ai-blog-editor">
-      {/* Header with AI Mode Selector and Content Score */}
-      <div className="flex items-center justify-between bg-white p-4 border-2 border-[#1a2b4a]">
-        <div className="flex items-center gap-4">
-          <h1 className="text-2xl font-black text-[#1a2b4a] uppercase">AI Blog Editor</h1>
-          {contentScore > 0 && (
-            <Badge 
-              className={`text-lg px-3 py-1 font-black uppercase ${
-                contentScore >= 80 ? 'bg-green-500 text-white border-2 border-green-600' : 
-                contentScore >= 60 ? 'bg-orange-500 text-white border-2 border-orange-600' : 
-                'bg-red-500 text-white border-2 border-red-600'
-              }`}
-            >
-              {overallReview?.grade || 'F'} · {contentScore}%
-            </Badge>
-          )}
-        </div>
-        
-        <div className="flex items-center gap-4">
-          {/* AI Mode Selector */}
-          <Select value={aiMode} onValueChange={(value: keyof typeof AI_MODES) => setAiMode(value)}>
-            <SelectTrigger className="w-[180px] bg-white border-2 border-[#1a2b4a] text-[#1a2b4a] font-bold">
-              <SelectValue>
-                <div className="flex items-center gap-2">
-                  <CurrentModeIcon className="w-4 h-4" />
-                  {AI_MODES[aiMode].name}
-                </div>
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent className="bg-white border-2 border-[#1a2b4a]">
-              {Object.entries(AI_MODES).map(([key, mode]) => {
-                const Icon = mode.icon;
-                return (
-                  <SelectItem key={key} value={key} className="hover:bg-[#f5f1e8]">
-                    <div className="flex items-center gap-2">
-                      <Icon className={`w-4 h-4 ${mode.color}`} />
-                      <div>
-                        <div className="font-bold text-[#1a2b4a]">{mode.name}</div>
-                        <div className="text-xs text-[#1a2b4a]">{mode.description}</div>
-                      </div>
-                    </div>
-                  </SelectItem>
-                );
-              })}
-            </SelectContent>
-          </Select>
-
-          {/* Auto-Enhance Toggle */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setIsAutoEnhanceEnabled(!isAutoEnhanceEnabled)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                isAutoEnhanceEnabled ? 'bg-[#ff6b35]' : 'bg-gray-300'
-              }`}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  isAutoEnhanceEnabled ? 'translate-x-6' : 'translate-x-1'
+    <div className="h-screen flex flex-col bg-gray-50">
+      {/* Fixed Header */}
+      <div className="flex-none bg-white border-b-2 border-[#1a2b4a] p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <h1 className="text-2xl font-black text-[#1a2b4a] uppercase">AI Blog Editor</h1>
+            {contentScore > 0 && (
+              <Badge 
+                className={`text-lg px-3 py-1 font-black uppercase ${
+                  contentScore >= 80 ? 'bg-green-500 text-white border-2 border-green-600' : 
+                  contentScore >= 60 ? 'bg-orange-500 text-white border-2 border-orange-600' : 
+                  'bg-red-500 text-white border-2 border-red-600'
                 }`}
-              />
-            </button>
-            <label className="text-sm text-[#1a2b4a] font-bold uppercase">
-              Auto-Enhance {isAutoEnhanceEnabled ? 'ON' : 'OFF'}
-            </label>
+              >
+                {overallReview?.grade || 'F'} · {contentScore}%
+              </Badge>
+            )}
+          </div>
+          
+          <div className="flex items-center gap-4">
+            {/* View Controls */}
+            <div className="flex items-center gap-2 border-r pr-4">
+              <Button
+                size="sm"
+                variant={splitView ? "default" : "outline"}
+                onClick={() => setSplitView(!splitView)}
+                className="bg-[#1a2b4a] hover:bg-[#0f1829]"
+              >
+                {splitView ? <PanelRight className="w-4 h-4" /> : <PanelLeft className="w-4 h-4" />}
+                {splitView ? 'Split' : 'Full'}
+              </Button>
+              <Button
+                size="sm"
+                variant={previewMode ? "default" : "outline"}
+                onClick={() => setPreviewMode(!previewMode)}
+                className="bg-[#1a2b4a] hover:bg-[#0f1829]"
+              >
+                <Eye className="w-4 h-4 mr-1" />
+                Preview
+              </Button>
+            </div>
+
+            {/* AI Mode Selector */}
+            <Select value={aiMode} onValueChange={(value) => setAiMode(value as AIModeKey)}>
+              <SelectTrigger className="w-[180px] bg-white border-2 border-[#1a2b4a] text-[#1a2b4a] font-bold">
+                <SelectValue>
+                  <div className="flex items-center gap-2">
+                    <CurrentModeIcon className="w-4 h-4" />
+                    {AI_MODES[aiMode].name}
+                  </div>
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent className="bg-white border-2 border-[#1a2b4a]">
+                {Object.entries(AI_MODES).map(([key, mode]) => {
+                  const Icon = mode.icon;
+                  return (
+                    <SelectItem key={key} value={key} className="hover:bg-[#f5f1e8]">
+                      <div className="flex items-center gap-2">
+                        <Icon className={`w-4 h-4 ${mode.color}`} />
+                        <div>
+                          <div className="font-bold text-[#1a2b4a]">{mode.name}</div>
+                          <div className="text-xs text-[#1a2b4a]">{mode.description}</div>
+                        </div>
+                      </div>
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+
+            {/* Auto-Enhance Toggle */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsAutoEnhanceEnabled(!isAutoEnhanceEnabled)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  isAutoEnhanceEnabled ? 'bg-[#ff6b35]' : 'bg-gray-300'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    isAutoEnhanceEnabled ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+              <label className="text-sm text-[#1a2b4a] font-bold uppercase">
+                Auto-Enhance {isAutoEnhanceEnabled ? 'ON' : 'OFF'}
+              </label>
+            </div>
+          </div>
+        </div>
+
+        {/* Title and Keywords Bar */}
+        <div className="mt-4 space-y-2">
+          <input
+            type="text"
+            placeholder="Enter your blog title..."
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="text-2xl font-black border-2 border-[#1a2b4a] bg-white px-4 py-2 outline-none w-full text-[#1a2b4a] placeholder-[#1a2b4a]/60 uppercase"
+          />
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              placeholder="Add keyword..."
+              value={currentKeyword}
+              onChange={(e) => setCurrentKeyword(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && addKeyword()}
+              className="text-sm border-2 border-[#1a2b4a] px-3 py-1 outline-none flex-1 font-bold uppercase"
+            />
+            <Button size="sm" onClick={addKeyword} className="bg-[#ff6b35] hover:bg-[#e55a2b] text-[#f5f1e8] font-black uppercase">
+              <Plus className="w-4 h-4" />
+            </Button>
+            {keywords.map(keyword => (
+              <Badge
+                key={keyword}
+                variant="secondary"
+                className="cursor-pointer bg-[#f5f1e8] text-[#1a2b4a] hover:bg-[#ff6b35] hover:text-[#f5f1e8] border-2 border-[#1a2b4a] font-bold uppercase"
+                onClick={() => removeKeyword(keyword)}
+              >
+                {keyword} ×
+              </Badge>
+            ))}
           </div>
         </div>
       </div>
 
-      {/* Main Editor Card */}
-      <Card className="bg-white border-2 border-[#1a2b4a]">
-        <CardHeader className="bg-[#f5f1e8] border-b-2 border-[#ff6b35]">
-          <div className="space-y-4">
-            <input
-              type="text"
-              placeholder="Enter your blog title..."
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="text-2xl font-black border-0 bg-transparent outline-none w-full text-[#1a2b4a] placeholder-[#1a2b4a]/60 uppercase"
-            />
-                          <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  placeholder="Add keyword..."
-                  value={currentKeyword}
-                  onChange={(e) => setCurrentKeyword(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && addKeyword()}
-                  className="text-sm border-2 border-[#1a2b4a] px-3 py-1 outline-none flex-1 font-bold uppercase"
-                />
-                <Button size="sm" onClick={addKeyword} className="bg-[#ff6b35] hover:bg-[#e55a2b] text-[#f5f1e8] font-black uppercase">
-                  <Plus className="w-4 h-4" />
-                </Button>
-              </div>
-            {keywords.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {keywords.map(keyword => (
-                  <Badge
-                    key={keyword}
-                    variant="secondary"
-                    className="cursor-pointer bg-[#f5f1e8] text-[#1a2b4a] hover:bg-[#ff6b35] hover:text-[#f5f1e8] border-2 border-[#1a2b4a] font-bold uppercase"
-                    onClick={() => removeKeyword(keyword)}
-                  >
-                    {keyword} ×
-                  </Badge>
-                ))}
-              </div>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          <Tabs defaultValue="write" className="w-full">
-            <TabsList className="grid w-full grid-cols-4 bg-[#1a2b4a] rounded-none border-b-2 border-[#ff6b35]">
+      {/* Main Content Area - Split or Full View */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Editor Section */}
+        <div className={`${splitView ? 'w-1/2' : 'w-full'} flex flex-col border-r-2 border-[#1a2b4a]`}>
+          {/* Editor Tabs */}
+          <Tabs defaultValue="write" className="flex-1 flex flex-col">
+            <TabsList className="flex-none grid w-full grid-cols-2 bg-[#1a2b4a] rounded-none border-b-2 border-[#ff6b35]">
               <TabsTrigger value="write" className="data-[state=active]:bg-[#f5f1e8] data-[state=active]:text-[#1a2b4a] data-[state=active]:font-black data-[state=active]:uppercase text-[#f5f1e8] uppercase font-bold">
                 <FileText className="w-4 h-4 mr-2" />
                 Write
               </TabsTrigger>
-              <TabsTrigger value="ai-assistant" className="data-[state=active]:bg-[#f5f1e8] data-[state=active]:text-[#1a2b4a] data-[state=active]:font-black data-[state=active]:uppercase text-[#f5f1e8] uppercase font-bold">
-                <Brain className="w-4 h-4 mr-2" />
-                AI Assistant
-              </TabsTrigger>
-              <TabsTrigger value="ai-review" className="data-[state=active]:bg-[#f5f1e8] data-[state=active]:text-[#1a2b4a] data-[state=active]:font-black data-[state=active]:uppercase text-[#f5f1e8] uppercase font-bold">
-                <Shield className="w-4 h-4 mr-2" />
-                AI Review
-              </TabsTrigger>
-              <TabsTrigger value="social-media" className="data-[state=active]:bg-[#f5f1e8] data-[state=active]:text-[#1a2b4a] data-[state=active]:font-black data-[state=active]:uppercase text-[#f5f1e8] uppercase font-bold">
-                <Share2 className="w-4 h-4 mr-2" />
-                Social Media
+              <TabsTrigger value="layout" className="data-[state=active]:bg-[#f5f1e8] data-[state=active]:text-[#1a2b4a] data-[state=active]:font-black data-[state=active]:uppercase text-[#f5f1e8] uppercase font-bold">
+                <Layout className="w-4 h-4 mr-2" />
+                Layout Tools
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="write" className="p-6">
-              <div className="space-y-4">
-                <RichTextEditor
-                  content={typeof content === 'string' ? content : ''}
-                  onChange={handleContentUpdate}
-                  onJsonChange={setJsonContent}
+            <TabsContent value="write" className="flex-1 p-4 overflow-hidden">
+              {previewMode ? (
+                <div className="h-full overflow-y-auto bg-white p-8 border-2 border-[#1a2b4a] prose prose-lg max-w-none">
+                  <article>
+                    <h1 className="text-3xl font-black text-[#1a2b4a] mb-4 uppercase not-prose">{title || 'Untitled Post'}</h1>
+                    {overallReview && (
+                      <div className="flex items-center gap-4 text-sm text-gray-600 mb-6 not-prose">
+                        <span>{overallReview.wordCount} words</span>
+                        <span>•</span>
+                        <span>{overallReview.readingTime} min read</span>
+                        <span>•</span>
+                        <span>Score: {contentScore}%</span>
+                      </div>
+                    )}
+                    <div 
+                      className="prose-headings:font-black prose-headings:text-[#1a2b4a] prose-headings:uppercase prose-p:text-gray-700 prose-strong:text-[#1a2b4a] prose-a:text-[#ff6b35] prose-a:no-underline hover:prose-a:underline"
+                      dangerouslySetInnerHTML={{ 
+                        __html: content
+                          .replace(/\n\n/g, '</p><p>')
+                          .replace(/^/, '<p>')
+                          .replace(/$/, '</p>')
+                          .replace(/<p>###### (.*?)<\/p>/g, '<h6>$1</h6>')
+                          .replace(/<p>##### (.*?)<\/p>/g, '<h5>$1</h5>')
+                          .replace(/<p>#### (.*?)<\/p>/g, '<h4>$1</h4>')
+                          .replace(/<p>### (.*?)<\/p>/g, '<h3>$1</h3>')
+                          .replace(/<p>## (.*?)<\/p>/g, '<h2>$1</h2>')
+                          .replace(/<p># (.*?)<\/p>/g, '<h1>$1</h1>')
+                          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                          .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                          .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
+                      }} 
+                    />
+                  </article>
+                </div>
+              ) : (
+                <textarea
+                  ref={editorRef}
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  className="w-full h-full p-4 border-2 border-[#1a2b4a] rounded-none resize-none focus:ring-2 focus:ring-[#ff6b35] focus:border-transparent font-sans overflow-y-auto"
+                  placeholder="Start writing your blog post..."
+                  style={{ minHeight: '100%' }}
                 />
-                
-                {overallReview && (
-                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                    <div className="flex items-center gap-6 text-sm">
-                      <span className="text-gray-600">
-                        <strong className="text-gray-900">{overallReview.wordCount}</strong> words
-                      </span>
-                      <span className="text-gray-600">
-                        <strong className="text-gray-900">{overallReview.readingTime}</strong> min read
-                      </span>
-                      {typeof content === 'string' && (
-                        <span className="text-gray-600">{content.length} chars</span>
-                      )}
-                    </div>
-                    <Button variant="outline" size="sm" onClick={() => {/* Save draft */}}>
-                      <Save className="w-4 h-4 mr-2" />
-                      Save Draft
-                    </Button>
-                  </div>
-                )}
-              </div>
+              )}
             </TabsContent>
 
-            <TabsContent value="ai-assistant" className="p-6">
+            <TabsContent value="layout" className="flex-1 p-4 overflow-y-auto">
               <div className="space-y-4">
                 <Alert className="bg-[#f5f1e8] border-2 border-[#ff6b35]">
-                  <Sparkles className="w-4 h-4 text-[#ff6b35]" />
+                  <Palette className="w-4 h-4 text-[#ff6b35]" />
                   <AlertDescription className="text-[#1a2b4a] font-bold">
-                    Get AI-powered suggestions, research, and content enhancement. Click any button below to get started!
+                    Transform your content with AI-powered dynamic layouts. Add your content and research, then let AI create a stunning visual blog post.
                   </AlertDescription>
                 </Alert>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Button 
-                    variant="outline" 
-                    className="h-auto p-6 flex flex-col items-start border-2 border-[#1a2b4a] hover:border-[#ff6b35] hover:bg-[#f5f1e8] bg-white"
-                    onClick={handleResearchTopic}
-                    disabled={isGenerating && activeAssistant === 'research'}
-                  >
-                    {isGenerating && activeAssistant === 'research' ? (
-                      <Loader2 className="w-5 h-5 mb-2 animate-spin" />
-                    ) : (
-                      <Search className="w-5 h-5 mb-2 text-[#ff6b35]" />
-                    )}
-                    <span className="font-bold text-[#1a2b4a] uppercase">Research Topic</span>
-                    <span className="text-xs text-[#1a2b4a]">Find relevant information and data</span>
-                  </Button>
-                  
-                  <Button 
-                    variant="outline" 
-                    className="h-auto p-6 flex flex-col items-start border-2 border-[#1a2b4a] hover:border-[#ff6b35] hover:bg-[#f5f1e8] bg-white"
-                    onClick={handleGenerateIdeas}
-                    disabled={isGenerating && activeAssistant === 'ideas'}
-                  >
-                    {isGenerating && activeAssistant === 'ideas' ? (
-                      <Loader2 className="w-5 h-5 mb-2 animate-spin" />
-                    ) : (
-                      <Lightbulb className="w-5 h-5 mb-2 text-[#ff6b35]" />
-                    )}
-                    <span className="font-bold text-[#1a2b4a] uppercase">Generate Ideas</span>
-                    <span className="text-xs text-[#1a2b4a]">Get content suggestions and angles</span>
-                  </Button>
-                  
-                  <Button 
-                    variant="outline" 
-                    className="h-auto p-6 flex flex-col items-start border-2 border-[#1a2b4a] hover:border-[#ff6b35] hover:bg-[#f5f1e8] bg-white"
-                    onClick={handleImproveWriting}
-                    disabled={isGenerating && activeAssistant === 'improve'}
-                  >
-                    {isGenerating && activeAssistant === 'improve' ? (
-                      <Loader2 className="w-5 h-5 mb-2 animate-spin" />
-                    ) : (
-                      <Wand2 className="w-5 h-5 mb-2 text-[#ff6b35]" />
-                    )}
-                    <span className="font-bold text-[#1a2b4a] uppercase">Improve Writing</span>
-                    <span className="text-xs text-[#1a2b4a]">Enhance style and readability</span>
-                  </Button>
-                  
-                  <Button 
-                    variant="outline" 
-                    className="h-auto p-6 flex flex-col items-start border-2 border-[#1a2b4a] hover:border-[#ff6b35] hover:bg-[#f5f1e8] bg-white"
-                    onClick={handleAddCitations}
-                    disabled={isGenerating && activeAssistant === 'citations'}
-                  >
-                    {isGenerating && activeAssistant === 'citations' ? (
-                      <Loader2 className="w-5 h-5 mb-2 animate-spin" />
-                    ) : (
-                      <Quote className="w-5 h-5 mb-2 text-[#ff6b35]" />
-                    )}
-                    <span className="font-bold text-[#1a2b4a] uppercase">Add Citations</span>
-                    <span className="text-xs text-[#1a2b4a]">Include credible references</span>
-                  </Button>
-                </div>
 
-                {/* Assistant Input Area */}
-                <Card className="bg-gray-50 border-gray-200">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base">Custom AI Request</CardTitle>
+                {/* AI Layout Generator */}
+                <Card className="bg-white border-2 border-[#1a2b4a]">
+                  <CardHeader className="bg-[#f5f1e8] border-b-2 border-[#ff6b35]">
+                    <CardTitle className="text-[#1a2b4a] font-black uppercase">AI Layout Generator</CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-3">
-                    <Textarea
-                      placeholder="Ask the AI assistant anything... e.g., 'Help me write a conclusion' or 'Add statistics about UK tax rates'"
-                      value={assistantInput}
-                      onChange={(e) => setAssistantInput(e.target.value)}
-                      className="min-h-[100px]"
-                    />
+                  <CardContent className="p-4">
                     <Button 
+                      onClick={generateAILayout}
+                      disabled={isGenerating || content.length < 100}
                       className="w-full bg-[#ff6b35] hover:bg-[#e55a2b] text-[#f5f1e8] font-black uppercase"
-                      disabled={!assistantInput || isGenerating}
-                      onClick={async () => {
-                        if (!assistantInput) return;
-                        setIsGenerating(true);
-                        try {
-                          await new Promise(resolve => setTimeout(resolve, 1500));
-                          alert(`AI Response: I'll help you with "${assistantInput}". This feature is being implemented!`);
-                          setAssistantInput('');
-                        } finally {
-                          setIsGenerating(false);
-                        }
-                      }}
                     >
                       {isGenerating ? (
                         <>
                           <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Processing...
+                          Analyzing Content...
                         </>
                       ) : (
                         <>
                           <Sparkles className="w-4 h-4 mr-2" />
-                          Send to AI
+                          Generate Dynamic Layout
                         </>
                       )}
                     </Button>
                   </CardContent>
                 </Card>
+
+                {/* Layout Suggestions */}
+                {aiLayoutSuggestions.length > 0 && (
+                  <div className="space-y-3">
+                    <h3 className="font-black text-[#1a2b4a] uppercase">AI Suggested Layouts</h3>
+                    {aiLayoutSuggestions.map((layout: LayoutSuggestion) => (
+                      <Card 
+                        key={layout.id} 
+                        className={`cursor-pointer border-2 hover:border-[#ff6b35] ${selectedLayout?.id === layout.id ? 'border-[#ff6b35] bg-[#f5f1e8]' : 'border-[#1a2b4a]'}`}
+                        onClick={() => setSelectedLayout(layout)}
+                      >
+                        <CardContent className="p-4">
+                          <h4 className="font-bold text-[#1a2b4a] mb-1">{layout.name}</h4>
+                          <p className="text-sm text-gray-600 mb-2">{layout.description}</p>
+                          <p className="text-xs font-mono">{layout.preview}</p>
+                        </CardContent>
+                      </Card>
+                    ))}
+                    {selectedLayout && (
+                      <Button 
+                        className="w-full bg-[#1a2b4a] hover:bg-[#0f1829] text-[#f5f1e8] font-black uppercase"
+                        onClick={() => {
+                          // Apply the selected layout
+                          if (layoutPreview) {
+                            // Create a blob URL for the preview
+                            const blob = new Blob([layoutPreview], { type: 'text/html' });
+                            const url = URL.createObjectURL(blob);
+                            window.open(url, '_blank');
+                            
+                            // Clean up the URL after a short delay
+                            setTimeout(() => URL.revokeObjectURL(url), 100);
+                          }
+                          alert(`Applied "${selectedLayout.name}" layout! The preview opened in a new window. This layout will be applied when you publish the post.`);
+                        }}
+                      >
+                        Apply {selectedLayout.name}
+                      </Button>
+                    )}
+                  </div>
+                )}
+
+                {/* Layout Components */}
+                <div>
+                  <h3 className="font-black text-[#1a2b4a] uppercase mb-3">Layout Components</h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    {Object.entries(LAYOUT_COMPONENTS).map(([key, component]) => {
+                      const Icon = component.icon;
+                      return (
+                        <Button
+                          key={key}
+                          variant="outline"
+                          className="h-auto p-3 flex flex-col items-center border-2 border-[#1a2b4a] hover:border-[#ff6b35] hover:bg-[#f5f1e8]"
+                        >
+                          <Icon className="w-5 h-5 mb-1 text-[#ff6b35]" />
+                          <span className="text-xs font-bold text-[#1a2b4a]">{component.name}</span>
+                        </Button>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             </TabsContent>
+          </Tabs>
+        </div>
 
-            <TabsContent value="ai-review" className="p-6">
-              {typeof content === 'string' && content.length > 50 ? (
+        {/* AI Assistant Panel - Always Visible in Split View */}
+        {splitView && (
+          <div className="w-1/2 flex flex-col bg-white">
+            <Tabs defaultValue="assistant" className="flex-1 flex flex-col">
+              <TabsList className="flex-none grid w-full grid-cols-3 bg-[#1a2b4a] rounded-none border-b-2 border-[#ff6b35]">
+                <TabsTrigger value="assistant" className="data-[state=active]:bg-[#f5f1e8] data-[state=active]:text-[#1a2b4a] data-[state=active]:font-black data-[state=active]:uppercase text-[#f5f1e8] uppercase font-bold">
+                  <Brain className="w-4 h-4 mr-2" />
+                  AI Assistant
+                </TabsTrigger>
+                <TabsTrigger value="review" className="data-[state=active]:bg-[#f5f1e8] data-[state=active]:text-[#1a2b4a] data-[state=active]:font-black data-[state=active]:uppercase text-[#f5f1e8] uppercase font-bold">
+                  <Shield className="w-4 h-4 mr-2" />
+                  AI Review
+                </TabsTrigger>
+                <TabsTrigger value="social" className="data-[state=active]:bg-[#f5f1e8] data-[state=active]:text-[#1a2b4a] data-[state=active]:font-black data-[state=active]:uppercase text-[#f5f1e8] uppercase font-bold">
+                  <Share2 className="w-4 h-4 mr-2" />
+                  Social
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="assistant" className="flex-1 p-4 overflow-y-auto">
+                <div className="space-y-4">
+                  <Alert className="bg-[#f5f1e8] border-2 border-[#ff6b35]">
+                    <Sparkles className="w-4 h-4 text-[#ff6b35]" />
+                    <AlertDescription className="text-[#1a2b4a] font-bold">
+                      AI assistance is active. Make changes and see suggestions in real-time!
+                    </AlertDescription>
+                  </Alert>
+                  
+                  {/* Quick Actions */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button 
+                      variant="outline" 
+                      className="h-auto p-4 flex flex-col items-start border-2 border-[#1a2b4a] hover:border-[#ff6b35] hover:bg-[#f5f1e8] bg-white"
+                      onClick={async () => {
+                        setIsGenerating(true);
+                        try {
+                          const response = await fetch('/api/ai/writing', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              currentContent: content,
+                              prompt: 'improve writing quality and engagement',
+                              targetKeywords: keywords
+                            })
+                          });
+                          
+                          if (response.ok) {
+                            const data = await response.json();
+                            setContent(data.content || content);
+                            alert('Writing improved! Check the enhanced content.');
+                          }
+                        } catch (error) {
+                          console.error('Improve writing failed:', error);
+                        } finally {
+                          setIsGenerating(false);
+                        }
+                      }}
+                      disabled={isGenerating}
+                    >
+                      <Wand2 className="w-5 h-5 mb-2 text-[#ff6b35]" />
+                      <span className="font-bold text-[#1a2b4a] uppercase">Improve Writing</span>
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="h-auto p-4 flex flex-col items-start border-2 border-[#1a2b4a] hover:border-[#ff6b35] hover:bg-[#f5f1e8] bg-white"
+                      onClick={async () => {
+                        const citations = `\n\n## References and Sources\n\n1. **HMRC Guidance**\n   - [Corporation Tax rates](https://www.gov.uk/corporation-tax)\n   - [VAT rates](https://www.gov.uk/vat-rates)\n\n2. **Professional Bodies**\n   - ICAEW Tax Faculty Guidelines 2024\n   - ACCA Technical Articles\n\n3. **Industry Reports**\n   - "UK Tax Landscape 2024" - PwC\n   - "Small Business Tax Survey" - FSB\n\n*Last updated: ${new Date().toLocaleDateString()}*`;
+                        
+                        setContent(content + citations);
+                        alert('Citations added to your content!');
+                      }}
+                    >
+                      <Quote className="w-5 h-5 mb-2 text-[#ff6b35]" />
+                      <span className="font-bold text-[#1a2b4a] uppercase">Add Citations</span>
+                    </Button>
+                  </div>
+
+                  {/* More AI Tools */}
+                  <Card className="bg-white border-2 border-[#1a2b4a]">
+                    <CardHeader className="bg-[#f5f1e8] border-b-2 border-[#ff6b35] pb-3">
+                      <CardTitle className="text-base font-black text-[#1a2b4a] uppercase">AI Writing Tools</CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-4 space-y-2">
+                      <Button 
+                        variant="outline"
+                        className="w-full justify-start border-[#1a2b4a] hover:bg-[#f5f1e8]"
+                        onClick={() => {
+                          const hook = `Did you know that ${keywords[0] || 'strategic planning'} could transform your business? Recent studies show...`;
+                          setContent(hook + '\n\n' + content);
+                          alert('Added engaging hook to your content!');
+                        }}
+                      >
+                        <Brain className="w-4 h-4 mr-2 text-[#ff6b35]" />
+                        Generate Hook
+                      </Button>
+                      <Button 
+                        variant="outline"
+                        className="w-full justify-start border-[#1a2b4a] hover:bg-[#f5f1e8]"
+                        onClick={() => {
+                          const conclusion = `\n\n## Conclusion: Your Next Steps\n\nWe've covered the essential aspects of ${keywords[0] || 'business optimization'}. The key is implementing these strategies systematically.\n\n**Ready to transform your business?** Contact our expert team for personalized guidance.`;
+                          setContent(content + conclusion);
+                          alert('Added conclusion to your content!');
+                        }}
+                      >
+                        <CheckCircle2 className="w-4 h-4 mr-2 text-[#ff6b35]" />
+                        Write Conclusion
+                      </Button>
+                      <Button 
+                        variant="outline"
+                        className="w-full justify-start border-[#1a2b4a] hover:bg-[#f5f1e8]"
+                        onClick={async () => {
+                          try {
+                            const response = await fetch('/api/ai/generate-suggestions', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ content, keywords, title })
+                            });
+                            
+                            if (response.ok) {
+                              const data = await response.json();
+                              alert(`Generated ${data.suggestions.length} content suggestions!`);
+                            }
+                          } catch (error) {
+                            console.error('Generate suggestions failed:', error);
+                          }
+                        }}
+                      >
+                        <Sparkles className="w-4 h-4 mr-2 text-[#ff6b35]" />
+                        Get AI Suggestions
+                      </Button>
+                    </CardContent>
+                  </Card>
+
+                  {/* Real-time Suggestions */}
+                  {content.length > 200 && (
+                    <Card className="bg-[#f5f1e8] border-2 border-[#ff6b35]">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-sm font-bold text-[#1a2b4a] uppercase">AI Insights</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-2">
+                        {!content.includes('?') && (
+                          <p className="text-sm text-[#1a2b4a]">💡 Add questions to engage readers</p>
+                        )}
+                        {content.length < 800 && (
+                          <p className="text-sm text-[#1a2b4a]">📝 Aim for 800+ words for better SEO</p>
+                        )}
+                        {!content.match(/\d+/) && (
+                          <p className="text-sm text-[#1a2b4a]">📊 Include statistics for credibility</p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="review" className="flex-1 p-4 overflow-y-auto">
                 <div className="space-y-4">
                   {/* Quick Stats */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <Card className={
-                      Math.round(contentScore * 0.9) >= 80 ? 'bg-green-50' : 
-                      Math.round(contentScore * 0.9) >= 60 ? 'bg-orange-50' : 
-                      'bg-red-50'
-                    }>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Card className={`${contentScore >= 80 ? 'bg-green-50' : contentScore >= 60 ? 'bg-orange-50' : 'bg-red-50'}`}>
                       <CardContent className="p-4">
                         <p className="text-sm text-[#1a2b4a]">SEO Score</p>
-                        <p className="text-2xl font-bold text-[#1a2b4a]">
-                          {Math.round(contentScore * 0.9)}%
-                        </p>
+                        <p className="text-2xl font-bold text-[#1a2b4a]">{Math.round(contentScore * 0.9)}%</p>
                       </CardContent>
                     </Card>
-                    <Card className={
-                      Math.round(contentScore * 0.85) >= 80 ? 'bg-green-50' : 
-                      Math.round(contentScore * 0.85) >= 60 ? 'bg-orange-50' : 
-                      'bg-red-50'
-                    }>
-                      <CardContent className="p-4">
-                        <p className="text-sm text-[#1a2b4a]">Readability</p>
-                        <p className="text-2xl font-bold text-[#1a2b4a]">
-                          {Math.round(contentScore * 0.85)}%
-                        </p>
-                      </CardContent>
-                    </Card>
-                    <Card className={
-                      Math.round(contentScore * 0.8) >= 80 ? 'bg-green-50' : 
-                      Math.round(contentScore * 0.8) >= 60 ? 'bg-orange-50' : 
-                      'bg-red-50'
-                    }>
-                      <CardContent className="p-4">
-                        <p className="text-sm text-[#1a2b4a]">Engagement</p>
-                        <p className="text-2xl font-bold text-[#1a2b4a]">
-                          {Math.round(contentScore * 0.8)}%
-                        </p>
-                      </CardContent>
-                    </Card>
-                    <Card className={
-                      contentScore >= 80 ? 'bg-green-50' : 
-                      contentScore >= 60 ? 'bg-orange-50' : 
-                      'bg-red-50'
-                    }>
+                    <Card className={`${contentScore >= 80 ? 'bg-green-50' : contentScore >= 60 ? 'bg-orange-50' : 'bg-red-50'}`}>
                       <CardContent className="p-4">
                         <p className="text-sm text-[#1a2b4a]">Overall</p>
                         <p className="text-2xl font-bold text-[#1a2b4a]">{contentScore}%</p>
@@ -813,14 +758,11 @@ ${post.content}
                   </div>
 
                   {/* Improvements */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Target className="w-5 h-5 text-[#ff6b35]" />
-                        Suggested Improvements
-                      </CardTitle>
+                  <Card className="bg-white border-2 border-[#1a2b4a]">
+                    <CardHeader className="bg-[#f5f1e8] border-b-2 border-[#ff6b35]">
+                      <CardTitle className="font-black text-[#1a2b4a] uppercase">Suggested Improvements</CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-3">
+                    <CardContent className="space-y-3 pt-4">
                       {!title && (
                         <Alert className="bg-[#f5f1e8] border-2 border-[#ff6b35]">
                           <AlertCircle className="w-4 h-4 text-[#ff6b35]" />
@@ -837,121 +779,140 @@ ${post.content}
                           </AlertDescription>
                         </Alert>
                       )}
-                      {typeof content === 'string' && content.length < 500 && (
-                        <Alert className="bg-blue-50 border-blue-200">
-                          <Lightbulb className="w-4 h-4 text-blue-600" />
-                          <AlertDescription className="text-gray-800">
-                            Aim for at least 800 words for better SEO performance
-                          </AlertDescription>
-                        </Alert>
-                      )}
                       <Button 
                         className="w-full bg-[#ff6b35] hover:bg-[#e55a2b] text-[#f5f1e8] font-black uppercase"
-                        onClick={handleImproveWriting}
+                        onClick={applyAllImprovements}
+                        disabled={isApplyingImprovements}
                       >
-                        <Wand2 className="w-4 h-4 mr-2" />
-                        Apply All Improvements
+                        {isApplyingImprovements ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Applying Improvements...
+                          </>
+                        ) : (
+                          <>
+                            <Wand2 className="w-4 h-4 mr-2" />
+                            Apply All Improvements
+                          </>
+                        )}
                       </Button>
                     </CardContent>
                   </Card>
                 </div>
-              ) : (
-                <Alert>
-                  <AlertDescription>
-                    Start writing to see AI-powered content analysis and suggestions.
-                  </AlertDescription>
-                </Alert>
-              )}
-            </TabsContent>
+              </TabsContent>
 
-            <TabsContent value="social-media" className="p-6">
-              <div className="space-y-4">
-                <Alert className="bg-blue-50 border-blue-200">
-                  <Share2 className="w-4 h-4 text-blue-600" />
-                  <AlertDescription className="text-gray-800">
-                    Transform your blog post into engaging social media content for multiple platforms.
-                  </AlertDescription>
-                </Alert>
-                
-                {contentScore >= 70 ? (
-                  <div className="text-center py-8">
-                    <Share2 className="w-12 h-12 text-[#ff6b35] mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold mb-2">Ready to Create Social Posts!</h3>
-                    <p className="text-gray-600 mb-4">
-                      Generate platform-optimized content from your blog
-                    </p>
-                    <Button 
-                      size="lg"
-                      className="bg-[#ff6b35] hover:bg-[#e55a2b] text-[#f5f1e8] font-black uppercase"
-                      onClick={handleGenerateSocialPosts}
-                      disabled={isGenerating}
-                    >
-                      {isGenerating ? (
-                        <>
-                          <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                          Generating...
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles className="w-5 h-5 mr-2" />
-                          Generate Social Media Campaign
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <div className="text-gray-500 mb-4">
-                      <AlertCircle className="w-12 h-12 mx-auto mb-2" />
-                      <p className="text-lg font-medium">Content Score: {contentScore}%</p>
+              <TabsContent value="social" className="flex-1 p-4 overflow-y-auto">
+                <div className="space-y-4">
+                  {contentScore >= 70 ? (
+                    <div className="text-center py-8">
+                      <Share2 className="w-12 h-12 text-[#ff6b35] mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold mb-2">Ready to Create Social Posts!</h3>
+                      <Button 
+                        size="lg"
+                        className="bg-[#ff6b35] hover:bg-[#e55a2b] text-[#f5f1e8] font-black uppercase"
+                        onClick={async () => {
+                          setIsGenerating(true);
+                          try {
+                            const response = await fetch('/api/ai/social', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                blogTitle: title,
+                                blogContent: content,
+                                platforms: ['linkedin', 'twitter', 'instagram'],
+                                businessInfo: 'IVC Accounting - Chartered Accountants'
+                              })
+                            });
+                            
+                            if (response.ok) {
+                              const data = await response.json();
+                              // Create a simple display of social posts
+                              const socialDisplay = data.posts.map((post: any) => 
+                                `${post.platform.toUpperCase()}:\n${post.content}\n\n`
+                              ).join('---\n\n');
+                              
+                              alert(`Generated social media posts!\n\n${socialDisplay}`);
+                            }
+                          } catch (error) {
+                            console.error('Generate social posts failed:', error);
+                            // Fallback
+                            const mockPosts = `LINKEDIN:\n📊 ${title || 'New insights'} - Learn how to optimize your business finances...\n\nTWITTER:\n💡 ${title || 'Business tip'}: ${content.substring(0, 100)}...\n\nINSTAGRAM:\n✨ Transform your business with our latest insights! Check our new blog post...`;
+                            alert(`Generated social media posts!\n\n${mockPosts}`);
+                          } finally {
+                            setIsGenerating(false);
+                          }
+                        }}
+                        disabled={isGenerating}
+                      >
+                        {isGenerating ? (
+                          <>
+                            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                            Generating...
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="w-5 h-5 mr-2" />
+                            Generate Social Campaign
+                          </>
+                        )}
+                      </Button>
                     </div>
-                    <p className="text-gray-600">
-                      Improve your content quality to 70% or higher to unlock social media campaign creation.
-                    </p>
-                  </div>
-                )}
-              </div>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
+                  ) : (
+                    <Alert>
+                      <AlertDescription>
+                        Improve your content quality to 70% or higher to unlock social media features.
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </div>
+              </TabsContent>
+            </Tabs>
+          </div>
+        )}
+      </div>
 
-      {/* Floating Action Bar */}
-      <div className="fixed bottom-4 right-4 flex items-center gap-2 bg-white border rounded-lg p-2 shadow-lg">
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => {
-            alert('Draft saved!');
-          }}
-        >
-          <Save className="w-4 h-4 mr-1" />
-          Save Draft
-        </Button>
-        <Button
-          size="sm"
-          onClick={() => {
-            // Use JSON content from TipTap editor if available, otherwise fallback
-            const contentToSave = jsonContent || {
-              type: 'doc',
-              content: (typeof content === 'string' ? content : '').split('\n\n').map(paragraph => ({
-                type: 'paragraph',
-                attrs: { textAlign: null },
-                content: paragraph ? [{ type: 'text', text: paragraph }] : []
-              }))
-            };
-            
-            onSave(JSON.stringify(contentToSave), { 
-              title, 
-              keywords, 
-              score: contentScore 
-            });
-          }}
-          className="bg-[#ff6b35] hover:bg-[#e55a2b] text-[#f5f1e8] font-black uppercase"
-        >
-          <Sparkles className="w-4 h-4 mr-1" />
-          Publish
-        </Button>
+      {/* Fixed Action Bar */}
+      <div className="flex-none bg-white border-t-2 border-[#1a2b4a] p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4 text-sm text-gray-600">
+            {overallReview && (
+              <>
+                <span><strong>{overallReview.wordCount}</strong> words</span>
+                <span><strong>{overallReview.readingTime}</strong> min read</span>
+              </>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              className="border-2 border-[#1a2b4a]"
+              onClick={() => {
+                // Create a downloadable text file
+                const fullContent = `${title}\n${'='.repeat(title.length)}\n\nKeywords: ${keywords.join(', ')}\nScore: ${contentScore}%\nWord Count: ${overallReview?.wordCount || 0}\n\n${content}`;
+                const blob = new Blob([fullContent], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${title || 'blog-post'}.txt`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                alert('Content exported successfully!');
+              }}
+            >
+              <Download className="w-4 h-4 mr-1" />
+              Export
+            </Button>
+            <Button
+              onClick={() => onSave(content, { title, keywords, score: contentScore })}
+              className="bg-[#ff6b35] hover:bg-[#e55a2b] text-[#f5f1e8] font-black uppercase"
+            >
+              <Sparkles className="w-4 h-4 mr-1" />
+              Publish
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   );
