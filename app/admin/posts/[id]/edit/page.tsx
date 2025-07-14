@@ -12,6 +12,31 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 // Move type definition above the component
 type PostWithFlexibleContent = { [key: string]: any; content?: string | object };
 
+// Helper to extract plain text from TipTap/editor JSON
+const extractTextFromJSON = (doc: any): string => {
+  if (!doc || !doc.content) return '';
+  let text = '';
+  const extractFromNode = (node: any) => {
+    if (node.type === 'text') {
+      text += node.text || '';
+    } else if (node.content && Array.isArray(node.content)) {
+      node.content.forEach(extractFromNode);
+    }
+    if (node.type === 'paragraph') {
+      text += '\n\n';
+    } else if (node.type === 'heading') {
+      const level = node.attrs?.level || 1;
+      text = text.trim() + '\n\n' + '#'.repeat(level) + ' ';
+    }
+  };
+  if (Array.isArray(doc.content)) {
+    doc.content.forEach(extractFromNode);
+  } else {
+    extractFromNode(doc);
+  }
+  return text.trim();
+};
+
 export default function EditPostPage() {
   const { id: postId } = useParams<{ id: string }>();
   const router = useRouter();
@@ -45,25 +70,36 @@ export default function EditPostPage() {
           router.push('/admin/posts');
           return;
         }
-        
-        // Ensure content is a TipTap doc object
+        // Debug logs
+        console.log('Post data:', postData);
+        console.log('Content type:', typeof postData?.content);
+        console.log('Content value:', postData?.content);
+        // Parse content for display
         let tiptapContent: string | object = '';
+        let plainTextContent = '';
         if (postData.content) {
-          if (typeof postData.content === 'string') {
-            try {
-              tiptapContent = JSON.parse(postData.content);
-            } catch {
-              // fallback: treat as plain text
-              tiptapContent = { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: postData.content }] }] };
+          try {
+            if (typeof postData.content === 'string' && postData.content.trim().startsWith('{')) {
+              const parsed = JSON.parse(postData.content);
+              tiptapContent = parsed;
+              plainTextContent = extractTextFromJSON(parsed);
+            } else {
+              tiptapContent = postData.content;
+              plainTextContent = postData.content;
             }
-          } else {
+          } catch (error) {
+            console.error('Error parsing content:', error);
             tiptapContent = postData.content;
+            plainTextContent = postData.content;
           }
         }
-
+        // Debug logs
+        console.log('Parsed content:', plainTextContent);
+        console.log('Content length:', plainTextContent.length);
         setPost({
           ...postData,
-          content: tiptapContent
+          content: tiptapContent,
+          plainTextContent
         });
       } catch (error) {
         console.error('Error initializing page:', error);
@@ -77,16 +113,26 @@ export default function EditPostPage() {
 
   const handleSave = async (content: string, metadata: any) => {
     try {
+      // Save as JSON doc format
+      const contentToSave = {
+        type: 'doc',
+        content: [
+          {
+            type: 'paragraph',
+            attrs: { textAlign: null },
+            content: [{ type: 'text', text: content }]
+          }
+        ]
+      };
       const { error } = await supabase
         .from('posts')
         .update({
-          content,
+          content: JSON.stringify(contentToSave),
           title: metadata.title,
           keywords: metadata.keywords,
           updated_at: new Date().toISOString()
         })
         .eq('id', postId);
-
       if (!error) {
         console.log('Post saved successfully');
         // You could show a success toast here
@@ -175,7 +221,7 @@ export default function EditPostPage() {
       <div className="p-6">
         <ErrorBoundary>
           <AIBlogEditor 
-            initialContent={post.content || ''}
+            initialContent={post.plainTextContent || ''}
             postId={postId}
             userId={user.id}
             onSave={handleSave}
