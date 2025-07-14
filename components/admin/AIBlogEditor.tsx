@@ -700,7 +700,7 @@ ${post.content}
             </TabsContent>
 
             <TabsContent value="ai-review" className="p-6">
-              {content.length > 50 ? (
+              {typeof content === 'string' && content.length > 50 ? (
                 <div className="space-y-4">
                   {/* Quick Stats */}
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
