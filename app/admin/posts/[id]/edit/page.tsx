@@ -9,13 +9,15 @@ import { ArrowLeft } from 'lucide-react';
 import { SafeDate } from '@/components/ui/SafeDate';
 import ErrorBoundary from '@/components/ErrorBoundary';
 
+// Move type definition above the component
+type PostWithFlexibleContent = { [key: string]: any; content?: string | object };
+
 export default function EditPostPage() {
-  const params = useParams();
+  const { id: postId } = useParams<{ id: string }>();
   const router = useRouter();
-  const postId = params.id as string;
   const supabase = createClientComponentClient();
-  
-  const [post, setPost] = useState<any>(null);
+
+  const [post, setPost] = useState<PostWithFlexibleContent | null>(null);
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -45,7 +47,7 @@ export default function EditPostPage() {
         }
         
         // Ensure content is a TipTap doc object
-        let tiptapContent = '';
+        let tiptapContent: string | object = '';
         if (postData.content) {
           if (typeof postData.content === 'string') {
             try {
