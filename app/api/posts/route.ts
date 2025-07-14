@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-// Initialize Supabase client
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -9,23 +8,18 @@ const supabase = createClient(
 
 export async function GET(req: NextRequest) {
   try {
-    // Fetch posts from Supabase
     const { data: posts, error } = await supabase
       .from('posts')
       .select('*')
       .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('Supabase error:', error);
-      throw error;
-    }
+    if (error) throw error;
 
-    // If no posts, return empty array
     return NextResponse.json({ posts: posts || [] });
   } catch (error) {
     console.error('Error fetching posts:', error);
     
-    // Return mock data for now if database fails
+    // Return mock data as fallback
     const mockPosts = [
       {
         id: '1',
@@ -34,35 +28,32 @@ export async function GET(req: NextRequest) {
         content: 'Blog content here...',
         status: 'published',
         created_at: new Date('2025-01-10').toISOString(),
-      },
-      {
-        id: '2',
-        title: 'The Changing Face of UK Accounting',
-        slug: 'the-changing-face-of-uk-accounting',
-        content: 'Blog content here...',
-        status: 'draft',
-        created_at: new Date('2025-01-12').toISOString(),
       }
     ];
-
+    
     return NextResponse.json({ posts: mockPosts });
   }
 }
 
-// CREATE new post
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     
-    // Add your database creation logic here
-    const newPost = {
-      id: Date.now().toString(),
-      ...body,
-      created_at: new Date().toISOString(),
-      status: 'draft'
-    };
+    const { data: post, error } = await supabase
+      .from('posts')
+      .insert([{
+        title: body.title,
+        content: body.content,
+        status: body.status || 'draft',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }])
+      .select()
+      .single();
 
-    return NextResponse.json(newPost);
+    if (error) throw error;
+
+    return NextResponse.json({ post });
   } catch (error) {
     console.error('Error creating post:', error);
     return NextResponse.json(

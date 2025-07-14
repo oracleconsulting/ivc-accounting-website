@@ -45,6 +45,37 @@ import {
   Plus
 } from 'lucide-react';
 
+// Helper to extract plain text from TipTap/editor JSON
+const extractTextFromJSON = (doc: any): string => {
+  if (!doc || !doc.content) return '';
+  
+  let text = '';
+  
+  const extractFromNode = (node: any) => {
+    if (node.type === 'text') {
+      text += node.text || '';
+    } else if (node.content && Array.isArray(node.content)) {
+      node.content.forEach(extractFromNode);
+    }
+    
+    // Add line breaks for paragraphs
+    if (node.type === 'paragraph') {
+      text += '\n\n';
+    } else if (node.type === 'heading') {
+      const level = node.attrs?.level || 1;
+      text = text.trim() + '\n\n' + '#'.repeat(level) + ' ';
+    }
+  };
+  
+  if (Array.isArray(doc.content)) {
+    doc.content.forEach(extractFromNode);
+  } else {
+    extractFromNode(doc);
+  }
+  
+  return text.trim();
+};
+
 // AI Writing Modes
 const AI_MODES = {
   speed: {
@@ -97,41 +128,65 @@ export default function WorkingAIBlogEditor({
   const [overallReview, setOverallReview] = useState<any>(null);
   const [reviewSections, setReviewSections] = useState<any[]>([]);
 
+  // Parse initial content if it's JSON
+  useEffect(() => {
+    if (initialContent) {
+      try {
+        if (typeof initialContent === 'string' && initialContent.trim().startsWith('{')) {
+          const parsed = JSON.parse(initialContent);
+          const extractedText = extractTextFromJSON(parsed);
+          setContent(extractedText);
+        } else if (typeof initialContent === 'object') {
+          const extractedText = extractTextFromJSON(initialContent);
+          setContent(extractedText);
+        } else {
+          setContent(initialContent);
+        }
+      } catch (error) {
+        console.error('Error parsing initial content:', error);
+        setContent(initialContent);
+      }
+    }
+  }, [initialContent]);
 
-
-  // Real-time content scoring
+  // Fixed content analysis useEffect
   useEffect(() => {
     const analyzeContent = async () => {
-      if (!content || (typeof content === 'string' && content.length < 100)) return;
+      const plainTextContent = typeof content === 'string' ? content : '';
+      
+      if (!plainTextContent || plainTextContent.trim().length < 50) {
+        setContentScore(0);
+        setOverallReview(null);
+        return;
+      }
       
       setIsAnalyzing(true);
       try {
-        const response = await fetch('/api/ai/score', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ content, keywords })
-        });
+        const words = plainTextContent.split(/\s+/).filter(w => w.length > 0);
+        const wordCount = words.length;
         
-        if (response.ok) {
-          const data = await response.json();
-          setContentScore(data.score);
-          
-          setOverallReview({
-            score: data.score,
-            grade: data.score >= 90 ? 'A+' : data.score >= 80 ? 'A' : data.score >= 70 ? 'B' : 'C',
-            wordCount: data.details.wordCount,
-            readingTime: Math.ceil(data.details.wordCount / 200)
-          });
-        }
+        let score = 0;
+        if (wordCount >= 100) score = 30;
+        if (wordCount >= 300) score = 50;
+        if (wordCount >= 500) score = 70;
+        if (wordCount >= 800) score = 85;
+        if (wordCount >= 1000) score = 90;
+        
+        if (title && title.length > 10) score += 5;
+        if (keywords.length > 0) score += 5;
+        
+        score = Math.min(100, score);
+        
+        setContentScore(score);
+        
+        setOverallReview({
+          score,
+          grade: score >= 90 ? 'A+' : score >= 80 ? 'A' : score >= 70 ? 'B' : score >= 60 ? 'C' : 'D',
+          wordCount,
+          readingTime: Math.ceil(wordCount / 200)
+        });
       } catch (error) {
         console.error('Failed to analyze content:', error);
-        // Fallback to basic scoring
-        let wordCount = 0;
-        if (typeof content === 'string') {
-          wordCount = content.split(/\s+/).filter((w: string) => w.length > 0).length;
-        }
-        const score = Math.min(100, Math.round((wordCount / 1000) * 100));
-        setContentScore(score);
       } finally {
         setIsAnalyzing(false);
       }
@@ -139,7 +194,7 @@ export default function WorkingAIBlogEditor({
 
     const debounceTimer = setTimeout(analyzeContent, 1000);
     return () => clearTimeout(debounceTimer);
-  }, [content, keywords]);
+  }, [content, keywords, title]);
 
   const handleContentUpdate = useCallback((newContent: string) => {
     setContent(newContent);
@@ -870,7 +925,23 @@ ${post.content}
         </Button>
         <Button
           size="sm"
-          onClick={() => onSave(typeof content === 'string' ? content : JSON.stringify(content), { title, keywords, score: contentScore })}
+          onClick={() => {
+            // Convert plain text back to editor format if needed
+            const contentToSave = {
+              type: 'doc',
+              content: (typeof content === 'string' ? content : '').split('\n\n').map(paragraph => ({
+                type: 'paragraph',
+                attrs: { textAlign: null },
+                content: paragraph ? [{ type: 'text', text: paragraph }] : []
+              }))
+            };
+            
+            onSave(JSON.stringify(contentToSave), { 
+              title, 
+              keywords, 
+              score: contentScore 
+            });
+          }}
           className="bg-[#ff6b35] hover:bg-[#e55a2b] text-[#f5f1e8] font-black uppercase"
         >
           <Sparkles className="w-4 h-4 mr-1" />

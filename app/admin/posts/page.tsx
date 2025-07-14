@@ -25,12 +25,15 @@ export default function PostsPage() {
   const fetchPosts = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/admin/posts');
+      // Use the correct API endpoint
+      const response = await fetch('/api/posts'); // NOT /api/admin/posts
+      
       if (!response.ok) {
-        throw new Error('Failed to fetch posts');
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
+      
       const data = await response.json();
-      setPosts(data.posts || data); // Handle both {posts: [...]} and [...] formats
+      setPosts(data.posts || []);
     } catch (err) {
       console.error('Error fetching posts:', err);
       setError(err instanceof Error ? err.message : 'Unknown error occurred');
