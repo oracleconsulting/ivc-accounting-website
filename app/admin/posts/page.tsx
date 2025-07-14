@@ -87,6 +87,15 @@ export default function PostsPage() {
         </Link>
       </div>
 
+      {loading && (
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#ff6b35] mx-auto"></div>
+            <p className="mt-4 text-[#1a2b4a]">Loading posts...</p>
+          </div>
+        </div>
+      )}
+
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
           Error loading posts: {error}
@@ -170,25 +179,7 @@ export default function PostsPage() {
                         <button
                           className="text-red-600 hover:text-red-700 transition-colors"
                           title="Delete"
-                          onClick={async () => {
-                            if (confirm('Are you sure you want to delete this post?')) {
-                              try {
-                                const response = await fetch(`/api/admin/posts/${post.id}`, {
-                                  method: 'DELETE',
-                                });
-                                
-                                if (response.ok) {
-                                  // Refresh the page to update the list
-                                  window.location.reload();
-                                } else {
-                                  alert('Failed to delete post');
-                                }
-                              } catch (error) {
-                                console.error('Error deleting post:', error);
-                                alert('Error deleting post');
-                              }
-                            }
-                          }}
+                          onClick={() => handleDelete(post.id)}
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
