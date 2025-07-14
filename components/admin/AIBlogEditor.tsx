@@ -76,7 +76,7 @@ export default function WorkingAIBlogEditor({
   userId = 'current-user-id', 
   onSave 
 }: {
-  initialContent?: string;
+  initialContent?: string | object;
   postId?: string;
   userId?: string;
   onSave: (content: string, metadata: any) => void;
@@ -102,7 +102,7 @@ export default function WorkingAIBlogEditor({
   // Real-time content scoring
   useEffect(() => {
     const analyzeContent = async () => {
-      if (!content || content.length < 100) return;
+      if (!content || (typeof content === 'string' && content.length < 100)) return;
       
       setIsAnalyzing(true);
       try {
@@ -126,7 +126,10 @@ export default function WorkingAIBlogEditor({
       } catch (error) {
         console.error('Failed to analyze content:', error);
         // Fallback to basic scoring
-        const wordCount = content.split(/\s+/).filter(w => w.length > 0).length;
+        let wordCount = 0;
+        if (typeof content === 'string') {
+          wordCount = content.split(/\s+/).filter((w: string) => w.length > 0).length;
+        }
         const score = Math.min(100, Math.round((wordCount / 1000) * 100));
         setContentScore(score);
       } finally {
@@ -555,6 +558,10 @@ ${post.content}
                   placeholder="Start writing your blog post..."
                 />
                 
+                {typeof content === 'string' && content.length < 100 && (
+                  <div className="text-sm text-gray-500 mt-2">Write at least 100 characters to enable analysis.</div>
+                )}
+                
                 {overallReview && (
                   <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                     <div className="flex items-center gap-6 text-sm">
@@ -564,6 +571,9 @@ ${post.content}
                       <span className="text-gray-600">
                         <strong className="text-gray-900">{overallReview.readingTime}</strong> min read
                       </span>
+                      {typeof content === 'string' && (
+                        <span className="text-gray-600">{content.length} chars</span>
+                      )}
                     </div>
                     <Button variant="outline" size="sm" onClick={() => {/* Save draft */}}>
                       <Save className="w-4 h-4 mr-2" />
@@ -767,7 +777,7 @@ ${post.content}
                           </AlertDescription>
                         </Alert>
                       )}
-                      {content.length < 500 && (
+                      {typeof content === 'string' && content.length < 500 && (
                         <Alert className="bg-blue-50 border-blue-200">
                           <Lightbulb className="w-4 h-4 text-blue-600" />
                           <AlertDescription className="text-gray-800">
@@ -860,7 +870,7 @@ ${post.content}
         </Button>
         <Button
           size="sm"
-          onClick={() => onSave(content, { title, keywords, score: contentScore })}
+          onClick={() => onSave(typeof content === 'string' ? content : JSON.stringify(content), { title, keywords, score: contentScore })}
           className="bg-[#ff6b35] hover:bg-[#e55a2b] text-[#f5f1e8] font-black uppercase"
         >
           <Sparkles className="w-4 h-4 mr-1" />

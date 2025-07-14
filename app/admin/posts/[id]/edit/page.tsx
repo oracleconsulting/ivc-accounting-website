@@ -44,13 +44,25 @@ export default function EditPostPage() {
           return;
         }
         
-        // Ensure content is a string, not an object
-        const processedPost = {
+        // Ensure content is a TipTap doc object
+        let tiptapContent = '';
+        if (postData.content) {
+          if (typeof postData.content === 'string') {
+            try {
+              tiptapContent = JSON.parse(postData.content);
+            } catch {
+              // fallback: treat as plain text
+              tiptapContent = { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: postData.content }] }] };
+            }
+          } else {
+            tiptapContent = postData.content;
+          }
+        }
+
+        setPost({
           ...postData,
-          content: typeof postData.content === 'string' ? postData.content : JSON.stringify(postData.content) || ''
-        };
-        
-        setPost(processedPost);
+          content: tiptapContent
+        });
       } catch (error) {
         console.error('Error initializing page:', error);
       } finally {
