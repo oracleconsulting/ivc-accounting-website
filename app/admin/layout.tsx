@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import AdminSidebarV2 from '@/components/admin/AdminSidebarV2';
 import AdminHeader from '@/components/admin/AdminHeader';
+import ChatWidgetRemover from '@/components/admin/ChatWidgetRemover';
 
 export default async function AdminLayout({
   children,
@@ -40,6 +41,7 @@ export default async function AdminLayout({
 
   return (
     <div className="min-h-screen bg-[#f5f1e8]">
+      <ChatWidgetRemover />
       <AdminHeader />
       <div className="flex">
         <AdminSidebarV2 key="v2" />

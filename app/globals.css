@@ -392,6 +392,66 @@
   background-color: white !important;
 }
 
+/* IVC Oracle Style Guide - AI Blog Editor Specific */
+.ai-blog-editor {
+  /* Ensure proper contrast */
+  --ivc-navy: #1a2b4a;
+  --ivc-dark-navy: #0f1829;
+  --ivc-cream: #f5f1e8;
+  --ivc-orange: #ff6b35;
+  --ivc-dark-orange: #e55a2b;
+  --ivc-blue: #4a90e2;
+  --ivc-dark-blue: #3a7bc8;
+}
+
+/* Override any remaining purple colors in AI Blog Editor */
+.ai-blog-editor [class*="purple"],
+.ai-blog-editor [class*="Purple"] {
+  color: var(--ivc-orange) !important;
+}
+
+.ai-blog-editor [class*="bg-purple"] {
+  background-color: var(--ivc-navy) !important;
+}
+
+.ai-blog-editor [class*="border-purple"] {
+  border-color: var(--ivc-orange) !important;
+}
+
+/* Ensure all buttons follow Oracle style */
+.ai-blog-editor button {
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+  border-width: 2px !important;
+}
+
+/* Primary buttons */
+.ai-blog-editor button[class*="bg-purple"],
+.ai-blog-editor .btn-primary {
+  background-color: var(--ivc-orange) !important;
+  color: var(--ivc-cream) !important;
+  border-color: var(--ivc-dark-orange) !important;
+}
+
+.ai-blog-editor button[class*="bg-purple"]:hover,
+.ai-blog-editor .btn-primary:hover {
+  background-color: var(--ivc-dark-orange) !important;
+}
+
+/* Secondary buttons */
+.ai-blog-editor button[class*="bg-gray"],
+.ai-blog-editor .btn-secondary {
+  background-color: white !important;
+  color: var(--ivc-navy) !important;
+  border-color: var(--ivc-navy) !important;
+}
+
+.ai-blog-editor button[class*="bg-gray"]:hover,
+.ai-blog-editor .btn-secondary:hover {
+  background-color: var(--ivc-navy) !important;
+  color: var(--ivc-cream) !important;
+}
+
 /* Ensure proper text contrast */
 .text-muted,
 .text-muted-foreground {

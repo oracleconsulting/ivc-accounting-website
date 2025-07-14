@@ -59,7 +59,7 @@ const AI_MODES = {
     icon: Trophy,
     model: 'anthropic/claude-3-sonnet',
     description: 'Balanced writing with good quality',
-    color: 'text-purple-600'
+    color: 'text-[#ff6b35]'
   },
   excellence: {
     name: 'Excellence Mode',
@@ -289,7 +289,7 @@ ${data.suggestions.map((suggestion: any, index: number) =>
       
       if (response.ok) {
         const data = await response.json();
-        setContent(data.content);
+        setContent(typeof data === 'string' ? data : (data?.content || ''));
         alert('Writing improved! Check the enhanced content.');
       }
     } catch (error) {
@@ -415,17 +415,17 @@ ${post.content}
   const CurrentModeIcon = AI_MODES[aiMode].icon;
 
   return (
-    <div className="max-w-7xl mx-auto p-4 space-y-4">
+    <div className="max-w-7xl mx-auto p-4 space-y-4 ai-blog-editor">
       {/* Header with AI Mode Selector and Content Score */}
-      <div className="flex items-center justify-between bg-white p-4 rounded-lg shadow-sm border">
+      <div className="flex items-center justify-between bg-white p-4 border-2 border-[#1a2b4a]">
         <div className="flex items-center gap-4">
-          <h1 className="text-2xl font-bold text-gray-900">AI Blog Editor</h1>
+          <h1 className="text-2xl font-black text-[#1a2b4a] uppercase">AI Blog Editor</h1>
           {contentScore > 0 && (
             <Badge 
-              className={`text-lg px-3 py-1 ${
-                contentScore >= 80 ? 'bg-green-100 text-green-800 border-green-300' : 
-                contentScore >= 60 ? 'bg-yellow-100 text-yellow-800 border-yellow-300' : 
-                'bg-red-100 text-red-800 border-red-300'
+              className={`text-lg px-3 py-1 font-black uppercase ${
+                contentScore >= 80 ? 'bg-[#4a90e2] text-white border-2 border-[#3a7bc8]' : 
+                contentScore >= 60 ? 'bg-[#ff6b35] text-white border-2 border-[#e55a2b]' : 
+                'bg-[#1a2b4a] text-[#f5f1e8] border-2 border-[#0f1829]'
               }`}
             >
               {overallReview?.grade || 'F'} · {contentScore}%
@@ -436,7 +436,7 @@ ${post.content}
         <div className="flex items-center gap-4">
           {/* AI Mode Selector */}
           <Select value={aiMode} onValueChange={(value: keyof typeof AI_MODES) => setAiMode(value)}>
-            <SelectTrigger className="w-[180px] bg-white border-gray-300">
+            <SelectTrigger className="w-[180px] bg-white border-2 border-[#1a2b4a]">
               <SelectValue>
                 <div className="flex items-center gap-2">
                   <CurrentModeIcon className="w-4 h-4" />
@@ -468,42 +468,42 @@ ${post.content}
               checked={isAutoEnhanceEnabled}
               onCheckedChange={setIsAutoEnhanceEnabled}
             />
-            <label className="text-sm text-gray-700">Auto-Enhance</label>
+            <label className="text-sm text-[#1a2b4a] font-bold uppercase">Auto-Enhance</label>
           </div>
         </div>
       </div>
 
       {/* Main Editor Card */}
-      <Card className="bg-white shadow-lg">
-        <CardHeader className="bg-gray-50 border-b">
+      <Card className="bg-white border-2 border-[#1a2b4a]">
+        <CardHeader className="bg-[#f5f1e8] border-b-2 border-[#ff6b35]">
           <div className="space-y-4">
             <input
               type="text"
               placeholder="Enter your blog title..."
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="text-2xl font-bold border-0 bg-transparent outline-none w-full text-gray-900 placeholder-gray-400"
+              className="text-2xl font-black border-0 bg-transparent outline-none w-full text-[#1a2b4a] placeholder-[#1a2b4a]/60 uppercase"
             />
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                placeholder="Add keyword..."
-                value={currentKeyword}
-                onChange={(e) => setCurrentKeyword(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && addKeyword()}
-                className="text-sm border rounded px-3 py-1 outline-none flex-1"
-              />
-              <Button size="sm" onClick={addKeyword} className="bg-purple-600 hover:bg-purple-700">
-                <Plus className="w-4 h-4" />
-              </Button>
-            </div>
+                          <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  placeholder="Add keyword..."
+                  value={currentKeyword}
+                  onChange={(e) => setCurrentKeyword(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && addKeyword()}
+                  className="text-sm border-2 border-[#1a2b4a] px-3 py-1 outline-none flex-1 font-bold uppercase"
+                />
+                <Button size="sm" onClick={addKeyword} className="bg-[#ff6b35] hover:bg-[#e55a2b] text-[#f5f1e8] font-black uppercase">
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </div>
             {keywords.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {keywords.map(keyword => (
                   <Badge
                     key={keyword}
                     variant="secondary"
-                    className="cursor-pointer bg-purple-100 text-purple-800 hover:bg-purple-200"
+                    className="cursor-pointer bg-[#f5f1e8] text-[#1a2b4a] hover:bg-[#ff6b35] hover:text-[#f5f1e8] border-2 border-[#1a2b4a] font-bold uppercase"
                     onClick={() => removeKeyword(keyword)}
                   >
                     {keyword} ×
@@ -515,20 +515,20 @@ ${post.content}
         </CardHeader>
         <CardContent className="p-0">
           <Tabs defaultValue="write" className="w-full">
-            <TabsList className="grid w-full grid-cols-4 bg-gray-100 rounded-none">
-              <TabsTrigger value="write" className="data-[state=active]:bg-white">
+            <TabsList className="grid w-full grid-cols-4 bg-[#1a2b4a] rounded-none border-b-2 border-[#ff6b35]">
+              <TabsTrigger value="write" className="data-[state=active]:bg-[#f5f1e8] data-[state=active]:text-[#1a2b4a] data-[state=active]:font-black data-[state=active]:uppercase text-[#f5f1e8] uppercase font-bold">
                 <FileText className="w-4 h-4 mr-2" />
                 Write
               </TabsTrigger>
-              <TabsTrigger value="ai-assistant" className="data-[state=active]:bg-white">
+              <TabsTrigger value="ai-assistant" className="data-[state=active]:bg-[#f5f1e8] data-[state=active]:text-[#1a2b4a] data-[state=active]:font-black data-[state=active]:uppercase text-[#f5f1e8] uppercase font-bold">
                 <Brain className="w-4 h-4 mr-2" />
                 AI Assistant
               </TabsTrigger>
-              <TabsTrigger value="ai-review" className="data-[state=active]:bg-white">
+              <TabsTrigger value="ai-review" className="data-[state=active]:bg-[#f5f1e8] data-[state=active]:text-[#1a2b4a] data-[state=active]:font-black data-[state=active]:uppercase text-[#f5f1e8] uppercase font-bold">
                 <Shield className="w-4 h-4 mr-2" />
                 AI Review
               </TabsTrigger>
-              <TabsTrigger value="social-media" className="data-[state=active]:bg-white">
+              <TabsTrigger value="social-media" className="data-[state=active]:bg-[#f5f1e8] data-[state=active]:text-[#1a2b4a] data-[state=active]:font-black data-[state=active]:uppercase text-[#f5f1e8] uppercase font-bold">
                 <Share2 className="w-4 h-4 mr-2" />
                 Social Media
               </TabsTrigger>
@@ -537,9 +537,9 @@ ${post.content}
             <TabsContent value="write" className="p-6">
               <div className="space-y-4">
                 <textarea
-                  value={content}
+                  value={String(content || '')}
                   onChange={(e) => handleContentUpdate(e.target.value)}
-                  className="w-full min-h-[400px] p-4 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full min-h-[400px] p-4 border-2 border-[#1a2b4a] resize-none focus:ring-2 focus:ring-[#ff6b35] focus:border-transparent font-sans"
                   placeholder="Start writing your blog post..."
                 />
                 
@@ -564,9 +564,9 @@ ${post.content}
 
             <TabsContent value="ai-assistant" className="p-6">
               <div className="space-y-4">
-                <Alert className="bg-purple-50 border-purple-200">
-                  <Sparkles className="w-4 h-4 text-purple-600" />
-                  <AlertDescription className="text-gray-800">
+                <Alert className="bg-[#f5f1e8] border-2 border-[#ff6b35]">
+                  <Sparkles className="w-4 h-4 text-[#ff6b35]" />
+                  <AlertDescription className="text-[#1a2b4a] font-bold">
                     Get AI-powered suggestions, research, and content enhancement. Click any button below to get started!
                   </AlertDescription>
                 </Alert>
@@ -574,62 +574,62 @@ ${post.content}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Button 
                     variant="outline" 
-                    className="h-auto p-6 flex flex-col items-start border-gray-300 hover:border-purple-400 hover:bg-purple-50"
+                    className="h-auto p-6 flex flex-col items-start border-2 border-[#1a2b4a] hover:border-[#ff6b35] hover:bg-[#f5f1e8] bg-white"
                     onClick={handleResearchTopic}
                     disabled={isGenerating && activeAssistant === 'research'}
                   >
                     {isGenerating && activeAssistant === 'research' ? (
                       <Loader2 className="w-5 h-5 mb-2 animate-spin" />
                     ) : (
-                      <Search className="w-5 h-5 mb-2 text-purple-600" />
+                      <Search className="w-5 h-5 mb-2 text-[#ff6b35]" />
                     )}
-                    <span className="font-medium text-gray-900">Research Topic</span>
-                    <span className="text-xs text-gray-600">Find relevant information and data</span>
+                    <span className="font-bold text-[#1a2b4a] uppercase">Research Topic</span>
+                    <span className="text-xs text-[#1a2b4a]">Find relevant information and data</span>
                   </Button>
                   
                   <Button 
                     variant="outline" 
-                    className="h-auto p-6 flex flex-col items-start border-gray-300 hover:border-purple-400 hover:bg-purple-50"
+                    className="h-auto p-6 flex flex-col items-start border-2 border-[#1a2b4a] hover:border-[#ff6b35] hover:bg-[#f5f1e8] bg-white"
                     onClick={handleGenerateIdeas}
                     disabled={isGenerating && activeAssistant === 'ideas'}
                   >
                     {isGenerating && activeAssistant === 'ideas' ? (
                       <Loader2 className="w-5 h-5 mb-2 animate-spin" />
                     ) : (
-                      <Lightbulb className="w-5 h-5 mb-2 text-purple-600" />
+                      <Lightbulb className="w-5 h-5 mb-2 text-[#ff6b35]" />
                     )}
-                    <span className="font-medium text-gray-900">Generate Ideas</span>
-                    <span className="text-xs text-gray-600">Get content suggestions and angles</span>
+                    <span className="font-bold text-[#1a2b4a] uppercase">Generate Ideas</span>
+                    <span className="text-xs text-[#1a2b4a]">Get content suggestions and angles</span>
                   </Button>
                   
                   <Button 
                     variant="outline" 
-                    className="h-auto p-6 flex flex-col items-start border-gray-300 hover:border-purple-400 hover:bg-purple-50"
+                    className="h-auto p-6 flex flex-col items-start border-2 border-[#1a2b4a] hover:border-[#ff6b35] hover:bg-[#f5f1e8] bg-white"
                     onClick={handleImproveWriting}
                     disabled={isGenerating && activeAssistant === 'improve'}
                   >
                     {isGenerating && activeAssistant === 'improve' ? (
                       <Loader2 className="w-5 h-5 mb-2 animate-spin" />
                     ) : (
-                      <Wand2 className="w-5 h-5 mb-2 text-purple-600" />
+                      <Wand2 className="w-5 h-5 mb-2 text-[#ff6b35]" />
                     )}
-                    <span className="font-medium text-gray-900">Improve Writing</span>
-                    <span className="text-xs text-gray-600">Enhance style and readability</span>
+                    <span className="font-bold text-[#1a2b4a] uppercase">Improve Writing</span>
+                    <span className="text-xs text-[#1a2b4a]">Enhance style and readability</span>
                   </Button>
                   
                   <Button 
                     variant="outline" 
-                    className="h-auto p-6 flex flex-col items-start border-gray-300 hover:border-purple-400 hover:bg-purple-50"
+                    className="h-auto p-6 flex flex-col items-start border-2 border-[#1a2b4a] hover:border-[#ff6b35] hover:bg-[#f5f1e8] bg-white"
                     onClick={handleAddCitations}
                     disabled={isGenerating && activeAssistant === 'citations'}
                   >
                     {isGenerating && activeAssistant === 'citations' ? (
                       <Loader2 className="w-5 h-5 mb-2 animate-spin" />
                     ) : (
-                      <Quote className="w-5 h-5 mb-2 text-purple-600" />
+                      <Quote className="w-5 h-5 mb-2 text-[#ff6b35]" />
                     )}
-                    <span className="font-medium text-gray-900">Add Citations</span>
-                    <span className="text-xs text-gray-600">Include credible references</span>
+                    <span className="font-bold text-[#1a2b4a] uppercase">Add Citations</span>
+                    <span className="text-xs text-[#1a2b4a]">Include credible references</span>
                   </Button>
                 </div>
 
@@ -646,7 +646,7 @@ ${post.content}
                       className="min-h-[100px]"
                     />
                     <Button 
-                      className="w-full bg-purple-600 hover:bg-purple-700"
+                      className="w-full bg-[#ff6b35] hover:bg-[#e55a2b] text-[#f5f1e8] font-black uppercase"
                       disabled={!assistantInput || isGenerating}
                       onClick={async () => {
                         if (!assistantInput) return;
