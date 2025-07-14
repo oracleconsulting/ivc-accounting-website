@@ -97,6 +97,8 @@ export default function WorkingAIBlogEditor({
   const [overallReview, setOverallReview] = useState<any>(null);
   const [reviewSections, setReviewSections] = useState<any[]>([]);
 
+
+
   // Real-time content scoring
   useEffect(() => {
     const analyzeContent = async () => {
@@ -423,9 +425,9 @@ ${post.content}
           {contentScore > 0 && (
             <Badge 
               className={`text-lg px-3 py-1 font-black uppercase ${
-                contentScore >= 80 ? 'bg-[#4a90e2] text-white border-2 border-[#3a7bc8]' : 
-                contentScore >= 60 ? 'bg-[#ff6b35] text-white border-2 border-[#e55a2b]' : 
-                'bg-[#1a2b4a] text-[#f5f1e8] border-2 border-[#0f1829]'
+                contentScore >= 80 ? 'bg-green-500 text-white border-2 border-green-600' : 
+                contentScore >= 60 ? 'bg-orange-500 text-white border-2 border-orange-600' : 
+                'bg-red-500 text-white border-2 border-red-600'
               }`}
             >
               {overallReview?.grade || 'F'} · {contentScore}%
@@ -436,7 +438,7 @@ ${post.content}
         <div className="flex items-center gap-4">
           {/* AI Mode Selector */}
           <Select value={aiMode} onValueChange={(value: keyof typeof AI_MODES) => setAiMode(value)}>
-            <SelectTrigger className="w-[180px] bg-white border-2 border-[#1a2b4a]">
+            <SelectTrigger className="w-[180px] bg-white border-2 border-[#1a2b4a] text-[#1a2b4a] font-bold">
               <SelectValue>
                 <div className="flex items-center gap-2">
                   <CurrentModeIcon className="w-4 h-4" />
@@ -444,16 +446,16 @@ ${post.content}
                 </div>
               </SelectValue>
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-white border-2 border-[#1a2b4a]">
               {Object.entries(AI_MODES).map(([key, mode]) => {
                 const Icon = mode.icon;
                 return (
-                  <SelectItem key={key} value={key}>
+                  <SelectItem key={key} value={key} className="hover:bg-[#f5f1e8]">
                     <div className="flex items-center gap-2">
                       <Icon className={`w-4 h-4 ${mode.color}`} />
                       <div>
-                        <div className="font-medium">{mode.name}</div>
-                        <div className="text-xs text-gray-600">{mode.description}</div>
+                        <div className="font-bold text-[#1a2b4a]">{mode.name}</div>
+                        <div className="text-xs text-[#1a2b4a]">{mode.description}</div>
                       </div>
                     </div>
                   </SelectItem>
@@ -464,11 +466,21 @@ ${post.content}
 
           {/* Auto-Enhance Toggle */}
           <div className="flex items-center gap-2">
-            <Switch
-              checked={isAutoEnhanceEnabled}
-              onCheckedChange={setIsAutoEnhanceEnabled}
-            />
-            <label className="text-sm text-[#1a2b4a] font-bold uppercase">Auto-Enhance</label>
+            <button
+              onClick={() => setIsAutoEnhanceEnabled(!isAutoEnhanceEnabled)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                isAutoEnhanceEnabled ? 'bg-[#ff6b35]' : 'bg-gray-300'
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  isAutoEnhanceEnabled ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+            <label className="text-sm text-[#1a2b4a] font-bold uppercase">
+              Auto-Enhance {isAutoEnhanceEnabled ? 'ON' : 'OFF'}
+            </label>
           </div>
         </div>
       </div>
@@ -537,9 +549,9 @@ ${post.content}
             <TabsContent value="write" className="p-6">
               <div className="space-y-4">
                 <textarea
-                  value={String(content || '')}
+                  value={typeof content === 'string' ? content : JSON.stringify(content, null, 2)}
                   onChange={(e) => handleContentUpdate(e.target.value)}
-                  className="w-full min-h-[400px] p-4 border-2 border-[#1a2b4a] resize-none focus:ring-2 focus:ring-[#ff6b35] focus:border-transparent font-sans"
+                  className="w-full min-h-[400px] p-4 border-2 border-[#1a2b4a] rounded-none resize-none focus:ring-2 focus:ring-[#ff6b35] focus:border-transparent font-sans"
                   placeholder="Start writing your blog post..."
                 />
                 
@@ -682,34 +694,50 @@ ${post.content}
                 <div className="space-y-4">
                   {/* Quick Stats */}
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <Card className="bg-gray-50">
+                    <Card className={
+                      Math.round(contentScore * 0.9) >= 80 ? 'bg-green-50' : 
+                      Math.round(contentScore * 0.9) >= 60 ? 'bg-orange-50' : 
+                      'bg-red-50'
+                    }>
                       <CardContent className="p-4">
-                        <p className="text-sm text-gray-600">SEO Score</p>
-                        <p className="text-2xl font-bold text-gray-900">
+                        <p className="text-sm text-[#1a2b4a]">SEO Score</p>
+                        <p className="text-2xl font-bold text-[#1a2b4a]">
                           {Math.round(contentScore * 0.9)}%
                         </p>
                       </CardContent>
                     </Card>
-                    <Card className="bg-blue-50">
+                    <Card className={
+                      Math.round(contentScore * 0.85) >= 80 ? 'bg-green-50' : 
+                      Math.round(contentScore * 0.85) >= 60 ? 'bg-orange-50' : 
+                      'bg-red-50'
+                    }>
                       <CardContent className="p-4">
-                        <p className="text-sm text-gray-600">Readability</p>
-                        <p className="text-2xl font-bold text-gray-900">
+                        <p className="text-sm text-[#1a2b4a]">Readability</p>
+                        <p className="text-2xl font-bold text-[#1a2b4a]">
                           {Math.round(contentScore * 0.85)}%
                         </p>
                       </CardContent>
                     </Card>
-                    <Card className="bg-purple-50">
+                    <Card className={
+                      Math.round(contentScore * 0.8) >= 80 ? 'bg-green-50' : 
+                      Math.round(contentScore * 0.8) >= 60 ? 'bg-orange-50' : 
+                      'bg-red-50'
+                    }>
                       <CardContent className="p-4">
-                        <p className="text-sm text-gray-600">Engagement</p>
-                        <p className="text-2xl font-bold text-gray-900">
+                        <p className="text-sm text-[#1a2b4a]">Engagement</p>
+                        <p className="text-2xl font-bold text-[#1a2b4a]">
                           {Math.round(contentScore * 0.8)}%
                         </p>
                       </CardContent>
                     </Card>
-                    <Card className={contentScore >= 70 ? 'bg-green-50' : 'bg-yellow-50'}>
+                    <Card className={
+                      contentScore >= 80 ? 'bg-green-50' : 
+                      contentScore >= 60 ? 'bg-orange-50' : 
+                      'bg-red-50'
+                    }>
                       <CardContent className="p-4">
-                        <p className="text-sm text-gray-600">Overall</p>
-                        <p className="text-2xl font-bold text-gray-900">{contentScore}%</p>
+                        <p className="text-sm text-[#1a2b4a]">Overall</p>
+                        <p className="text-2xl font-bold text-[#1a2b4a]">{contentScore}%</p>
                       </CardContent>
                     </Card>
                   </div>
@@ -718,23 +746,23 @@ ${post.content}
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
-                        <Target className="w-5 h-5 text-purple-600" />
+                        <Target className="w-5 h-5 text-[#ff6b35]" />
                         Suggested Improvements
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
                       {!title && (
-                        <Alert className="bg-yellow-50 border-yellow-200">
-                          <AlertCircle className="w-4 h-4 text-yellow-600" />
-                          <AlertDescription className="text-gray-800">
+                        <Alert className="bg-[#f5f1e8] border-2 border-[#ff6b35]">
+                          <AlertCircle className="w-4 h-4 text-[#ff6b35]" />
+                          <AlertDescription className="text-[#1a2b4a] font-bold">
                             Add a compelling title to improve SEO
                           </AlertDescription>
                         </Alert>
                       )}
                       {keywords.length === 0 && (
-                        <Alert className="bg-yellow-50 border-yellow-200">
-                          <AlertCircle className="w-4 h-4 text-yellow-600" />
-                          <AlertDescription className="text-gray-800">
+                        <Alert className="bg-[#f5f1e8] border-2 border-[#ff6b35]">
+                          <AlertCircle className="w-4 h-4 text-[#ff6b35]" />
+                          <AlertDescription className="text-[#1a2b4a] font-bold">
                             Add keywords to optimize for search engines
                           </AlertDescription>
                         </Alert>
@@ -748,7 +776,7 @@ ${post.content}
                         </Alert>
                       )}
                       <Button 
-                        className="w-full bg-purple-600 hover:bg-purple-700"
+                        className="w-full bg-[#ff6b35] hover:bg-[#e55a2b] text-[#f5f1e8] font-black uppercase"
                         onClick={handleImproveWriting}
                       >
                         <Wand2 className="w-4 h-4 mr-2" />
@@ -777,14 +805,14 @@ ${post.content}
                 
                 {contentScore >= 70 ? (
                   <div className="text-center py-8">
-                    <Share2 className="w-12 h-12 text-purple-600 mx-auto mb-4" />
+                    <Share2 className="w-12 h-12 text-[#ff6b35] mx-auto mb-4" />
                     <h3 className="text-lg font-semibold mb-2">Ready to Create Social Posts!</h3>
                     <p className="text-gray-600 mb-4">
                       Generate platform-optimized content from your blog
                     </p>
                     <Button 
                       size="lg"
-                      className="bg-purple-600 hover:bg-purple-700"
+                      className="bg-[#ff6b35] hover:bg-[#e55a2b] text-[#f5f1e8] font-black uppercase"
                       onClick={handleGenerateSocialPosts}
                       disabled={isGenerating}
                     >
@@ -833,7 +861,7 @@ ${post.content}
         <Button
           size="sm"
           onClick={() => onSave(content, { title, keywords, score: contentScore })}
-          className="bg-purple-600 hover:bg-purple-700"
+          className="bg-[#ff6b35] hover:bg-[#e55a2b] text-[#f5f1e8] font-black uppercase"
         >
           <Sparkles className="w-4 h-4 mr-1" />
           Publish
