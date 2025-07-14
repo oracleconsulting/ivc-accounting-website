@@ -1,16 +1,63 @@
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
-import Link from 'next/link';
-import { Plus, Edit, Eye, Trash2, Calendar } from 'lucide-react';
+'use client';
 
-export default async function PostsPage() {
-  const supabase = createServerComponentClient({ cookies });
-  
-  // Simple query without joins
-  const { data: posts, error } = await supabase
-    .from('posts')
-    .select('*')
-    .order('created_at', { ascending: false });
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { Plus, Edit, Eye, Trash2 } from 'lucide-react';
+
+interface Post {
+  id: string;
+  title: string;
+  slug: string;
+  content: string;
+  status: string;
+  created_at: string;
+}
+
+export default function PostsPage() {
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchPosts();
+  }, []);
+
+  const fetchPosts = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/admin/posts');
+      if (!response.ok) {
+        throw new Error('Failed to fetch posts');
+      }
+      const data = await response.json();
+      setPosts(data.posts || data); // Handle both {posts: [...]} and [...] formats
+    } catch (err) {
+      console.error('Error fetching posts:', err);
+      setError(err instanceof Error ? err.message : 'Unknown error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (postId: string) => {
+    if (!confirm('Are you sure you want to delete this post?')) return;
+    
+    try {
+      const response = await fetch(`/api/admin/posts/${postId}`, {
+        method: 'DELETE',
+      });
+      
+      if (response.ok) {
+        setPosts(posts.filter(p => p.id !== postId));
+        alert('Post deleted successfully');
+      } else {
+        throw new Error('Failed to delete post');
+      }
+    } catch (err) {
+      console.error('Error deleting post:', err);
+      alert('Failed to delete post');
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -42,7 +89,7 @@ export default async function PostsPage() {
 
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-          Error loading posts: {error.message}
+          Error loading posts: {error}
         </div>
       )}
 
