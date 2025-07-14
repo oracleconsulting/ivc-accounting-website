@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
+import RichTextEditor from './RichTextEditor';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -127,6 +128,9 @@ export default function WorkingAIBlogEditor({
   // AI Review state
   const [overallReview, setOverallReview] = useState<any>(null);
   const [reviewSections, setReviewSections] = useState<any[]>([]);
+  
+  // JSON content for saving
+  const [jsonContent, setJsonContent] = useState<any>(null);
 
   // Parse initial content if it's JSON
   useEffect(() => {
@@ -134,9 +138,15 @@ export default function WorkingAIBlogEditor({
       try {
         if (typeof initialContent === 'string' && initialContent.trim().startsWith('{')) {
           const parsed = JSON.parse(initialContent);
+          // Set JSON content for the editor
+          setJsonContent(parsed);
+          // Set plain text for AI analysis
           const extractedText = extractTextFromJSON(parsed);
           setContent(extractedText);
         } else if (typeof initialContent === 'object') {
+          // Set JSON content for the editor
+          setJsonContent(initialContent);
+          // Set plain text for AI analysis
           const extractedText = extractTextFromJSON(initialContent);
           setContent(extractedText);
         } else {
@@ -606,16 +616,11 @@ ${post.content}
 
             <TabsContent value="write" className="p-6">
               <div className="space-y-4">
-                <textarea
-                  value={typeof content === 'string' ? content : JSON.stringify(content, null, 2)}
-                  onChange={(e) => handleContentUpdate(e.target.value)}
-                  className="w-full min-h-[400px] p-4 border-2 border-[#1a2b4a] rounded-none resize-none focus:ring-2 focus:ring-[#ff6b35] focus:border-transparent font-sans"
-                  placeholder="Start writing your blog post..."
+                <RichTextEditor
+                  content={typeof content === 'string' ? content : ''}
+                  onChange={handleContentUpdate}
+                  onJsonChange={setJsonContent}
                 />
-                
-                {typeof content === 'string' && content.length < 100 && (
-                  <div className="text-sm text-gray-500 mt-2">Write at least 100 characters to enable analysis.</div>
-                )}
                 
                 {overallReview && (
                   <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
@@ -926,8 +931,8 @@ ${post.content}
         <Button
           size="sm"
           onClick={() => {
-            // Convert plain text back to editor format if needed
-            const contentToSave = {
+            // Use JSON content from TipTap editor if available, otherwise fallback
+            const contentToSave = jsonContent || {
               type: 'doc',
               content: (typeof content === 'string' ? content : '').split('\n\n').map(paragraph => ({
                 type: 'paragraph',
