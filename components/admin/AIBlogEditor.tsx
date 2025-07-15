@@ -139,6 +139,16 @@ const cleanContentForDisplay = (text: string): string => {
   let cleaned = text.replace(/\(≈\d+\s*words?\)/g, '');
   cleaned = cleaned.replace(/Sorry, I encountered an error\. Please try again\./g, '');
   cleaned = cleaned.replace(/\n{3,}/g, '\n\n');
+  
+  // Fix special characters
+  cleaned = cleaned.replace(/â€™/g, "'");  // Curly apostrophe
+  cleaned = cleaned.replace(/â€"/g, "—");  // Em dash
+  cleaned = cleaned.replace(/â€œ/g, '"');  // Left curly quote
+  cleaned = cleaned.replace(/â€/g, '"');   // Right curly quote
+  cleaned = cleaned.replace(/â€¦/g, '...');  // Ellipsis
+  cleaned = cleaned.replace(/Â£/g, '£');    // Pound symbol
+  cleaned = cleaned.replace(/Â /g, ' ');    // Non-breaking space
+  
   return cleaned.trim();
 };
 
@@ -634,7 +644,8 @@ export default function AIBlogEditor({
 
             <TabsContent value="write" className="flex-1 p-4 overflow-hidden">
               {previewMode ? (
-                <div className="h-full overflow-y-auto bg-white p-8 border-2 border-[#1a2b4a] prose prose-lg max-w-none">
+                <div className="h-full overflow-hidden">
+                  <div className="h-full overflow-y-auto bg-white p-8 border-2 border-[#1a2b4a] prose prose-lg max-w-none" style={{ height: 'calc(100vh - 400px)' }}>
                   <article>
                     <h1 className="text-3xl font-black text-[#1a2b4a] mb-4 uppercase not-prose">{title || 'Untitled Post'}</h1>
                     {overallReview && (
@@ -653,18 +664,17 @@ export default function AIBlogEditor({
                           .replace(/\n\n/g, '</p><p>')
                           .replace(/^/, '<p>')
                           .replace(/$/, '</p>')
-                          .replace(/<p>###### (.*?)<\/p>/g, '<h6>$1</h6>')
-                          .replace(/<p>##### (.*?)<\/p>/g, '<h5>$1</h5>')
-                          .replace(/<p>#### (.*?)<\/p>/g, '<h4>$1</h4>')
-                          .replace(/<p>### (.*?)<\/p>/g, '<h3>$1</h3>')
-                          .replace(/<p>## (.*?)<\/p>/g, '<h2>$1</h2>')
-                          .replace(/<p># (.*?)<\/p>/g, '<h1>$1</h1>')
+                          .replace(/<p>#{1,6}\s+(.*?)<\/p>/g, (match, p1, offset, string) => {
+                            const level = match.match(/#/g)?.length || 1;
+                            return `<h${level}>${p1}</h${level}>`;
+                          })
                           .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                           .replace(/\*(.*?)\*/g, '<em>$1</em>')
                           .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
                       }} 
                     />
                   </article>
+                </div>
                 </div>
               ) : (
                 <textarea
@@ -740,21 +750,148 @@ export default function AIBlogEditor({
                         className="w-full bg-[#1a2b4a] hover:bg-[#0f1829] text-[#f5f1e8] font-black uppercase"
                         onClick={() => {
                           if (layoutPreview) {
-                            // Inject the actual blog content into the preview
-                            const contentSections = cleanContentForDisplay(content).split('\n\n');
-                            const enhancedPreview = layoutPreview.replace(
-                              '</body>',
-                              `<div class="content-section" style="max-width: 800px; margin: 60px auto; padding: 0 20px; line-height: 1.8; font-size: 18px;">
-                                ${contentSections.map(section => `<p>${section}</p>`).join('')}
-                              </div>
-                              </body>`
-                            );
-                            const blob = new Blob([enhancedPreview], { type: 'text/html' });
+                            const cleanedContent = cleanContentForDisplay(content);
+                            
+                            // Convert markdown-style headings to HTML
+                            const htmlContent = cleanedContent
+                              .split('\n\n')
+                              .map(paragraph => {
+                                // Convert markdown headings
+                                if (paragraph.startsWith('### ')) {
+                                  return `<h3 style="font-size: 1.5rem; font-weight: 700; color: #1a2b4a; margin: 30px 0 15px;">${paragraph.substring(4)}</h3>`;
+                                } else if (paragraph.startsWith('## ')) {
+                                  return `<h2 style="font-size: 2rem; font-weight: 900; text-transform: uppercase; color: #1a2b4a; margin: 40px 0 20px;">${paragraph.substring(3)}</h2>`;
+                                } else if (paragraph.startsWith('# ')) {
+                                  return `<h1 style="font-size: 2.5rem; font-weight: 900; text-transform: uppercase; color: #1a2b4a; margin: 40px 0 20px;">${paragraph.substring(2)}</h1>`;
+                                } else if (paragraph.trim()) {
+                                  return `<p style="margin-bottom: 20px; line-height: 1.8;">${paragraph}</p>`;
+                                }
+                                return '';
+                              })
+                              .filter(p => p)
+                              .join('\n');
+                            
+                            // Create enhanced preview with proper styling
+                            const enhancedPreview = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
+      margin: 0; 
+      padding: 0; 
+      color: #1a2b4a;
+      line-height: 1.6;
+    }
+    .hero {
+      background: linear-gradient(135deg, #1a2b4a 0%, #ff6b35 100%);
+      color: white;
+      padding: 80px 20px;
+      text-align: center;
+    }
+    .hero h1 {
+      font-size: 3rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      margin: 0 0 20px 0;
+    }
+    .content-section {
+      max-width: 800px;
+      margin: 60px auto;
+      padding: 0 20px;
+    }
+    .stats {
+      background: #f5f1e8;
+      padding: 60px 20px;
+      text-align: center;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 40px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .stat-item {
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 2.5rem;
+      font-weight: 900;
+      color: #ff6b35;
+    }
+    .stat-label {
+      font-size: 1rem;
+      color: #1a2b4a;
+      margin-top: 10px;
+    }
+    .cta {
+      background: #1a2b4a;
+      color: white;
+      padding: 80px 20px;
+      text-align: center;
+    }
+    .cta-button {
+      display: inline-block;
+      background: #ff6b35;
+      color: white;
+      padding: 15px 40px;
+      text-decoration: none;
+      font-weight: 900;
+      text-transform: uppercase;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="hero">
+    <h1>${title || 'Transform Your Business'}</h1>
+    <p style="font-size: 1.25rem;">Expert strategies that deliver real results</p>
+  </div>
+  
+  ${selectedLayout?.components.includes('stats') ? `
+  <div class="stats">
+    <div class="stats-grid">
+      <div class="stat-item">
+        <div class="stat-value">73%</div>
+        <div class="stat-label">Businesses Missing Savings</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">£5.5k</div>
+        <div class="stat-label">Average Annual Savings</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">89%</div>
+        <div class="stat-label">Client Satisfaction</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">24/7</div>
+        <div class="stat-label">Expert Support</div>
+      </div>
+    </div>
+  </div>
+  ` : ''}
+  
+  <div class="content-section">
+    ${htmlContent}
+  </div>
+  
+  <div class="cta">
+    <h2 style="font-size: 2rem; margin: 0 0 20px 0;">Ready to Get Started?</h2>
+    <p style="font-size: 1.25rem; margin-bottom: 30px;">Transform your business with expert guidance</p>
+    <a href="#" class="cta-button">Schedule Free Consultation</a>
+  </div>
+</body>
+</html>`;
+                            
+                            const blob = new Blob([enhancedPreview], { type: 'text/html; charset=utf-8' });
                             const url = URL.createObjectURL(blob);
                             window.open(url, '_blank');
                             setTimeout(() => URL.revokeObjectURL(url), 100);
                           }
-                          alert(`Applied "${selectedLayout.name}" layout!`);
+                          alert(`Applied "${selectedLayout.name}" layout with enhanced formatting!`);
                         }}
                       >
                         Apply {selectedLayout.name}
@@ -774,6 +911,23 @@ export default function AIBlogEditor({
                           key={key}
                           variant="outline"
                           className="h-auto p-3 flex flex-col items-center border-2 border-[#1a2b4a] hover:border-[#ff6b35] hover:bg-[#f5f1e8]"
+                          onClick={() => {
+                            // Insert the component at cursor position or end of content
+                            const componentText = {
+                              hero: '\n\n## Hero Section\n[Add compelling headline and subheading here]\n\n',
+                              stats: '\n\n## Key Statistics\n- Stat 1: [Value]\n- Stat 2: [Value]\n- Stat 3: [Value]\n\n',
+                              quote: '\n\n> "[Add impactful quote here]"\n> — Source Name\n\n',
+                              comparison: '\n\n## Comparison\n| Option A | Option B |\n|----------|----------|\n| Feature 1 | Feature 1 |\n| Feature 2 | Feature 2 |\n\n',
+                              timeline: '\n\n## Timeline\n1. **Phase 1**: [Description]\n2. **Phase 2**: [Description]\n3. **Phase 3**: [Description]\n\n',
+                              cta: '\n\n## Ready to Get Started?\n[Add call-to-action text]\n[Button: Contact Us]\n\n',
+                              faq: '\n\n## Frequently Asked Questions\n\n**Q: Question 1?**\nA: Answer 1\n\n**Q: Question 2?**\nA: Answer 2\n\n',
+                              testimonial: '\n\n## What Our Clients Say\n\n> "[Client testimonial]"\n> — Client Name, Company\n\n',
+                              infographic: '\n\n## [Infographic Title]\n[Visual data representation placeholder]\n\n',
+                              video: '\n\n## Video: [Title]\n[Video embed placeholder - add YouTube/Vimeo link]\n\n'
+                            };
+                            setContent(content + (componentText[key as keyof typeof componentText] || ''));
+                            alert(`Added ${component.name} to your content`);
+                          }}
                         >
                           <Icon className="w-5 h-5 mb-1 text-[#ff6b35]" />
                           <span className="text-xs font-bold text-[#1a2b4a]">{component.name}</span>
