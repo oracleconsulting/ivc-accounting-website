@@ -37,79 +37,7 @@ const extractTextFromJSON = (doc: any): string => {
   return text.trim();
 };
 
-// Diagnostic Panel Component
-function DiagnosticPanel({ post, postId }: { post: any; postId: string }) {
-  return (
-    <div className="bg-red-50 border-4 border-red-500 p-6 m-4 rounded-lg">
-      <h2 className="text-2xl font-bold text-red-700 mb-4">🚨 DIAGNOSTIC PANEL</h2>
-      
-      <div className="space-y-4">
-        {/* Check if post exists */}
-        <div className="bg-white p-4 rounded border-2 border-red-300">
-          <h3 className="font-bold text-red-600">Post exists?</h3>
-          <p className="text-2xl">{post ? '✅ YES' : '❌ NO'}</p>
-        </div>
 
-        {/* Check post content */}
-        {post && (
-          <>
-            <div className="bg-white p-4 rounded border-2 border-red-300">
-              <h3 className="font-bold text-red-600">Post Title:</h3>
-              <p className="text-lg">{post.title || '❌ NO TITLE'}</p>
-            </div>
-
-            <div className="bg-white p-4 rounded border-2 border-red-300">
-              <h3 className="font-bold text-red-600">Post Content Type:</h3>
-              <p className="text-lg font-mono">{typeof post.content}</p>
-            </div>
-
-            <div className="bg-white p-4 rounded border-2 border-red-300">
-              <h3 className="font-bold text-red-600">Post Content Preview:</h3>
-              <p className="text-sm font-mono bg-gray-100 p-2 overflow-auto">
-                {post.content ? String(post.content).substring(0, 200) + '...' : '❌ NO CONTENT'}
-              </p>
-            </div>
-
-            <div className="bg-white p-4 rounded border-2 border-red-300">
-              <h3 className="font-bold text-red-600">Post Structure:</h3>
-              <pre className="text-xs bg-gray-100 p-2 overflow-auto max-h-40">
-                {JSON.stringify(post, null, 2)}
-              </pre>
-            </div>
-          </>
-        )}
-
-        {/* Action buttons */}
-        <div className="flex gap-2">
-          <button
-            onClick={() => {
-              console.log('=== DIAGNOSTIC OUTPUT ===');
-              console.log('Post ID:', postId);
-              console.log('Post:', post);
-              console.log('Post content:', post?.content);
-              console.log('Post content type:', typeof post?.content);
-              console.log('========================');
-              alert('Check browser console for diagnostic output');
-            }}
-            className="bg-red-600 text-white px-4 py-2 rounded font-bold hover:bg-red-700"
-          >
-            Log to Console
-          </button>
-          
-          <button
-            onClick={() => {
-              navigator.clipboard.writeText(JSON.stringify(post, null, 2));
-              alert('Post data copied to clipboard!');
-            }}
-            className="bg-blue-600 text-white px-4 py-2 rounded font-bold hover:bg-blue-700"
-          >
-            Copy Post Data
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export default function EditPostPage() {
   const { id: postId } = useParams<{ id: string }>();
@@ -293,12 +221,9 @@ export default function EditPostPage() {
 
       {/* Editor */}
       <div className="p-6">
-        {/* Diagnostic Panel - Remove this once content is working */}
-        <DiagnosticPanel post={post} postId={postId as string} />
-        
         <ErrorBoundary>
           <AIBlogEditor 
-            initialContent={post.content || ''}
+            initialContent={post.plainTextContent || ''}
             postId={postId}
             userId={user.id}
             post={post}
