@@ -135,21 +135,84 @@ const extractTextFromJSON = (doc: any): string => {
   return text.trim();
 };
 
+// Enhanced function to clean content and fix special characters
 const cleanContentForDisplay = (text: string): string => {
   let cleaned = text.replace(/\(≈\d+\s*words?\)/g, '');
   cleaned = cleaned.replace(/Sorry, I encountered an error\. Please try again\./g, '');
   cleaned = cleaned.replace(/\n{3,}/g, '\n\n');
   
-  // Fix special characters
-  cleaned = cleaned.replace(/â€™/g, "'");  // Curly apostrophe
-  cleaned = cleaned.replace(/â€"/g, "—");  // Em dash
-  cleaned = cleaned.replace(/â€œ/g, '"');  // Left curly quote
-  cleaned = cleaned.replace(/â€/g, '"');   // Right curly quote
-  cleaned = cleaned.replace(/â€¦/g, '...');  // Ellipsis
-  cleaned = cleaned.replace(/Â£/g, '£');    // Pound symbol
-  cleaned = cleaned.replace(/Â /g, ' ');    // Non-breaking space
+  // Fix special characters - comprehensive list
+  cleaned = cleaned
+    .replace(/â€™/g, "'")      // Curly apostrophe
+    .replace(/â€"/g, "—")      // Em dash
+    .replace(/â€œ/g, '"')      // Left curly quote
+    .replace(/â€/g, '"')       // Right curly quote  
+    .replace(/â€¦/g, '...')    // Ellipsis
+    .replace(/Â£/g, '£')       // Pound symbol
+    .replace(/Â /g, ' ')       // Non-breaking space
+    .replace(/â€˜/g, "'")      // Left single quote
+    .replace(/â€™/g, "'")      // Right single quote
+    .replace(/â€"/g, "–")      // En dash
+    .replace(/Ã¢/g, "â")       // Circumflex a
+    .replace(/Ã©/g, "é")       // Acute e
+    .replace(/Ã¨/g, "è")       // Grave e
+    .replace(/Ã¼/g, "ü")       // Umlaut u
+    .replace(/Ã¶/g, "ö")       // Umlaut o
+    .replace(/Ã¤/g, "ä")       // Umlaut a
+    .replace(/Â°/g, "°")       // Degree symbol
+    .replace(/â‚¬/g, "€")      // Euro symbol
+    .replace(/Â©/g, "©")       // Copyright symbol
+    .replace(/Â®/g, "®")       // Registered symbol
+    .replace(/â„¢/g, "™")      // Trademark symbol
+    .replace(/Ã—/g, "×")       // Multiplication sign
+    .replace(/Ã·/g, "÷");      // Division sign
   
   return cleaned.trim();
+};
+
+// Enhanced markdown to HTML converter
+const markdownToHtml = (text: string): string => {
+  let html = text;
+  
+  // Clean the text first
+  html = cleanContentForDisplay(html);
+  
+  // Convert markdown headings to HTML
+  html = html.replace(/^### (.*?)$/gm, '<h3>$1</h3>');
+  html = html.replace(/^## (.*?)$/gm, '<h2>$1</h2>');
+  html = html.replace(/^# (.*?)$/gm, '<h1>$1</h1>');
+  
+  // Convert bold text
+  html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  
+  // Convert italic text
+  html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+  
+  // Convert links
+  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-[#ff6b35] hover:text-[#e55a2b] underline">$1</a>');
+  
+  // Convert bullet lists
+  html = html.replace(/^- (.*?)$/gm, '<li>$1</li>');
+  html = html.replace(/(<li>.*<\/li>\n?)+/g, '<ul class="list-disc list-inside my-4">$&</ul>');
+  
+  // Convert numbered lists
+  html = html.replace(/^\d+\. (.*?)$/gm, '<li>$1</li>');
+  html = html.replace(/(<li>.*<\/li>\n?)+/g, function(match) {
+    if (!match.includes('<ul')) {
+      return '<ol class="list-decimal list-inside my-4">' + match + '</ol>';
+    }
+    return match;
+  });
+  
+  // Convert paragraphs
+  html = html.split('\n\n').map(para => {
+    if (!para.startsWith('<') && para.trim()) {
+      return `<p class="mb-4">${para}</p>`;
+    }
+    return para;
+  }).join('\n');
+  
+  return html;
 };
 
 const analyzeContentContext = (content: string, currentTitle: string, currentKeywords: string[]) => {
@@ -483,7 +546,7 @@ export default function AIBlogEditor({
           score: 85,
           components: ['hero', 'timeline', 'faq', 'infographic', 'cta'],
           description: 'Information-rich layout for educational content',
-          preview: '🎯 Hero → �� Timeline → ❓ FAQ → 📊 Infographic → 🎯 CTA'
+          preview: '🎯 Hero → ⏱ Timeline → ❓ FAQ → 📊 Infographic → 🎯 CTA'
         }
       ];
       setAiLayoutSuggestions(fallbackSuggestions);
@@ -543,7 +606,7 @@ export default function AIBlogEditor({
 
             {/* AI Mode Selector */}
             <Select value={aiMode} onValueChange={(value) => setAiMode(value as AIModeKey)}>
-              <SelectTrigger className="w-[180px] bg-white border-2 border-[#1a2b4a] text-[#1a2b4a] font-bold">
+              <SelectTrigger className="w-[180px] bg-white border-2 border-[#1a2b4a] text-[#1a2b4a] font-bold rounded-none">
                 <SelectValue>
                   <div className="flex items-center gap-2">
                     <CurrentModeIcon className="w-4 h-4" />
@@ -551,7 +614,7 @@ export default function AIBlogEditor({
                   </div>
                 </SelectValue>
               </SelectTrigger>
-              <SelectContent className="bg-white border-2 border-[#1a2b4a]">
+              <SelectContent className="bg-white border-2 border-[#1a2b4a] rounded-none">
                 {Object.entries(AI_MODES).map(([key, mode]) => {
                   const Icon = mode.icon;
                   return (
@@ -597,7 +660,7 @@ export default function AIBlogEditor({
             placeholder="Enter your blog title..."
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="text-2xl font-black border-2 border-[#1a2b4a] bg-white px-4 py-2 outline-none w-full text-[#1a2b4a] placeholder-[#1a2b4a]/60 uppercase"
+            className="text-2xl font-black border-2 border-[#1a2b4a] bg-white px-4 py-2 rounded-none outline-none w-full text-[#1a2b4a] placeholder-[#1a2b4a]/60 uppercase"
           />
           <div className="flex items-center gap-2">
             <input
@@ -606,16 +669,16 @@ export default function AIBlogEditor({
               value={currentKeyword}
               onChange={(e) => setCurrentKeyword(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && addKeyword()}
-              className="text-sm border-2 border-[#1a2b4a] px-3 py-1 outline-none flex-1 font-bold uppercase"
+              className="text-sm border-2 border-[#1a2b4a] px-3 py-1 rounded-none outline-none flex-1 font-bold uppercase"
             />
-            <Button size="sm" onClick={addKeyword} className="bg-[#ff6b35] hover:bg-[#e55a2b] text-[#f5f1e8] font-black uppercase">
+            <Button size="sm" onClick={addKeyword} className="bg-[#ff6b35] hover:bg-[#e55a2b] text-[#f5f1e8] font-black uppercase rounded-none">
               <Plus className="w-4 h-4" />
             </Button>
             {keywords.map((keyword: string) => (
               <Badge
                 key={keyword}
                 variant="secondary"
-                className="cursor-pointer bg-[#f5f1e8] text-[#1a2b4a] hover:bg-[#ff6b35] hover:text-[#f5f1e8] border-2 border-[#1a2b4a] font-bold uppercase"
+                className="cursor-pointer bg-[#f5f1e8] text-[#1a2b4a] hover:bg-[#ff6b35] hover:text-[#f5f1e8] border-2 border-[#1a2b4a] font-bold uppercase rounded-none"
                 onClick={() => removeKeyword(keyword)}
               >
                 {keyword} ×
@@ -632,11 +695,11 @@ export default function AIBlogEditor({
           {/* Editor Tabs */}
           <Tabs defaultValue="write" className="flex-1 flex flex-col">
             <TabsList className="flex-none grid w-full grid-cols-2 bg-[#1a2b4a] rounded-none border-b-2 border-[#ff6b35]">
-              <TabsTrigger value="write" className="data-[state=active]:bg-[#f5f1e8] data-[state=active]:text-[#1a2b4a] data-[state=active]:font-black data-[state=active]:uppercase text-[#f5f1e8] uppercase font-bold">
+              <TabsTrigger value="write" className="data-[state=active]:bg-[#f5f1e8] data-[state=active]:text-[#1a2b4a] data-[state=active]:font-black data-[state=active]:uppercase text-[#f5f1e8] uppercase font-bold rounded-none">
                 <FileText className="w-4 h-4 mr-2" />
                 Write
               </TabsTrigger>
-              <TabsTrigger value="layout" className="data-[state=active]:bg-[#f5f1e8] data-[state=active]:text-[#1a2b4a] data-[state=active]:font-black data-[state=active]:uppercase text-[#f5f1e8] uppercase font-bold">
+              <TabsTrigger value="layout" className="data-[state=active]:bg-[#f5f1e8] data-[state=active]:text-[#1a2b4a] data-[state=active]:font-black data-[state=active]:uppercase text-[#f5f1e8] uppercase font-bold rounded-none">
                 <Layout className="w-4 h-4 mr-2" />
                 Layout Tools
               </TabsTrigger>
@@ -644,37 +707,30 @@ export default function AIBlogEditor({
 
             <TabsContent value="write" className="flex-1 p-4 overflow-hidden">
               {previewMode ? (
-                <div className="h-full overflow-hidden">
-                  <div className="h-full overflow-y-auto bg-white p-8 border-2 border-[#1a2b4a] prose prose-lg max-w-none" style={{ height: 'calc(100vh - 400px)' }}>
-                  <article>
-                    <h1 className="text-3xl font-black text-[#1a2b4a] mb-4 uppercase not-prose">{title || 'Untitled Post'}</h1>
-                    {overallReview && (
-                      <div className="flex items-center gap-4 text-sm text-gray-600 mb-6 not-prose">
-                        <span>{overallReview.wordCount} words</span>
-                        <span>•</span>
-                        <span>{overallReview.readingTime} min read</span>
-                        <span>•</span>
-                        <span>Score: {contentScore}%</span>
-                      </div>
-                    )}
-                    <div 
-                      className="prose-headings:font-black prose-headings:text-[#1a2b4a] prose-headings:uppercase prose-p:text-gray-700 prose-strong:text-[#1a2b4a] prose-a:text-[#ff6b35] prose-a:no-underline hover:prose-a:underline"
-                      dangerouslySetInnerHTML={{ 
-                        __html: cleanContentForDisplay(content)
-                          .replace(/\n\n/g, '</p><p>')
-                          .replace(/^/, '<p>')
-                          .replace(/$/, '</p>')
-                          .replace(/<p>#{1,6}\s+(.*?)<\/p>/g, (match, p1, offset, string) => {
-                            const level = match.match(/#/g)?.length || 1;
-                            return `<h${level}>${p1}</h${level}>`;
-                          })
-                          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                          .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                          .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
-                      }} 
-                    />
-                  </article>
-                </div>
+                <div className="h-full overflow-hidden flex flex-col">
+                  <div 
+                    className="flex-1 overflow-y-auto bg-white p-8 border-2 border-[#1a2b4a] rounded-none prose prose-lg max-w-none"
+                    style={{ maxHeight: 'calc(100vh - 320px)' }}
+                  >
+                    <article>
+                      <h1 className="text-3xl font-black text-[#1a2b4a] mb-4 uppercase not-prose">{title || 'Untitled Post'}</h1>
+                      {overallReview && (
+                        <div className="flex items-center gap-4 text-sm text-gray-600 mb-6 not-prose">
+                          <span>{overallReview.wordCount} words</span>
+                          <span>•</span>
+                          <span>{overallReview.readingTime} min read</span>
+                          <span>•</span>
+                          <span>Score: {contentScore}%</span>
+                        </div>
+                      )}
+                      <div 
+                        className="prose-headings:font-black prose-headings:text-[#1a2b4a] prose-headings:uppercase prose-p:text-gray-700 prose-strong:text-[#1a2b4a] prose-a:text-[#ff6b35] prose-a:no-underline hover:prose-a:underline"
+                        dangerouslySetInnerHTML={{ 
+                          __html: markdownToHtml(content)
+                        }} 
+                      />
+                    </article>
+                  </div>
                 </div>
               ) : (
                 <textarea
@@ -695,7 +751,7 @@ export default function AIBlogEditor({
 
             <TabsContent value="layout" className="flex-1 p-4 overflow-y-auto">
               <div className="space-y-4">
-                <Alert className="bg-[#f5f1e8] border-2 border-[#ff6b35]">
+                <Alert className="bg-[#f5f1e8] border-2 border-[#ff6b35] rounded-none">
                   <Palette className="w-4 h-4 text-[#ff6b35]" />
                   <AlertDescription className="text-[#1a2b4a] font-bold">
                     Transform your content with AI-powered dynamic layouts. Add your content and research, then let AI create a stunning visual blog post.
@@ -703,7 +759,7 @@ export default function AIBlogEditor({
                 </Alert>
 
                 {/* AI Layout Generator */}
-                <Card className="bg-white border-2 border-[#1a2b4a]">
+                <Card className="bg-white border-2 border-[#1a2b4a] rounded-none">
                   <CardHeader className="bg-[#f5f1e8] border-b-2 border-[#ff6b35]">
                     <CardTitle className="text-[#1a2b4a] font-black uppercase">AI Layout Generator</CardTitle>
                   </CardHeader>
@@ -711,7 +767,7 @@ export default function AIBlogEditor({
                     <Button 
                       onClick={generateAILayout}
                       disabled={isGenerating || content.length < 100}
-                      className="w-full bg-[#ff6b35] hover:bg-[#e55a2b] text-[#f5f1e8] font-black uppercase"
+                      className="w-full bg-[#ff6b35] hover:bg-[#e55a2b] text-[#f5f1e8] font-black uppercase rounded-none"
                     >
                       {isGenerating ? (
                         <>
@@ -735,7 +791,7 @@ export default function AIBlogEditor({
                     {aiLayoutSuggestions.map((layout: LayoutSuggestion) => (
                       <Card 
                         key={layout.id} 
-                        className={`cursor-pointer border-2 hover:border-[#ff6b35] ${selectedLayout?.id === layout.id ? 'border-[#ff6b35] bg-[#f5f1e8]' : 'border-[#1a2b4a]'}`}
+                        className={`cursor-pointer border-2 hover:border-[#ff6b35] rounded-none ${selectedLayout?.id === layout.id ? 'border-[#ff6b35] bg-[#f5f1e8]' : 'border-[#1a2b4a]'}`}
                         onClick={() => setSelectedLayout(layout)}
                       >
                         <CardContent className="p-4">
@@ -747,29 +803,13 @@ export default function AIBlogEditor({
                     ))}
                     {selectedLayout && (
                       <Button 
-                        className="w-full bg-[#1a2b4a] hover:bg-[#0f1829] text-[#f5f1e8] font-black uppercase"
+                        className="w-full bg-[#1a2b4a] hover:bg-[#0f1829] text-[#f5f1e8] font-black uppercase rounded-none"
                         onClick={() => {
                           if (layoutPreview) {
                             const cleanedContent = cleanContentForDisplay(content);
                             
                             // Convert markdown-style headings to HTML
-                            const htmlContent = cleanedContent
-                              .split('\n\n')
-                              .map(paragraph => {
-                                // Convert markdown headings
-                                if (paragraph.startsWith('### ')) {
-                                  return `<h3 style="font-size: 1.5rem; font-weight: 700; color: #1a2b4a; margin: 30px 0 15px;">${paragraph.substring(4)}</h3>`;
-                                } else if (paragraph.startsWith('## ')) {
-                                  return `<h2 style="font-size: 2rem; font-weight: 900; text-transform: uppercase; color: #1a2b4a; margin: 40px 0 20px;">${paragraph.substring(3)}</h2>`;
-                                } else if (paragraph.startsWith('# ')) {
-                                  return `<h1 style="font-size: 2.5rem; font-weight: 900; text-transform: uppercase; color: #1a2b4a; margin: 40px 0 20px;">${paragraph.substring(2)}</h1>`;
-                                } else if (paragraph.trim()) {
-                                  return `<p style="margin-bottom: 20px; line-height: 1.8;">${paragraph}</p>`;
-                                }
-                                return '';
-                              })
-                              .filter(p => p)
-                              .join('\n');
+                            const htmlContent = markdownToHtml(cleanedContent);
                             
                             // Create enhanced preview with proper styling
                             const enhancedPreview = `
@@ -801,6 +841,42 @@ export default function AIBlogEditor({
       max-width: 800px;
       margin: 60px auto;
       padding: 0 20px;
+    }
+    .content-section h1 {
+      font-size: 2.5rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      color: #1a2b4a;
+      margin: 40px 0 20px;
+    }
+    .content-section h2 {
+      font-size: 2rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      color: #1a2b4a;
+      margin: 40px 0 20px;
+    }
+    .content-section h3 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #1a2b4a;
+      margin: 30px 0 15px;
+    }
+    .content-section p {
+      margin-bottom: 20px;
+      line-height: 1.8;
+      color: #374151;
+    }
+    .content-section ul, .content-section ol {
+      margin: 20px 0;
+      padding-left: 30px;
+    }
+    .content-section li {
+      margin-bottom: 10px;
+    }
+    .content-section a {
+      color: #ff6b35;
+      text-decoration: underline;
     }
     .stats {
       background: #f5f1e8;
@@ -842,6 +918,10 @@ export default function AIBlogEditor({
       font-weight: 900;
       text-transform: uppercase;
       margin-top: 20px;
+      transition: background 0.3s;
+    }
+    .cta-button:hover {
+      background: #e55a2b;
     }
   </style>
 </head>
@@ -906,27 +986,47 @@ export default function AIBlogEditor({
                   <div className="grid grid-cols-2 gap-2">
                     {Object.entries(LAYOUT_COMPONENTS).map(([key, component]) => {
                       const Icon = component.icon;
+                      const componentText = {
+                        hero: '\n\n## Hero Section\n[Add compelling headline and subheading here]\n\n',
+                        stats: '\n\n## Key Statistics\n- Stat 1: [Value]\n- Stat 2: [Value]\n- Stat 3: [Value]\n\n',
+                        quote: '\n\n> "[Add impactful quote here]"\n> — Source Name\n\n',
+                        comparison: '\n\n## Comparison\n| Option A | Option B |\n|----------|----------|\n| Feature 1 | Feature 1 |\n| Feature 2 | Feature 2 |\n\n',
+                        timeline: '\n\n## Timeline\n1. **Phase 1**: [Description]\n2. **Phase 2**: [Description]\n3. **Phase 3**: [Description]\n\n',
+                        cta: '\n\n## Ready to Get Started?\n[Add call-to-action text]\n[Button: Contact Us]\n\n',
+                        faq: '\n\n## Frequently Asked Questions\n\n**Q: Question 1?**\nA: Answer 1\n\n**Q: Question 2?**\nA: Answer 2\n\n',
+                        testimonial: '\n\n## What Our Clients Say\n\n> "[Client testimonial]"\n> — Client Name, Company\n\n',
+                        infographic: '\n\n## [Infographic Title]\n[Visual data representation placeholder]\n\n',
+                        video: '\n\n## Video: [Title]\n[Video embed placeholder - add YouTube/Vimeo link]\n\n'
+                      };
                       return (
                         <Button
                           key={key}
                           variant="outline"
-                          className="h-auto p-3 flex flex-col items-center border-2 border-[#1a2b4a] hover:border-[#ff6b35] hover:bg-[#f5f1e8]"
+                          className="h-auto p-3 flex flex-col items-center border-2 border-[#1a2b4a] hover:border-[#ff6b35] hover:bg-[#f5f1e8] rounded-none"
                           onClick={() => {
-                            // Insert the component at cursor position or end of content
-                            const componentText = {
-                              hero: '\n\n## Hero Section\n[Add compelling headline and subheading here]\n\n',
-                              stats: '\n\n## Key Statistics\n- Stat 1: [Value]\n- Stat 2: [Value]\n- Stat 3: [Value]\n\n',
-                              quote: '\n\n> "[Add impactful quote here]"\n> — Source Name\n\n',
-                              comparison: '\n\n## Comparison\n| Option A | Option B |\n|----------|----------|\n| Feature 1 | Feature 1 |\n| Feature 2 | Feature 2 |\n\n',
-                              timeline: '\n\n## Timeline\n1. **Phase 1**: [Description]\n2. **Phase 2**: [Description]\n3. **Phase 3**: [Description]\n\n',
-                              cta: '\n\n## Ready to Get Started?\n[Add call-to-action text]\n[Button: Contact Us]\n\n',
-                              faq: '\n\n## Frequently Asked Questions\n\n**Q: Question 1?**\nA: Answer 1\n\n**Q: Question 2?**\nA: Answer 2\n\n',
-                              testimonial: '\n\n## What Our Clients Say\n\n> "[Client testimonial]"\n> — Client Name, Company\n\n',
-                              infographic: '\n\n## [Infographic Title]\n[Visual data representation placeholder]\n\n',
-                              video: '\n\n## Video: [Title]\n[Video embed placeholder - add YouTube/Vimeo link]\n\n'
-                            };
-                            setContent(content + (componentText[key as keyof typeof componentText] || ''));
-                            alert(`Added ${component.name} to your content`);
+                            // Get current cursor position or append at end
+                            if (editorRef.current) {
+                              const textarea = editorRef.current;
+                              const start = textarea.selectionStart;
+                              const end = textarea.selectionEnd;
+                              const newContent = content.substring(0, start) + 
+                                                (componentText[key as keyof typeof componentText] || '') + 
+                                                content.substring(end);
+                              setContent(newContent);
+                              
+                              // Set cursor position after inserted text
+                              setTimeout(() => {
+                                if (textarea) {
+                                  const newPosition = start + (componentText[key as keyof typeof componentText] || '').length;
+                                  textarea.selectionStart = newPosition;
+                                  textarea.selectionEnd = newPosition;
+                                  textarea.focus();
+                                }
+                              }, 0);
+                            } else {
+                              // Fallback if no ref
+                              setContent(content + (componentText[key as keyof typeof componentText] || ''));
+                            }
                           }}
                         >
                           <Icon className="w-5 h-5 mb-1 text-[#ff6b35]" />
@@ -946,15 +1046,15 @@ export default function AIBlogEditor({
           <div className="w-1/2 flex flex-col bg-white">
             <Tabs defaultValue="assistant" className="flex-1 flex flex-col">
               <TabsList className="flex-none grid w-full grid-cols-3 bg-[#1a2b4a] rounded-none border-b-2 border-[#ff6b35]">
-                <TabsTrigger value="assistant" className="data-[state=active]:bg-[#f5f1e8] data-[state=active]:text-[#1a2b4a] data-[state=active]:font-black data-[state=active]:uppercase text-[#f5f1e8] uppercase font-bold">
+                <TabsTrigger value="assistant" className="data-[state=active]:bg-[#f5f1e8] data-[state=active]:text-[#1a2b4a] data-[state=active]:font-black data-[state=active]:uppercase text-[#f5f1e8] uppercase font-bold rounded-none">
                   <Brain className="w-4 h-4 mr-2" />
                   AI Assistant
                 </TabsTrigger>
-                <TabsTrigger value="review" className="data-[state=active]:bg-[#f5f1e8] data-[state=active]:text-[#1a2b4a] data-[state=active]:font-black data-[state=active]:uppercase text-[#f5f1e8] uppercase font-bold">
+                <TabsTrigger value="review" className="data-[state=active]:bg-[#f5f1e8] data-[state=active]:text-[#1a2b4a] data-[state=active]:font-black data-[state=active]:uppercase text-[#f5f1e8] uppercase font-bold rounded-none">
                   <Shield className="w-4 h-4 mr-2" />
                   AI Review
                 </TabsTrigger>
-                <TabsTrigger value="social" className="data-[state=active]:bg-[#f5f1e8] data-[state=active]:text-[#1a2b4a] data-[state=active]:font-black data-[state=active]:uppercase text-[#f5f1e8] uppercase font-bold">
+                <TabsTrigger value="social" className="data-[state=active]:bg-[#f5f1e8] data-[state=active]:text-[#1a2b4a] data-[state=active]:font-black data-[state=active]:uppercase text-[#f5f1e8] uppercase font-bold rounded-none">
                   <Share2 className="w-4 h-4 mr-2" />
                   Social
                 </TabsTrigger>
@@ -962,7 +1062,7 @@ export default function AIBlogEditor({
 
               <TabsContent value="assistant" className="flex-1 p-4 overflow-y-auto">
                 <div className="space-y-4">
-                  <Alert className="bg-[#f5f1e8] border-2 border-[#ff6b35]">
+                  <Alert className="bg-[#f5f1e8] border-2 border-[#ff6b35] rounded-none">
                     <Sparkles className="w-4 h-4 text-[#ff6b35]" />
                     <AlertDescription className="text-[#1a2b4a] font-bold">
                       AI assistance is active. Make changes and see suggestions in real-time!
@@ -973,7 +1073,7 @@ export default function AIBlogEditor({
                   <div className="grid grid-cols-2 gap-3">
                     <Button 
                       variant="outline" 
-                      className="h-auto p-4 flex flex-col items-start border-2 border-[#1a2b4a] hover:border-[#ff6b35] hover:bg-[#f5f1e8] bg-white"
+                      className="h-auto p-4 flex flex-col items-start border-2 border-[#1a2b4a] hover:border-[#ff6b35] hover:bg-[#f5f1e8] bg-white rounded-none"
                       onClick={async () => {
                         setIsGenerating(true);
                         try {
@@ -1005,7 +1105,7 @@ export default function AIBlogEditor({
                     </Button>
                     <Button 
                       variant="outline" 
-                      className="h-auto p-4 flex flex-col items-start border-2 border-[#1a2b4a] hover:border-[#ff6b35] hover:bg-[#f5f1e8] bg-white"
+                      className="h-auto p-4 flex flex-col items-start border-2 border-[#1a2b4a] hover:border-[#ff6b35] hover:bg-[#f5f1e8] bg-white rounded-none"
                       onClick={async () => {
                         const citations = `\n\n## References and Sources\n\n1. **HMRC Guidance**\n   - [Corporation Tax rates](https://www.gov.uk/corporation-tax)\n   - [VAT rates](https://www.gov.uk/vat-rates)\n\n2. **Professional Bodies**\n   - ICAEW Tax Faculty Guidelines 2024\n   - ACCA Technical Articles\n\n3. **Industry Reports**\n   - "UK Tax Landscape 2024" - PwC\n   - "Small Business Tax Survey" - FSB\n\n*Last updated: ${new Date().toLocaleDateString()}*`;
                         
@@ -1019,14 +1119,14 @@ export default function AIBlogEditor({
                   </div>
 
                   {/* More AI Tools */}
-                  <Card className="bg-white border-2 border-[#1a2b4a]">
+                  <Card className="bg-white border-2 border-[#1a2b4a] rounded-none">
                     <CardHeader className="bg-[#f5f1e8] border-b-2 border-[#ff6b35] pb-3">
                       <CardTitle className="text-base font-black text-[#1a2b4a] uppercase">AI Writing Tools</CardTitle>
                     </CardHeader>
                     <CardContent className="pt-4 space-y-2">
                       <Button 
                         variant="outline"
-                        className="w-full justify-start border-[#1a2b4a] hover:bg-[#f5f1e8]"
+                        className="w-full justify-start border-[#1a2b4a] hover:bg-[#f5f1e8] rounded-none"
                         onClick={() => {
                           const context = analyzeContentContext(content, title, keywords);
                           const hook = context.topic === 'accounting' 
@@ -1041,7 +1141,7 @@ export default function AIBlogEditor({
                       </Button>
                       <Button 
                         variant="outline"
-                        className="w-full justify-start border-[#1a2b4a] hover:bg-[#f5f1e8]"
+                        className="w-full justify-start border-[#1a2b4a] hover:bg-[#f5f1e8] rounded-none"
                         onClick={() => {
                           const conclusion = `\n\n## Conclusion: Your Next Steps\n\nWe've covered the essential aspects of ${keywords[0] || 'business optimization'}. The key is implementing these strategies systematically.\n\n**Ready to transform your business?** Contact our expert team for personalized guidance.`;
                           setContent(content + conclusion);
@@ -1053,7 +1153,7 @@ export default function AIBlogEditor({
                       </Button>
                       <Button 
                         variant="outline"
-                        className="w-full justify-start border-[#1a2b4a] hover:bg-[#f5f1e8]"
+                        className="w-full justify-start border-[#1a2b4a] hover:bg-[#f5f1e8] rounded-none"
                         onClick={async () => {
                           try {
                             const cleanedContent = cleanContentForDisplay(content);
@@ -1089,7 +1189,7 @@ export default function AIBlogEditor({
 
                   {/* Real-time Suggestions */}
                   {content.length > 200 && (
-                    <Card className="bg-[#f5f1e8] border-2 border-[#ff6b35]">
+                    <Card className="bg-[#f5f1e8] border-2 border-[#ff6b35] rounded-none">
                       <CardHeader className="pb-3">
                         <CardTitle className="text-sm font-bold text-[#1a2b4a] uppercase">AI Insights</CardTitle>
                       </CardHeader>
@@ -1113,13 +1213,13 @@ export default function AIBlogEditor({
                 <div className="space-y-4">
                   {/* Quick Stats */}
                   <div className="grid grid-cols-2 gap-3">
-                    <Card className={`${contentScore >= 80 ? 'bg-green-50' : contentScore >= 60 ? 'bg-orange-50' : 'bg-red-50'}`}>
+                    <Card className={`${contentScore >= 80 ? 'bg-green-50' : contentScore >= 60 ? 'bg-orange-50' : 'bg-red-50'} rounded-none`}>
                       <CardContent className="p-4">
                         <p className="text-sm text-[#1a2b4a]">SEO Score</p>
                         <p className="text-2xl font-bold text-[#1a2b4a]">{Math.round(contentScore * 0.9)}%</p>
                       </CardContent>
                     </Card>
-                    <Card className={`${contentScore >= 80 ? 'bg-green-50' : contentScore >= 60 ? 'bg-orange-50' : 'bg-red-50'}`}>
+                    <Card className={`${contentScore >= 80 ? 'bg-green-50' : contentScore >= 60 ? 'bg-orange-50' : 'bg-red-50'} rounded-none`}>
                       <CardContent className="p-4">
                         <p className="text-sm text-[#1a2b4a]">Overall</p>
                         <p className="text-2xl font-bold text-[#1a2b4a]">{contentScore}%</p>
@@ -1128,13 +1228,13 @@ export default function AIBlogEditor({
                   </div>
 
                   {/* Improvements */}
-                  <Card className="bg-white border-2 border-[#1a2b4a]">
+                  <Card className="bg-white border-2 border-[#1a2b4a] rounded-none">
                     <CardHeader className="bg-[#f5f1e8] border-b-2 border-[#ff6b35]">
                       <CardTitle className="font-black text-[#1a2b4a] uppercase">Suggested Improvements</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3 pt-4">
                       {!title && (
-                        <Alert className="bg-[#f5f1e8] border-2 border-[#ff6b35]">
+                        <Alert className="bg-[#f5f1e8] border-2 border-[#ff6b35] rounded-none">
                           <AlertCircle className="w-4 h-4 text-[#ff6b35]" />
                           <AlertDescription className="text-[#1a2b4a] font-bold">
                             Add a compelling title to improve SEO
@@ -1142,7 +1242,7 @@ export default function AIBlogEditor({
                         </Alert>
                       )}
                       {keywords.length === 0 && (
-                        <Alert className="bg-[#f5f1e8] border-2 border-[#ff6b35]">
+                        <Alert className="bg-[#f5f1e8] border-2 border-[#ff6b35] rounded-none">
                           <AlertCircle className="w-4 h-4 text-[#ff6b35]" />
                           <AlertDescription className="text-[#1a2b4a] font-bold">
                             Add keywords to optimize for search engines
@@ -1150,7 +1250,7 @@ export default function AIBlogEditor({
                         </Alert>
                       )}
                       <Button 
-                        className="w-full bg-[#ff6b35] hover:bg-[#e55a2b] text-[#f5f1e8] font-black uppercase"
+                        className="w-full bg-[#ff6b35] hover:bg-[#e55a2b] text-[#f5f1e8] font-black uppercase rounded-none"
                         onClick={applyAllImprovements}
                         disabled={isApplyingImprovements}
                       >
@@ -1179,7 +1279,7 @@ export default function AIBlogEditor({
                       <h3 className="text-lg font-semibold mb-2">Ready to Create Social Posts!</h3>
                       <Button 
                         size="lg"
-                        className="bg-[#ff6b35] hover:bg-[#e55a2b] text-[#f5f1e8] font-black uppercase"
+                        className="bg-[#ff6b35] hover:bg-[#e55a2b] text-[#f5f1e8] font-black uppercase rounded-none"
                         onClick={async () => {
                           setIsGenerating(true);
                           try {
@@ -1228,7 +1328,7 @@ export default function AIBlogEditor({
                       </Button>
                     </div>
                   ) : (
-                    <Alert>
+                    <Alert className="rounded-none">
                       <AlertDescription>
                         Improve your content quality to 70% or higher to unlock social media features.
                       </AlertDescription>
@@ -1255,7 +1355,7 @@ export default function AIBlogEditor({
           <div className="flex items-center gap-2">
             <Button 
               variant="outline" 
-              className="border-2 border-[#1a2b4a]"
+              className="border-2 border-[#1a2b4a] rounded-none"
               onClick={() => {
                 // Create a downloadable text file
                 const fullContent = `${title}\n${'='.repeat(title.length)}\n\nKeywords: ${keywords.join(', ')}\nScore: ${contentScore}%\nWord Count: ${overallReview?.wordCount || 0}\n\n${content}`;
@@ -1276,7 +1376,7 @@ export default function AIBlogEditor({
             </Button>
             <Button
               onClick={() => onSave(content, { title, keywords, score: contentScore })}
-              className="bg-[#ff6b35] hover:bg-[#e55a2b] text-[#f5f1e8] font-black uppercase"
+              className="bg-[#ff6b35] hover:bg-[#e55a2b] text-[#f5f1e8] font-black uppercase rounded-none"
             >
               <Sparkles className="w-4 h-4 mr-1" />
               Publish
@@ -1287,13 +1387,13 @@ export default function AIBlogEditor({
       
       {aiSuggestionsModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-hidden">
+          <div className="bg-white rounded-none max-w-2xl w-full max-h-[80vh] overflow-hidden">
             <div className="p-6 border-b border-gray-200">
               <h2 className="text-2xl font-bold text-[#1a2b4a]">AI Suggestions</h2>
             </div>
             <div className="p-6 overflow-y-auto max-h-[60vh]">
               {currentAiSuggestions.map((suggestion, index) => (
-                <div key={index} className="mb-4 p-4 border border-gray-200 rounded">
+                <div key={index} className="mb-4 p-4 border border-gray-200 rounded-none">
                   <h3 className="font-bold text-[#1a2b4a] mb-2">{suggestion.title}</h3>
                   <p className="text-gray-700 mb-2">{suggestion.description}</p>
                   <Button
@@ -1302,7 +1402,7 @@ export default function AIBlogEditor({
                       alert(`Applied: ${suggestion.title}`);
                       // Add actual implementation if needed
                     }}
-                    className="bg-[#ff6b35] hover:bg-[#e55a2b] text-white"
+                    className="bg-[#ff6b35] hover:bg-[#e55a2b] text-white rounded-none"
                   >
                     Apply This Suggestion
                   </Button>
@@ -1312,7 +1412,7 @@ export default function AIBlogEditor({
             <div className="p-6 border-t border-gray-200">
               <Button
                 onClick={() => setAiSuggestionsModal(false)}
-                className="w-full bg-gray-500 hover:bg-gray-600 text-white"
+                className="w-full bg-gray-500 hover:bg-gray-600 text-white rounded-none"
               >
                 Close
               </Button>
