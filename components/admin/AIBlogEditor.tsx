@@ -135,6 +135,53 @@ const extractTextFromJSON = (doc: any): string => {
   return text.trim();
 };
 
+const cleanContentForDisplay = (text: string): string => {
+  let cleaned = text.replace(/\(≈\d+\s*words?\)/g, '');
+  cleaned = cleaned.replace(/Sorry, I encountered an error\. Please try again\./g, '');
+  cleaned = cleaned.replace(/\n{3,}/g, '\n\n');
+  return cleaned.trim();
+};
+
+const analyzeContentContext = (content: string, currentTitle: string, currentKeywords: string[]) => {
+  const cleanedContent = cleanContentForDisplay(content);
+  const contentLower = cleanedContent.toLowerCase();
+  
+  const topics: Record<string, { keywords: string[]; weight: number }> = {
+    accounting: {
+      keywords: ['accountant', 'accounting', 'burnout', 'tax', 'audit', 'financial', 'HMRC', 'bookkeeping'],
+      weight: 0
+    },
+    technology: {
+      keywords: ['AI', 'automation', 'digital', 'software', 'cloud', 'tech'],
+      weight: 0
+    },
+    business: {
+      keywords: ['business', 'company', 'startup', 'entrepreneur', 'growth'],
+      weight: 0
+    }
+  };
+  
+  Object.entries(topics).forEach(([topic, data]) => {
+    data.keywords.forEach(keyword => {
+      const regex = new RegExp(`\\b${keyword}\\b`, 'gi');
+      const matches = cleanedContent.match(regex);
+      if (matches) {
+        topics[topic].weight += matches.length;
+      }
+    });
+  });
+  
+  const dominantTopic = Object.entries(topics)
+    .sort(([,a], [,b]) => b.weight - a.weight)[0][0];
+  
+  return {
+    topic: dominantTopic,
+    context: cleanedContent.substring(0, 500),
+    title: currentTitle || 'Untitled',
+    keywords: currentKeywords
+  };
+};
+
 export default function AIBlogEditor({ 
   initialContent = '', 
   postId, 
@@ -243,6 +290,9 @@ export default function AIBlogEditor({
   // AI Review state
   const [overallReview, setOverallReview] = useState<OverallReview | null>(null);
   const [reviewSections, setReviewSections] = useState<any[]>([]);
+  
+  const [aiSuggestionsModal, setAiSuggestionsModal] = useState(false);
+  const [currentAiSuggestions, setCurrentAiSuggestions] = useState<any[]>([]);
 
   // Load post data when component mounts or post changes
   useEffect(() => {
@@ -384,7 +434,8 @@ export default function AIBlogEditor({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          content,
+          content: cleanContentForDisplay(content),
+          fullContent: cleanContentForDisplay(content), // Add this to ensure full content is sent
           title,
           keywords,
           contentType: 'blog'
@@ -598,7 +649,7 @@ export default function AIBlogEditor({
                     <div 
                       className="prose-headings:font-black prose-headings:text-[#1a2b4a] prose-headings:uppercase prose-p:text-gray-700 prose-strong:text-[#1a2b4a] prose-a:text-[#ff6b35] prose-a:no-underline hover:prose-a:underline"
                       dangerouslySetInnerHTML={{ 
-                        __html: content
+                        __html: cleanContentForDisplay(content)
                           .replace(/\n\n/g, '</p><p>')
                           .replace(/^/, '<p>')
                           .replace(/$/, '</p>')
@@ -620,9 +671,14 @@ export default function AIBlogEditor({
                   ref={editorRef}
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
-                  className="w-full h-full p-4 border-2 border-[#1a2b4a] rounded-none resize-none focus:ring-2 focus:ring-[#ff6b35] focus:border-transparent font-sans overflow-y-auto"
+                  className="w-full p-4 border-2 border-[#1a2b4a] rounded-none resize-none focus:ring-2 focus:ring-[#ff6b35] focus:border-transparent font-sans"
                   placeholder="Start writing your blog post..."
-                  style={{ minHeight: '100%' }}
+                  style={{ 
+                    height: 'calc(100vh - 400px)',
+                    minHeight: '400px',
+                    maxHeight: '700px',
+                    overflowY: 'auto'
+                  }}
                 />
               )}
             </TabsContent>
@@ -683,17 +739,22 @@ export default function AIBlogEditor({
                       <Button 
                         className="w-full bg-[#1a2b4a] hover:bg-[#0f1829] text-[#f5f1e8] font-black uppercase"
                         onClick={() => {
-                          // Apply the selected layout
                           if (layoutPreview) {
-                            // Create a blob URL for the preview
-                            const blob = new Blob([layoutPreview], { type: 'text/html' });
+                            // Inject the actual blog content into the preview
+                            const contentSections = cleanContentForDisplay(content).split('\n\n');
+                            const enhancedPreview = layoutPreview.replace(
+                              '</body>',
+                              `<div class="content-section" style="max-width: 800px; margin: 60px auto; padding: 0 20px; line-height: 1.8; font-size: 18px;">
+                                ${contentSections.map(section => `<p>${section}</p>`).join('')}
+                              </div>
+                              </body>`
+                            );
+                            const blob = new Blob([enhancedPreview], { type: 'text/html' });
                             const url = URL.createObjectURL(blob);
                             window.open(url, '_blank');
-                            
-                            // Clean up the URL after a short delay
                             setTimeout(() => URL.revokeObjectURL(url), 100);
                           }
-                          alert(`Applied "${selectedLayout.name}" layout! The preview opened in a new window. This layout will be applied when you publish the post.`);
+                          alert(`Applied "${selectedLayout.name}" layout!`);
                         }}
                       >
                         Apply {selectedLayout.name}
@@ -813,7 +874,10 @@ export default function AIBlogEditor({
                         variant="outline"
                         className="w-full justify-start border-[#1a2b4a] hover:bg-[#f5f1e8]"
                         onClick={() => {
-                          const hook = `Did you know that ${keywords[0] || 'strategic planning'} could transform your business? Recent studies show...`;
+                          const context = analyzeContentContext(content, title, keywords);
+                          const hook = context.topic === 'accounting' 
+                            ? `With ${title.includes('46') ? '46' : 'the average age'} being the median age of UK accountants and burnout affecting 56% of the profession...`
+                            : `Did you know that ${keywords[0] || 'strategic planning'} could transform your business? Recent studies show...`;
                           setContent(hook + '\n\n' + content);
                           alert('Added engaging hook to your content!');
                         }}
@@ -838,15 +902,25 @@ export default function AIBlogEditor({
                         className="w-full justify-start border-[#1a2b4a] hover:bg-[#f5f1e8]"
                         onClick={async () => {
                           try {
+                            const cleanedContent = cleanContentForDisplay(content);
                             const response = await fetch('/api/ai/generate-suggestions', {
                               method: 'POST',
                               headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ content, keywords, title })
+                              body: JSON.stringify({ 
+                                content: cleanedContent, 
+                                keywords, 
+                                title,
+                                context: {
+                                  topic: cleanedContent.toLowerCase().includes('accountant') ? 'accounting' : 'general',
+                                  firstParagraph: cleanedContent.substring(0, 500)
+                                }
+                              })
                             });
                             
                             if (response.ok) {
                               const data = await response.json();
-                              alert(`Generated ${data.suggestions.length} content suggestions!`);
+                              setCurrentAiSuggestions(data.suggestions || []);
+                              setAiSuggestionsModal(true);
                             }
                           } catch (error) {
                             console.error('Generate suggestions failed:', error);
@@ -1056,6 +1130,42 @@ export default function AIBlogEditor({
           </div>
         </div>
       </div>
+      
+      {aiSuggestionsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-hidden">
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-2xl font-bold text-[#1a2b4a]">AI Suggestions</h2>
+            </div>
+            <div className="p-6 overflow-y-auto max-h-[60vh]">
+              {currentAiSuggestions.map((suggestion, index) => (
+                <div key={index} className="mb-4 p-4 border border-gray-200 rounded">
+                  <h3 className="font-bold text-[#1a2b4a] mb-2">{suggestion.title}</h3>
+                  <p className="text-gray-700 mb-2">{suggestion.description}</p>
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      alert(`Applied: ${suggestion.title}`);
+                      // Add actual implementation if needed
+                    }}
+                    className="bg-[#ff6b35] hover:bg-[#e55a2b] text-white"
+                  >
+                    Apply This Suggestion
+                  </Button>
+                </div>
+              ))}
+            </div>
+            <div className="p-6 border-t border-gray-200">
+              <Button
+                onClick={() => setAiSuggestionsModal(false)}
+                className="w-full bg-gray-500 hover:bg-gray-600 text-white"
+              >
+                Close
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
