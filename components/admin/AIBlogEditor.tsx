@@ -1,5 +1,3 @@
-'use client';
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -41,7 +39,27 @@ import {
   Share2
 } from 'lucide-react';
 
-// AI Writing Modes
+// Types
+interface Node {
+  type: string;
+  text?: string;
+  content?: Node[];
+  attrs?: { level?: number };
+}
+interface LayoutSuggestion {
+  id: string;
+  name: string;
+  score: number;
+  components: any[];
+  description: string;
+  preview: string;
+}
+interface OverallReview {
+  score: number;
+  grade: string;
+  wordCount: number;
+  readingTime: number;
+}
 type AIModeKey = 'speed' | 'quality' | 'excellence';
 interface AIMode {
   name: string;
@@ -50,6 +68,8 @@ interface AIMode {
   description: string;
   color: string;
 }
+
+// AI Writing Modes
 const AI_MODES: Record<AIModeKey, AIMode> = {
   speed: {
     name: 'Speed Mode',
@@ -75,11 +95,7 @@ const AI_MODES: Record<AIModeKey, AIMode> = {
 };
 
 // Layout components for AI-generated layouts
-interface LayoutComponent {
-  name: string;
-  icon: any;
-}
-const LAYOUT_COMPONENTS: Record<string, LayoutComponent> = {
+const LAYOUT_COMPONENTS: Record<string, { name: string; icon: any }> = {
   hero: { name: 'Hero Section', icon: Maximize2 },
   stats: { name: 'Statistics', icon: BarChart },
   quote: { name: 'Pull Quote', icon: Quote },
@@ -92,37 +108,122 @@ const LAYOUT_COMPONENTS: Record<string, LayoutComponent> = {
   video: { name: 'Video Section', icon: Video }
 };
 
-interface LayoutSuggestion {
-  id: string;
-  name: string;
-  score: number;
-  components: any[];
-  description: string;
-  preview: string;
-}
+// Helper function to extract text from JSON content
+const extractTextFromJSON = (doc: any): string => {
+  if (!doc || typeof doc === 'string') return doc || '';
+  if (doc.content && (doc.title !== undefined || doc.id !== undefined)) {
+    console.warn('Received full post object instead of just content. Extracting content field.');
+    return extractTextFromJSON(doc.content);
+  }
+  let text = '';
+  const extractFromNode = (node: Node) => {
+    if (node.type === 'text') {
+      text += node.text || '';
+    } else if (node.content && Array.isArray(node.content)) {
+      node.content.forEach(extractFromNode);
+    }
+    if (node.type === 'paragraph') {
+      text += '\n\n';
+    } else if (node.type === 'heading') {
+      const level = node.attrs?.level || 1;
+      text = text.trim() + '\n\n' + '#'.repeat(level) + ' ';
+    }
+  };
+  if (doc.content && Array.isArray(doc.content)) {
+    doc.content.forEach(extractFromNode);
+  }
+  return text.trim();
+};
 
-interface OverallReview {
-  score: number;
-  grade: string;
-  wordCount: number;
-  readingTime: number;
-}
-
-export default function EnhancedAIBlogEditor({ 
+export default function AIBlogEditor({ 
   initialContent = '', 
   postId, 
   userId = 'current-user-id', 
-  onSave = () => {} 
+  onSave = () => {},
+  post = null
 }: {
-  initialContent?: string;
+  initialContent?: string | object;
   postId?: string;
   userId?: string;
   onSave?: (content: string, metadata: any) => void;
+  post?: any;
 }) {
-  const [content, setContent] = useState<string>(initialContent);
+  // Parse initial content if it's JSON
+  const [content, setContent] = useState<string>(() => {
+    console.log('Initial content type:', typeof initialContent);
+    console.log('Initial content value:', initialContent);
+    
+    // Check if someone accidentally passed the whole post as initialContent
+    if (initialContent && typeof initialContent === 'object' && 'content' in initialContent) {
+      console.warn('⚠️ Received full post object as initialContent. Use the "post" prop instead.');
+      const actualContent = (initialContent as any).content;
+      if (typeof actualContent === 'string' && actualContent.trim().startsWith('{')) {
+        try {
+          const parsed = JSON.parse(actualContent);
+          return extractTextFromJSON(parsed);
+        } catch (e) {
+          return actualContent;
+        }
+      }
+      return extractTextFromJSON(actualContent);
+    }
+    
+    if (typeof initialContent === 'string') {
+      try {
+        if (initialContent.trim().startsWith('{')) {
+          const parsed = JSON.parse(initialContent);
+          const extracted = extractTextFromJSON(parsed);
+          console.log('Extracted text:', extracted);
+          return extracted;
+        }
+        return initialContent;
+      } catch (e) {
+        console.error('Error parsing initial content:', e);
+        return initialContent;
+      }
+    } else if (typeof initialContent === 'object') {
+      const extracted = extractTextFromJSON(initialContent);
+      console.log('Extracted from object:', extracted);
+      return extracted;
+    }
+    return '';
+  });
+  
   const [aiMode, setAiMode] = useState<AIModeKey>('quality');
-  const [title, setTitle] = useState<string>('');
-  const [keywords, setKeywords] = useState<string[]>([]);
+  const [title, setTitle] = useState<string>(() => {
+    // First check if title was provided via post prop
+    if (post?.title) return post.title;
+    
+    // Check if someone passed the whole post as initialContent
+    if (initialContent && typeof initialContent === 'object' && 'title' in initialContent) {
+      return (initialContent as any).title || '';
+    }
+    
+    return '';
+  });
+  
+  const [keywords, setKeywords] = useState<string[]>(() => {
+    // First check if keywords were provided via post prop
+    if (post?.keywords) {
+      if (typeof post.keywords === 'string') {
+        return post.keywords.split(',').map((k: string) => k.trim()).filter((k: string) => k);
+      } else if (Array.isArray(post.keywords)) {
+        return post.keywords;
+      }
+    }
+    
+    // Check if someone passed the whole post as initialContent
+    if (initialContent && typeof initialContent === 'object' && 'keywords' in initialContent) {
+      const kw = (initialContent as any).keywords;
+      if (typeof kw === 'string') {
+        return kw.split(',').map((k: string) => k.trim()).filter((k: string) => k);
+      } else if (Array.isArray(kw)) {
+        return kw;
+      }
+    }
+    
+    return [];
+  });
   const [currentKeyword, setCurrentKeyword] = useState<string>('');
   const [isAutoEnhanceEnabled, setIsAutoEnhanceEnabled] = useState<boolean>(true);
   const [contentScore, setContentScore] = useState<number>(0);
@@ -142,6 +243,44 @@ export default function EnhancedAIBlogEditor({
   // AI Review state
   const [overallReview, setOverallReview] = useState<OverallReview | null>(null);
   const [reviewSections, setReviewSections] = useState<any[]>([]);
+
+  // Load post data when component mounts or post changes
+  useEffect(() => {
+    if (post) {
+      // Handle title
+      if (post.title) {
+        setTitle(post.title);
+      }
+      
+      // Handle content
+      if (post.content) {
+        try {
+          if (typeof post.content === 'string' && post.content.trim().startsWith('{')) {
+            const parsed = JSON.parse(post.content);
+            const extractedText = extractTextFromJSON(parsed);
+            setContent(extractedText);
+          } else if (typeof post.content === 'object') {
+            const extractedText = extractTextFromJSON(post.content);
+            setContent(extractedText);
+          } else {
+            setContent(post.content);
+          }
+        } catch (error) {
+          console.error('Error parsing content:', error);
+          setContent(post.content);
+        }
+      }
+      
+      // Handle keywords
+      if (post.keywords) {
+        if (typeof post.keywords === 'string') {
+          setKeywords(post.keywords.split(',').map((k: string) => k.trim()).filter((k: string) => k));
+        } else if (Array.isArray(post.keywords)) {
+          setKeywords(post.keywords);
+        }
+      }
+    }
+  }, [post]);
 
   // Real-time content scoring
   useEffect(() => {
@@ -186,7 +325,7 @@ export default function EnhancedAIBlogEditor({
   };
 
   const removeKeyword = (keyword: string) => {
-    setKeywords(keywords.filter((k) => k !== keyword));
+    setKeywords(keywords.filter((k: string) => k !== keyword));
   };
 
   // Apply all improvements function
@@ -283,7 +422,7 @@ export default function EnhancedAIBlogEditor({
           score: 85,
           components: ['hero', 'timeline', 'faq', 'infographic', 'cta'],
           description: 'Information-rich layout for educational content',
-          preview: '🎯 Hero → 📅 Timeline → ❓ FAQ → 📊 Infographic → 🎯 CTA'
+          preview: '🎯 Hero → �� Timeline → ❓ FAQ → 📊 Infographic → 🎯 CTA'
         }
       ];
       setAiLayoutSuggestions(fallbackSuggestions);
@@ -317,25 +456,28 @@ export default function EnhancedAIBlogEditor({
           
           <div className="flex items-center gap-4">
             {/* View Controls */}
-            <div className="flex items-center gap-2 border-r pr-4">
-              <Button
-                size="sm"
-                variant={splitView ? "default" : "outline"}
+            <div className="flex items-center gap-2 border-r pr-4 mr-4 border-gray-300">
+              <button
                 onClick={() => setSplitView(!splitView)}
-                className="bg-[#1a2b4a] hover:bg-[#0f1829]"
+                className={`px-3 py-1 text-sm font-bold uppercase transition-colors ${
+                  splitView 
+                    ? 'bg-[#1a2b4a] text-white hover:bg-[#0f1829]' 
+                    : 'bg-white text-[#1a2b4a] border-2 border-[#1a2b4a] hover:bg-[#f5f1e8]'
+                }`}
               >
-                {splitView ? <PanelRight className="w-4 h-4" /> : <PanelLeft className="w-4 h-4" />}
-                {splitView ? 'Split' : 'Full'}
-              </Button>
-              <Button
-                size="sm"
-                variant={previewMode ? "default" : "outline"}
+                {splitView ? '⊞' : '⊡'} {splitView ? 'Split' : 'Full'}
+              </button>
+              <button
                 onClick={() => setPreviewMode(!previewMode)}
-                className="bg-[#1a2b4a] hover:bg-[#0f1829]"
+                className={`px-3 py-1 text-sm font-bold uppercase transition-colors flex items-center gap-1 ${
+                  previewMode 
+                    ? 'bg-[#1a2b4a] text-white hover:bg-[#0f1829]' 
+                    : 'bg-white text-[#1a2b4a] border-2 border-[#1a2b4a] hover:bg-[#f5f1e8]'
+                }`}
               >
-                <Eye className="w-4 h-4 mr-1" />
+                <Eye className="w-4 h-4" />
                 Preview
-              </Button>
+              </button>
             </div>
 
             {/* AI Mode Selector */}
@@ -408,7 +550,7 @@ export default function EnhancedAIBlogEditor({
             <Button size="sm" onClick={addKeyword} className="bg-[#ff6b35] hover:bg-[#e55a2b] text-[#f5f1e8] font-black uppercase">
               <Plus className="w-4 h-4" />
             </Button>
-            {keywords.map(keyword => (
+            {keywords.map((keyword: string) => (
               <Badge
                 key={keyword}
                 variant="secondary"
