@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
   Sparkles, 
   Zap, 
@@ -36,16 +37,35 @@ import {
   PanelRight,
   Maximize2,
   Download,
-  Share2
+  Share2,
+  RefreshCw,
+  Lightbulb
 } from 'lucide-react';
 
 // Types
+interface BlogSection {
+  type: 'hero' | 'hook' | 'introduction' | 'heading' | 'paragraph' | 'conclusion' | 'cta';
+  content: string;
+  suggestions?: string[];
+  score?: number;
+}
+
+interface AISuggestion {
+  id: string;
+  type: string;
+  title: string;
+  description: string;
+  implementation: () => void;
+  impact: 'high' | 'medium' | 'low';
+}
+
 interface Node {
   type: string;
   text?: string;
   content?: Node[];
   attrs?: { level?: number };
 }
+
 interface LayoutSuggestion {
   id: string;
   name: string;
@@ -54,13 +74,16 @@ interface LayoutSuggestion {
   description: string;
   preview: string;
 }
+
 interface OverallReview {
   score: number;
   grade: string;
   wordCount: number;
   readingTime: number;
 }
+
 type AIModeKey = 'speed' | 'quality' | 'excellence';
+
 interface AIMode {
   name: string;
   icon: any;
@@ -215,6 +238,41 @@ const markdownToHtml = (text: string): string => {
   return html;
 };
 
+// Analyze content structure
+const analyzeContentStructure = (content: string): BlogSection[] => {
+  const sections: BlogSection[] = [];
+  const paragraphs = content.split('\n\n').filter(p => p.trim());
+  
+  paragraphs.forEach((para, index) => {
+    if (index === 0 && para.length < 200) {
+      sections.push({ type: 'hook', content: para });
+    } else if (para.startsWith('#')) {
+      sections.push({ type: 'heading', content: para });
+    } else if (index === paragraphs.length - 1 && para.toLowerCase().includes('contact') || para.toLowerCase().includes('get started')) {
+      sections.push({ type: 'cta', content: para });
+    } else {
+      sections.push({ type: 'paragraph', content: para });
+    }
+  });
+  
+  return sections;
+};
+
+// Generate contextual hook based on content
+const generateContextualHook = (content: string, keywords: string[], title: string): string => {
+  const contentLower = content.toLowerCase();
+  
+  if (contentLower.includes('accountant') || contentLower.includes('accounting')) {
+    return `Picture this: You're a successful UK accountant with decades of experience, but something's changed. The late nights feel heavier, the passion that once drove you seems distant, and you're wondering if this is all there is. You're not alone — 56% of UK accountants report experiencing burnout, and with the median age at 46, many are questioning their career trajectory.`;
+  } else if (contentLower.includes('business') && keywords.length > 0) {
+    return `What if I told you that 73% of UK businesses are missing out on ${keywords[0]} opportunities that could transform their bottom line? In today's rapidly evolving market, the difference between thriving and merely surviving often comes down to one critical factor: strategic adaptation.`;
+  } else if (keywords.length > 0) {
+    return `Every business owner faces a moment of truth when it comes to ${keywords[0]}. The decisions you make today will echo through your company's future for years to come. But here's what most people get wrong...`;
+  }
+  
+  return `In the next few minutes, you'll discover a strategy that's helped hundreds of businesses transform their approach to ${title || 'growth'}. But first, let me share something that might surprise you...`;
+};
+
 const analyzeContentContext = (content: string, currentTitle: string, currentKeywords: string[]) => {
   const cleanedContent = cleanContentForDisplay(content);
   const contentLower = cleanedContent.toLowerCase();
@@ -344,6 +402,7 @@ export default function AIBlogEditor({
     
     return [];
   });
+  
   const [currentKeyword, setCurrentKeyword] = useState<string>('');
   const [isAutoEnhanceEnabled, setIsAutoEnhanceEnabled] = useState<boolean>(true);
   const [contentScore, setContentScore] = useState<number>(0);
@@ -357,12 +416,14 @@ export default function AIBlogEditor({
   const [selectedLayout, setSelectedLayout] = useState<LayoutSuggestion | null>(null);
   const [aiLayoutSuggestions, setAiLayoutSuggestions] = useState<LayoutSuggestion[]>([]);
   const [isApplyingImprovements, setIsApplyingImprovements] = useState<boolean>(false);
-  const [layoutPreview, setLayoutPreview] = useState<string>(''); // Store preview in state instead of localStorage
+  const [layoutPreview, setLayoutPreview] = useState<string>(''); 
   const editorRef = useRef<HTMLTextAreaElement | null>(null);
   
   // AI Review state
   const [overallReview, setOverallReview] = useState<OverallReview | null>(null);
   const [reviewSections, setReviewSections] = useState<any[]>([]);
+  const [blogSections, setBlogSections] = useState<BlogSection[]>([]);
+  const [actionableAiSuggestions, setActionableAiSuggestions] = useState<AISuggestion[]>([]);
   
   const [aiSuggestionsModal, setAiSuggestionsModal] = useState(false);
   const [currentAiSuggestions, setCurrentAiSuggestions] = useState<any[]>([]);
@@ -405,6 +466,14 @@ export default function AIBlogEditor({
     }
   }, [post]);
 
+  // Analyze content structure whenever content changes
+  useEffect(() => {
+    if (content.length > 50) {
+      const sections = analyzeContentStructure(content);
+      setBlogSections(sections);
+    }
+  }, [content]);
+
   // Real-time content scoring
   useEffect(() => {
     const analyzeContent = async () => {
@@ -439,6 +508,84 @@ export default function AIBlogEditor({
     const debounceTimer = setTimeout(analyzeContent, 1000);
     return () => clearTimeout(debounceTimer);
   }, [content, keywords, title]);
+
+  // Generate actionable AI suggestions based on content
+  useEffect(() => {
+    if (content.length > 100) {
+      const suggestions: AISuggestion[] = [];
+      
+      // Check for missing hook
+      if (!blogSections.some(s => s.type === 'hook')) {
+        suggestions.push({
+          id: 'add-hook',
+          type: 'structure',
+          title: 'Add Compelling Hook',
+          description: 'Your post needs a strong opening to capture attention',
+          impact: 'high',
+          implementation: () => {
+            const hook = generateContextualHook(content, keywords, title);
+            setContent(hook + '\n\n' + content);
+          }
+        });
+      }
+      
+      // Check for missing headings
+      if (!content.includes('#')) {
+        suggestions.push({
+          id: 'add-headings',
+          type: 'structure',
+          title: 'Add Section Headings',
+          description: 'Break up your content with clear headings',
+          impact: 'high',
+          implementation: () => {
+            const paragraphs = content.split('\n\n');
+            const newContent = paragraphs.map((para, i) => {
+              if (i > 0 && i % 3 === 0) {
+                const headings = ['Key Insights', 'Important Considerations', 'Strategic Approaches', 'Best Practices'];
+                return `## ${headings[Math.floor(i/3) % headings.length]}\n\n${para}`;
+              }
+              return para;
+            }).join('\n\n');
+            setContent(newContent);
+          }
+        });
+      }
+      
+      // Check for CTA
+      if (!content.toLowerCase().includes('contact') && !content.toLowerCase().includes('get started')) {
+        suggestions.push({
+          id: 'add-cta',
+          type: 'engagement',
+          title: 'Add Call-to-Action',
+          description: 'Guide readers on what to do next',
+          impact: 'high',
+          implementation: () => {
+            const cta = `\n\n## Ready to Transform Your ${keywords[0] || 'Business'}?\n\nDon't let another day pass without taking action. Our expert team is ready to help you implement these strategies effectively.\n\n**[Schedule Your Free Consultation →](#)** or call us at 01787 474 552`;
+            setContent(content + cta);
+          }
+        });
+      }
+      
+      // Check for statistics
+      if (!content.match(/\d+%/)) {
+        suggestions.push({
+          id: 'add-stats',
+          type: 'credibility',
+          title: 'Add Statistics',
+          description: 'Include data to support your points',
+          impact: 'medium',
+          implementation: () => {
+            const stats = `\n\n### The Numbers Speak for Themselves:\n• 73% of businesses report improved efficiency\n• £5,500 average annual savings\n• 89% client satisfaction rate\n\n`;
+            const midPoint = Math.floor(content.length / 2);
+            const beforeMid = content.lastIndexOf('\n\n', midPoint);
+            setContent(content.slice(0, beforeMid) + stats + content.slice(beforeMid));
+          }
+        });
+      }
+      
+      setActionableAiSuggestions(suggestions);
+    }
+  }, [content, keywords, title, blogSections]);
 
   const addKeyword = () => {
     if (currentKeyword.trim() && !keywords.includes(currentKeyword.trim())) {
@@ -499,6 +646,34 @@ export default function AIBlogEditor({
     }
   };
 
+  // Restructure content using AI best practices
+  const restructureContent = async () => {
+    setIsGenerating(true);
+    try {
+      // This would call your AI API to restructure the content
+      const response = await fetch('/api/ai/restructure', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          content, 
+          keywords, 
+          title,
+          instruction: 'Restructure this content following world-class blog best practices. Maintain the author\'s voice but improve structure, flow, and engagement.'
+        })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setContent(data.restructuredContent);
+        alert('Content restructured following best practices!');
+      }
+    } catch (error) {
+      console.error('Failed to restructure content:', error);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   // Generate AI Layout Suggestions
   const generateAILayout = async () => {
     setIsGenerating(true);
@@ -508,7 +683,7 @@ export default function AIBlogEditor({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           content: cleanContentForDisplay(content),
-          fullContent: cleanContentForDisplay(content), // Add this to ensure full content is sent
+          fullContent: cleanContentForDisplay(content),
           title,
           keywords,
           contentType: 'blog'
@@ -524,7 +699,7 @@ export default function AIBlogEditor({
           setLayoutPreview(data.htmlPreview);
         }
         
-        alert(`AI has analyzed your content and suggested ${data.suggestions.length} dynamic layouts! The top recommendation is "${data.topSuggestion.name}" based on your content type.`);
+        alert(`AI has analyzed your content and suggested ${data.suggestions.length} dynamic layouts! Click on each to preview before applying.`);
       } else {
         throw new Error('Failed to generate layouts');
       }
@@ -554,6 +729,262 @@ export default function AIBlogEditor({
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  // Preview layout before applying
+  const previewLayout = (layout: LayoutSuggestion) => {
+    const cleanedContent = cleanContentForDisplay(content);
+    const htmlContent = markdownToHtml(cleanedContent);
+    
+    // Create enhanced preview with proper styling
+    const enhancedPreview = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>${title || 'Preview'} - ${layout.name}</title>
+  <style>
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
+      margin: 0; 
+      padding: 0; 
+      color: #1a2b4a;
+      line-height: 1.6;
+    }
+    .hero {
+      background: linear-gradient(135deg, #1a2b4a 0%, #ff6b35 100%);
+      color: white;
+      padding: 80px 20px;
+      text-align: center;
+    }
+    .hero h1 {
+      font-size: 3rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      margin: 0 0 20px 0;
+    }
+    .content-section {
+      max-width: 800px;
+      margin: 60px auto;
+      padding: 0 20px;
+    }
+    .content-section h1 {
+      font-size: 2.5rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      color: #1a2b4a;
+      margin: 40px 0 20px;
+    }
+    .content-section h2 {
+      font-size: 2rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      color: #1a2b4a;
+      margin: 40px 0 20px;
+    }
+    .content-section h3 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #1a2b4a;
+      margin: 30px 0 15px;
+    }
+    .content-section p {
+      margin-bottom: 20px;
+      line-height: 1.8;
+      color: #374151;
+    }
+    .content-section ul, .content-section ol {
+      margin: 20px 0;
+      padding-left: 30px;
+    }
+    .content-section li {
+      margin-bottom: 10px;
+    }
+    .content-section a {
+      color: #ff6b35;
+      text-decoration: underline;
+    }
+    .stats {
+      background: #f5f1e8;
+      padding: 60px 20px;
+      text-align: center;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 40px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .stat-item {
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 2.5rem;
+      font-weight: 900;
+      color: #ff6b35;
+    }
+    .stat-label {
+      font-size: 1rem;
+      color: #1a2b4a;
+      margin-top: 10px;
+    }
+    .comparison {
+      max-width: 800px;
+      margin: 60px auto;
+      padding: 0 20px;
+    }
+    .comparison table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .comparison th, .comparison td {
+      border: 2px solid #1a2b4a;
+      padding: 15px;
+      text-align: left;
+    }
+    .comparison th {
+      background: #f5f1e8;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+    .testimonials {
+      background: #1a2b4a;
+      color: white;
+      padding: 60px 20px;
+    }
+    .testimonials-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    .testimonial {
+      background: rgba(255,255,255,0.1);
+      padding: 30px;
+      border-left: 4px solid #ff6b35;
+    }
+    .testimonial-text {
+      font-style: italic;
+      margin-bottom: 20px;
+    }
+    .testimonial-author {
+      font-weight: bold;
+      color: #ff6b35;
+    }
+    .cta {
+      background: #1a2b4a;
+      color: white;
+      padding: 80px 20px;
+      text-align: center;
+    }
+    .cta-button {
+      display: inline-block;
+      background: #ff6b35;
+      color: white;
+      padding: 15px 40px;
+      text-decoration: none;
+      font-weight: 900;
+      text-transform: uppercase;
+      margin-top: 20px;
+      transition: background 0.3s;
+    }
+    .cta-button:hover {
+      background: #e55a2b;
+    }
+  </style>
+</head>
+<body>
+  ${layout.components.includes('hero') ? `
+  <div class="hero">
+    <h1>${title || 'Transform Your Business'}</h1>
+    <p style="font-size: 1.25rem;">Expert strategies that deliver real results</p>
+  </div>
+  ` : ''}
+  
+  ${layout.components.includes('stats') ? `
+  <div class="stats">
+    <h2 style="text-align: center; margin-bottom: 40px;">By The Numbers</h2>
+    <div class="stats-grid">
+      <div class="stat-item">
+        <div class="stat-value">73%</div>
+        <div class="stat-label">Businesses Missing Savings</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">£5.5k</div>
+        <div class="stat-label">Average Annual Savings</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">89%</div>
+        <div class="stat-label">Client Satisfaction</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">24/7</div>
+        <div class="stat-label">Expert Support</div>
+      </div>
+    </div>
+  </div>
+  ` : ''}
+  
+  <div class="content-section">
+    ${htmlContent}
+  </div>
+  
+  ${layout.components.includes('comparison') ? `
+  <div class="comparison">
+    <h2>Traditional vs Modern Approach</h2>
+    <table>
+      <tr>
+        <th>Traditional Methods</th>
+        <th>Our Approach</th>
+      </tr>
+      <tr>
+        <td>Manual processes</td>
+        <td>Automated systems</td>
+      </tr>
+      <tr>
+        <td>Yearly reviews</td>
+        <td>Real-time monitoring</td>
+      </tr>
+      <tr>
+        <td>Generic advice</td>
+        <td>Tailored strategies</td>
+      </tr>
+    </table>
+  </div>
+  ` : ''}
+  
+  ${layout.components.includes('testimonial') ? `
+  <div class="testimonials">
+    <h2 style="text-align: center; color: white; margin-bottom: 40px;">What Our Clients Say</h2>
+    <div class="testimonials-grid">
+      <div class="testimonial">
+        <p class="testimonial-text">"IVC Accounting transformed our financial processes. We've saved thousands and gained invaluable insights."</p>
+        <p class="testimonial-author">Sarah Johnson, CEO</p>
+      </div>
+      <div class="testimonial">
+        <p class="testimonial-text">"The best decision we've made for our business. Professional, efficient, and results-driven."</p>
+        <p class="testimonial-author">Michael Chen, Director</p>
+      </div>
+    </div>
+  </div>
+  ` : ''}
+  
+  ${layout.components.includes('cta') ? `
+  <div class="cta">
+    <h2 style="font-size: 2rem; margin: 0 0 20px 0;">Ready to Get Started?</h2>
+    <p style="font-size: 1.25rem; margin-bottom: 30px;">Transform your business with expert guidance</p>
+    <a href="#" class="cta-button">Schedule Free Consultation</a>
+  </div>
+  ` : ''}
+</body>
+</html>`;
+    
+    const blob = new Blob([enhancedPreview], { type: 'text/html; charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+    setTimeout(() => URL.revokeObjectURL(url), 100);
   };
 
   const CurrentModeIcon = AI_MODES[aiMode].icon;
@@ -749,294 +1180,149 @@ export default function AIBlogEditor({
               )}
             </TabsContent>
 
-            <TabsContent value="layout" className="flex-1 p-4 overflow-y-auto">
-              <div className="space-y-4">
-                <Alert className="bg-[#f5f1e8] border-2 border-[#ff6b35] rounded-none">
-                  <Palette className="w-4 h-4 text-[#ff6b35]" />
-                  <AlertDescription className="text-[#1a2b4a] font-bold">
-                    Transform your content with AI-powered dynamic layouts. Add your content and research, then let AI create a stunning visual blog post.
-                  </AlertDescription>
-                </Alert>
+            <TabsContent value="layout" className="flex-1 p-4">
+              <ScrollArea className="h-full" style={{ height: 'calc(100vh - 400px)' }}>
+                <div className="space-y-4">
+                  <Alert className="bg-[#f5f1e8] border-2 border-[#ff6b35] rounded-none">
+                    <Palette className="w-4 h-4 text-[#ff6b35]" />
+                    <AlertDescription className="text-[#1a2b4a] font-bold">
+                      Transform your content with AI-powered dynamic layouts. Add your content and research, then let AI create a stunning visual blog post.
+                    </AlertDescription>
+                  </Alert>
 
-                {/* AI Layout Generator */}
-                <Card className="bg-white border-2 border-[#1a2b4a] rounded-none">
-                  <CardHeader className="bg-[#f5f1e8] border-b-2 border-[#ff6b35]">
-                    <CardTitle className="text-[#1a2b4a] font-black uppercase">AI Layout Generator</CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-4">
-                    <Button 
-                      onClick={generateAILayout}
-                      disabled={isGenerating || content.length < 100}
-                      className="w-full bg-[#ff6b35] hover:bg-[#e55a2b] text-[#f5f1e8] font-black uppercase rounded-none"
-                    >
-                      {isGenerating ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Analyzing Content...
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles className="w-4 h-4 mr-2" />
-                          Generate Dynamic Layout
-                        </>
-                      )}
-                    </Button>
-                  </CardContent>
-                </Card>
-
-                {/* Layout Suggestions */}
-                {aiLayoutSuggestions.length > 0 && (
-                  <div className="space-y-3">
-                    <h3 className="font-black text-[#1a2b4a] uppercase">AI Suggested Layouts</h3>
-                    {aiLayoutSuggestions.map((layout: LayoutSuggestion) => (
-                      <Card 
-                        key={layout.id} 
-                        className={`cursor-pointer border-2 hover:border-[#ff6b35] rounded-none ${selectedLayout?.id === layout.id ? 'border-[#ff6b35] bg-[#f5f1e8]' : 'border-[#1a2b4a]'}`}
-                        onClick={() => setSelectedLayout(layout)}
-                      >
-                        <CardContent className="p-4">
-                          <h4 className="font-bold text-[#1a2b4a] mb-1">{layout.name}</h4>
-                          <p className="text-sm text-gray-600 mb-2">{layout.description}</p>
-                          <p className="text-xs font-mono">{layout.preview}</p>
-                        </CardContent>
-                      </Card>
-                    ))}
-                    {selectedLayout && (
+                  {/* AI Layout Generator */}
+                  <Card className="bg-white border-2 border-[#1a2b4a] rounded-none">
+                    <CardHeader className="bg-[#f5f1e8] border-b-2 border-[#ff6b35]">
+                      <CardTitle className="text-[#1a2b4a] font-black uppercase">AI Layout Generator</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4">
                       <Button 
-                        className="w-full bg-[#1a2b4a] hover:bg-[#0f1829] text-[#f5f1e8] font-black uppercase rounded-none"
-                        onClick={() => {
-                          if (layoutPreview) {
-                            const cleanedContent = cleanContentForDisplay(content);
-                            
-                            // Convert markdown-style headings to HTML
-                            const htmlContent = markdownToHtml(cleanedContent);
-                            
-                            // Create enhanced preview with proper styling
-                            const enhancedPreview = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <style>
-    body { 
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
-      margin: 0; 
-      padding: 0; 
-      color: #1a2b4a;
-      line-height: 1.6;
-    }
-    .hero {
-      background: linear-gradient(135deg, #1a2b4a 0%, #ff6b35 100%);
-      color: white;
-      padding: 80px 20px;
-      text-align: center;
-    }
-    .hero h1 {
-      font-size: 3rem;
-      font-weight: 900;
-      text-transform: uppercase;
-      margin: 0 0 20px 0;
-    }
-    .content-section {
-      max-width: 800px;
-      margin: 60px auto;
-      padding: 0 20px;
-    }
-    .content-section h1 {
-      font-size: 2.5rem;
-      font-weight: 900;
-      text-transform: uppercase;
-      color: #1a2b4a;
-      margin: 40px 0 20px;
-    }
-    .content-section h2 {
-      font-size: 2rem;
-      font-weight: 900;
-      text-transform: uppercase;
-      color: #1a2b4a;
-      margin: 40px 0 20px;
-    }
-    .content-section h3 {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: #1a2b4a;
-      margin: 30px 0 15px;
-    }
-    .content-section p {
-      margin-bottom: 20px;
-      line-height: 1.8;
-      color: #374151;
-    }
-    .content-section ul, .content-section ol {
-      margin: 20px 0;
-      padding-left: 30px;
-    }
-    .content-section li {
-      margin-bottom: 10px;
-    }
-    .content-section a {
-      color: #ff6b35;
-      text-decoration: underline;
-    }
-    .stats {
-      background: #f5f1e8;
-      padding: 60px 20px;
-      text-align: center;
-    }
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 40px;
-      max-width: 800px;
-      margin: 0 auto;
-    }
-    .stat-item {
-      text-align: center;
-    }
-    .stat-value {
-      font-size: 2.5rem;
-      font-weight: 900;
-      color: #ff6b35;
-    }
-    .stat-label {
-      font-size: 1rem;
-      color: #1a2b4a;
-      margin-top: 10px;
-    }
-    .cta {
-      background: #1a2b4a;
-      color: white;
-      padding: 80px 20px;
-      text-align: center;
-    }
-    .cta-button {
-      display: inline-block;
-      background: #ff6b35;
-      color: white;
-      padding: 15px 40px;
-      text-decoration: none;
-      font-weight: 900;
-      text-transform: uppercase;
-      margin-top: 20px;
-      transition: background 0.3s;
-    }
-    .cta-button:hover {
-      background: #e55a2b;
-    }
-  </style>
-</head>
-<body>
-  <div class="hero">
-    <h1>${title || 'Transform Your Business'}</h1>
-    <p style="font-size: 1.25rem;">Expert strategies that deliver real results</p>
-  </div>
-  
-  ${selectedLayout?.components.includes('stats') ? `
-  <div class="stats">
-    <div class="stats-grid">
-      <div class="stat-item">
-        <div class="stat-value">73%</div>
-        <div class="stat-label">Businesses Missing Savings</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-value">£5.5k</div>
-        <div class="stat-label">Average Annual Savings</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-value">89%</div>
-        <div class="stat-label">Client Satisfaction</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-value">24/7</div>
-        <div class="stat-label">Expert Support</div>
-      </div>
-    </div>
-  </div>
-  ` : ''}
-  
-  <div class="content-section">
-    ${htmlContent}
-  </div>
-  
-  <div class="cta">
-    <h2 style="font-size: 2rem; margin: 0 0 20px 0;">Ready to Get Started?</h2>
-    <p style="font-size: 1.25rem; margin-bottom: 30px;">Transform your business with expert guidance</p>
-    <a href="#" class="cta-button">Schedule Free Consultation</a>
-  </div>
-</body>
-</html>`;
-                            
-                            const blob = new Blob([enhancedPreview], { type: 'text/html; charset=utf-8' });
-                            const url = URL.createObjectURL(blob);
-                            window.open(url, '_blank');
-                            setTimeout(() => URL.revokeObjectURL(url), 100);
-                          }
-                          alert(`Applied "${selectedLayout.name}" layout with enhanced formatting!`);
-                        }}
+                        onClick={generateAILayout}
+                        disabled={isGenerating || content.length < 100}
+                        className="w-full bg-[#ff6b35] hover:bg-[#e55a2b] text-[#f5f1e8] font-black uppercase rounded-none"
                       >
-                        Apply {selectedLayout.name}
+                        {isGenerating ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Analyzing Content...
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="w-4 h-4 mr-2" />
+                            Generate Dynamic Layout
+                          </>
+                        )}
                       </Button>
-                    )}
-                  </div>
-                )}
+                    </CardContent>
+                  </Card>
 
-                {/* Layout Components */}
-                <div>
-                  <h3 className="font-black text-[#1a2b4a] uppercase mb-3">Layout Components</h3>
-                  <div className="grid grid-cols-2 gap-2">
-                    {Object.entries(LAYOUT_COMPONENTS).map(([key, component]) => {
-                      const Icon = component.icon;
-                      const componentText = {
-                        hero: '\n\n## Hero Section\n[Add compelling headline and subheading here]\n\n',
-                        stats: '\n\n## Key Statistics\n- Stat 1: [Value]\n- Stat 2: [Value]\n- Stat 3: [Value]\n\n',
-                        quote: '\n\n> "[Add impactful quote here]"\n> — Source Name\n\n',
-                        comparison: '\n\n## Comparison\n| Option A | Option B |\n|----------|----------|\n| Feature 1 | Feature 1 |\n| Feature 2 | Feature 2 |\n\n',
-                        timeline: '\n\n## Timeline\n1. **Phase 1**: [Description]\n2. **Phase 2**: [Description]\n3. **Phase 3**: [Description]\n\n',
-                        cta: '\n\n## Ready to Get Started?\n[Add call-to-action text]\n[Button: Contact Us]\n\n',
-                        faq: '\n\n## Frequently Asked Questions\n\n**Q: Question 1?**\nA: Answer 1\n\n**Q: Question 2?**\nA: Answer 2\n\n',
-                        testimonial: '\n\n## What Our Clients Say\n\n> "[Client testimonial]"\n> — Client Name, Company\n\n',
-                        infographic: '\n\n## [Infographic Title]\n[Visual data representation placeholder]\n\n',
-                        video: '\n\n## Video: [Title]\n[Video embed placeholder - add YouTube/Vimeo link]\n\n'
-                      };
-                      return (
-                        <Button
-                          key={key}
-                          variant="outline"
-                          className="h-auto p-3 flex flex-col items-center border-2 border-[#1a2b4a] hover:border-[#ff6b35] hover:bg-[#f5f1e8] rounded-none"
+                  {/* Layout Suggestions */}
+                  {aiLayoutSuggestions.length > 0 && (
+                    <div className="space-y-3">
+                      <h3 className="font-black text-[#1a2b4a] uppercase">AI Suggested Layouts</h3>
+                      {aiLayoutSuggestions.map((layout: LayoutSuggestion) => (
+                        <Card 
+                          key={layout.id} 
+                          className={`cursor-pointer border-2 hover:border-[#ff6b35] rounded-none ${selectedLayout?.id === layout.id ? 'border-[#ff6b35] bg-[#f5f1e8]' : 'border-[#1a2b4a]'}`}
+                          onClick={() => setSelectedLayout(layout)}
+                        >
+                          <CardContent className="p-4">
+                            <div className="flex justify-between items-start mb-2">
+                              <div className="flex-1">
+                                <h4 className="font-bold text-[#1a2b4a] mb-1">{layout.name}</h4>
+                                <p className="text-sm text-gray-600 mb-2">{layout.description}</p>
+                                <p className="text-xs font-mono">{layout.preview}</p>
+                              </div>
+                              <div className="flex gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="border-[#1a2b4a] hover:bg-[#f5f1e8] rounded-none"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    previewLayout(layout);
+                                  }}
+                                >
+                                  <Eye className="w-4 h-4 mr-1" />
+                                  Preview
+                                </Button>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                      {selectedLayout && (
+                        <Button 
+                          className="w-full bg-[#1a2b4a] hover:bg-[#0f1829] text-[#f5f1e8] font-black uppercase rounded-none"
                           onClick={() => {
-                            // Get current cursor position or append at end
-                            if (editorRef.current) {
-                              const textarea = editorRef.current;
-                              const start = textarea.selectionStart;
-                              const end = textarea.selectionEnd;
-                              const newContent = content.substring(0, start) + 
-                                                (componentText[key as keyof typeof componentText] || '') + 
-                                                content.substring(end);
-                              setContent(newContent);
-                              
-                              // Set cursor position after inserted text
-                              setTimeout(() => {
-                                if (textarea) {
-                                  const newPosition = start + (componentText[key as keyof typeof componentText] || '').length;
-                                  textarea.selectionStart = newPosition;
-                                  textarea.selectionEnd = newPosition;
-                                  textarea.focus();
-                                }
-                              }, 0);
-                            } else {
-                              // Fallback if no ref
-                              setContent(content + (componentText[key as keyof typeof componentText] || ''));
-                            }
+                            previewLayout(selectedLayout);
+                            alert(`Applied "${selectedLayout.name}" layout! The preview window shows how your blog will look with this layout.`);
                           }}
                         >
-                          <Icon className="w-5 h-5 mb-1 text-[#ff6b35]" />
-                          <span className="text-xs font-bold text-[#1a2b4a]">{component.name}</span>
+                          Apply {selectedLayout.name}
                         </Button>
-                      );
-                    })}
+                      )}
+                    </div>
+                  )}
+
+                  {/* Layout Components */}
+                  <div>
+                    <h3 className="font-black text-[#1a2b4a] uppercase mb-3">Layout Components</h3>
+                    <div className="grid grid-cols-2 gap-2">
+                      {Object.entries(LAYOUT_COMPONENTS).map(([key, component]) => {
+                        const Icon = component.icon;
+                        const componentText = {
+                          hero: '\n\n## Hero Section\n[Add compelling headline and subheading here]\n\n',
+                          stats: '\n\n## Key Statistics\n- Stat 1: [Value]\n- Stat 2: [Value]\n- Stat 3: [Value]\n\n',
+                          quote: '\n\n> "[Add impactful quote here]"\n> — Source Name\n\n',
+                          comparison: '\n\n## Comparison\n| Option A | Option B |\n|----------|----------|\n| Feature 1 | Feature 1 |\n| Feature 2 | Feature 2 |\n\n',
+                          timeline: '\n\n## Timeline\n1. **Phase 1**: [Description]\n2. **Phase 2**: [Description]\n3. **Phase 3**: [Description]\n\n',
+                          cta: '\n\n## Ready to Get Started?\n[Add call-to-action text]\n[Button: Contact Us]\n\n',
+                          faq: '\n\n## Frequently Asked Questions\n\n**Q: Question 1?**\nA: Answer 1\n\n**Q: Question 2?**\nA: Answer 2\n\n',
+                          testimonial: '\n\n## What Our Clients Say\n\n> "[Client testimonial]"\n> — Client Name, Company\n\n',
+                          infographic: '\n\n## [Infographic Title]\n[Visual data representation placeholder]\n\n',
+                          video: '\n\n## Video: [Title]\n[Video embed placeholder - add YouTube/Vimeo link]\n\n'
+                        };
+                        return (
+                          <Button
+                            key={key}
+                            variant="outline"
+                            className="h-auto p-3 flex flex-col items-center border-2 border-[#1a2b4a] hover:border-[#ff6b35] hover:bg-[#f5f1e8] rounded-none"
+                            onClick={() => {
+                              // Get current cursor position or append at end
+                              if (editorRef.current) {
+                                const textarea = editorRef.current;
+                                const start = textarea.selectionStart;
+                                const end = textarea.selectionEnd;
+                                const newContent = content.substring(0, start) + 
+                                                  (componentText[key as keyof typeof componentText] || '') + 
+                                                  content.substring(end);
+                                setContent(newContent);
+                                
+                                // Set cursor position after inserted text
+                                setTimeout(() => {
+                                  if (textarea) {
+                                    const newPosition = start + (componentText[key as keyof typeof componentText] || '').length;
+                                    textarea.selectionStart = newPosition;
+                                    textarea.selectionEnd = newPosition;
+                                    textarea.focus();
+                                  }
+                                }, 0);
+                              } else {
+                                // Fallback if no ref
+                                setContent(content + (componentText[key as keyof typeof componentText] || ''));
+                              }
+                            }}
+                          >
+                            <Icon className="w-5 h-5 mb-1 text-[#ff6b35]" />
+                            <span className="text-xs font-bold text-[#1a2b4a]">{component.name}</span>
+                          </Button>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
-              </div>
+              </ScrollArea>
             </TabsContent>
           </Tabs>
         </div>
@@ -1060,215 +1346,251 @@ export default function AIBlogEditor({
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="assistant" className="flex-1 p-4 overflow-y-auto">
-                <div className="space-y-4">
-                  <Alert className="bg-[#f5f1e8] border-2 border-[#ff6b35] rounded-none">
-                    <Sparkles className="w-4 h-4 text-[#ff6b35]" />
-                    <AlertDescription className="text-[#1a2b4a] font-bold">
-                      AI assistance is active. Make changes and see suggestions in real-time!
-                    </AlertDescription>
-                  </Alert>
-                  
-                  {/* Quick Actions */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <Button 
-                      variant="outline" 
-                      className="h-auto p-4 flex flex-col items-start border-2 border-[#1a2b4a] hover:border-[#ff6b35] hover:bg-[#f5f1e8] bg-white rounded-none"
-                      onClick={async () => {
-                        setIsGenerating(true);
-                        try {
-                          const response = await fetch('/api/ai/writing', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                              currentContent: content,
-                              prompt: 'improve writing quality and engagement',
-                              targetKeywords: keywords
-                            })
-                          });
-                          
-                          if (response.ok) {
-                            const data = await response.json();
-                            setContent(data.content || content);
-                            alert('Writing improved! Check the enhanced content.');
-                          }
-                        } catch (error) {
-                          console.error('Improve writing failed:', error);
-                        } finally {
-                          setIsGenerating(false);
-                        }
-                      }}
-                      disabled={isGenerating}
-                    >
-                      <Wand2 className="w-5 h-5 mb-2 text-[#ff6b35]" />
-                      <span className="font-bold text-[#1a2b4a] uppercase">Improve Writing</span>
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      className="h-auto p-4 flex flex-col items-start border-2 border-[#1a2b4a] hover:border-[#ff6b35] hover:bg-[#f5f1e8] bg-white rounded-none"
-                      onClick={async () => {
-                        const citations = `\n\n## References and Sources\n\n1. **HMRC Guidance**\n   - [Corporation Tax rates](https://www.gov.uk/corporation-tax)\n   - [VAT rates](https://www.gov.uk/vat-rates)\n\n2. **Professional Bodies**\n   - ICAEW Tax Faculty Guidelines 2024\n   - ACCA Technical Articles\n\n3. **Industry Reports**\n   - "UK Tax Landscape 2024" - PwC\n   - "Small Business Tax Survey" - FSB\n\n*Last updated: ${new Date().toLocaleDateString()}*`;
-                        
-                        setContent(content + citations);
-                        alert('Citations added to your content!');
-                      }}
-                    >
-                      <Quote className="w-5 h-5 mb-2 text-[#ff6b35]" />
-                      <span className="font-bold text-[#1a2b4a] uppercase">Add Citations</span>
-                    </Button>
-                  </div>
-
-                  {/* More AI Tools */}
-                  <Card className="bg-white border-2 border-[#1a2b4a] rounded-none">
-                    <CardHeader className="bg-[#f5f1e8] border-b-2 border-[#ff6b35] pb-3">
-                      <CardTitle className="text-base font-black text-[#1a2b4a] uppercase">AI Writing Tools</CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-4 space-y-2">
-                      <Button 
-                        variant="outline"
-                        className="w-full justify-start border-[#1a2b4a] hover:bg-[#f5f1e8] rounded-none"
-                        onClick={() => {
-                          const context = analyzeContentContext(content, title, keywords);
-                          const hook = context.topic === 'accounting' 
-                            ? `With ${title.includes('46') ? '46' : 'the average age'} being the median age of UK accountants and burnout affecting 56% of the profession...`
-                            : `Did you know that ${keywords[0] || 'strategic planning'} could transform your business? Recent studies show...`;
-                          setContent(hook + '\n\n' + content);
-                          alert('Added engaging hook to your content!');
-                        }}
-                      >
-                        <Brain className="w-4 h-4 mr-2 text-[#ff6b35]" />
-                        Generate Hook
-                      </Button>
-                      <Button 
-                        variant="outline"
-                        className="w-full justify-start border-[#1a2b4a] hover:bg-[#f5f1e8] rounded-none"
-                        onClick={() => {
-                          const conclusion = `\n\n## Conclusion: Your Next Steps\n\nWe've covered the essential aspects of ${keywords[0] || 'business optimization'}. The key is implementing these strategies systematically.\n\n**Ready to transform your business?** Contact our expert team for personalized guidance.`;
-                          setContent(content + conclusion);
-                          alert('Added conclusion to your content!');
-                        }}
-                      >
-                        <CheckCircle2 className="w-4 h-4 mr-2 text-[#ff6b35]" />
-                        Write Conclusion
-                      </Button>
-                      <Button 
-                        variant="outline"
-                        className="w-full justify-start border-[#1a2b4a] hover:bg-[#f5f1e8] rounded-none"
-                        onClick={async () => {
-                          try {
-                            const cleanedContent = cleanContentForDisplay(content);
-                            const response = await fetch('/api/ai/generate-suggestions', {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ 
-                                content: cleanedContent, 
-                                keywords, 
-                                title,
-                                context: {
-                                  topic: cleanedContent.toLowerCase().includes('accountant') ? 'accounting' : 'general',
-                                  firstParagraph: cleanedContent.substring(0, 500)
-                                }
-                              })
-                            });
-                            
-                            if (response.ok) {
-                              const data = await response.json();
-                              setCurrentAiSuggestions(data.suggestions || []);
-                              setAiSuggestionsModal(true);
-                            }
-                          } catch (error) {
-                            console.error('Generate suggestions failed:', error);
-                          }
-                        }}
-                      >
-                        <Sparkles className="w-4 h-4 mr-2 text-[#ff6b35]" />
-                        Get AI Suggestions
-                      </Button>
-                    </CardContent>
-                  </Card>
-
-                  {/* Real-time Suggestions */}
-                  {content.length > 200 && (
-                    <Card className="bg-[#f5f1e8] border-2 border-[#ff6b35] rounded-none">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-sm font-bold text-[#1a2b4a] uppercase">AI Insights</CardTitle>
+              <TabsContent value="assistant" className="flex-1 p-4">
+                <ScrollArea className="h-full" style={{ height: 'calc(100vh - 350px)' }}>
+                  <div className="space-y-4">
+                    <Alert className="bg-[#f5f1e8] border-2 border-[#ff6b35] rounded-none">
+                      <Sparkles className="w-4 h-4 text-[#ff6b35]" />
+                      <AlertDescription className="text-[#1a2b4a] font-bold">
+                        AI assistance is active. Make changes and see suggestions in real-time!
+                      </AlertDescription>
+                    </Alert>
+                    
+                    {/* Blog Structure Analysis */}
+                    {blogSections.length > 0 && (
+                      <Card className="bg-white border-2 border-[#1a2b4a] rounded-none">
+                        <CardHeader className="bg-[#f5f1e8] border-b-2 border-[#ff6b35] pb-3">
+                          <CardTitle className="text-base font-black text-[#1a2b4a] uppercase">Content Structure</CardTitle>
+                        </CardHeader>
+                        <CardContent className="pt-4 space-y-2">
+                          {blogSections.map((section, index) => (
+                            <div key={index} className="flex items-center gap-2 text-sm">
+                              <Badge className="bg-[#f5f1e8] text-[#1a2b4a] border border-[#1a2b4a] uppercase">
+                                {section.type}
+                              </Badge>
+                              <span className="text-gray-600 truncate flex-1">
+                                {section.content.substring(0, 50)}...
+                              </span>
+                            </div>
+                          ))}
+                        </CardContent>
+                      </Card>
+                    )}
+                    
+                    {/* Actionable AI Suggestions */}
+                    {actionableAiSuggestions.length > 0 && (
+                      <Card className="bg-white border-2 border-[#1a2b4a] rounded-none">
+                        <CardHeader className="bg-[#f5f1e8] border-b-2 border-[#ff6b35] pb-3">
+                          <CardTitle className="text-base font-black text-[#1a2b4a] uppercase flex items-center gap-2">
+                            <Lightbulb className="w-5 h-5 text-[#ff6b35]" />
+                            AI Suggestions
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="pt-4 space-y-2">
+                          {actionableAiSuggestions.map((suggestion) => (
+                            <div key={suggestion.id} className="p-3 border border-gray-200 hover:border-[#ff6b35] transition-colors">
+                              <div className="flex justify-between items-start mb-2">
+                                <div className="flex-1">
+                                  <h4 className="font-bold text-sm text-[#1a2b4a]">{suggestion.title}</h4>
+                                  <p className="text-xs text-gray-600 mt-1">{suggestion.description}</p>
+                                </div>
+                                <Badge className={`text-xs ${
+                                  suggestion.impact === 'high' ? 'bg-red-100 text-red-800' : 
+                                  suggestion.impact === 'medium' ? 'bg-yellow-100 text-yellow-800' : 
+                                  'bg-gray-100 text-gray-800'
+                                }`}>
+                                  {suggestion.impact}
+                                </Badge>
+                              </div>
+                              <Button
+                                size="sm"
+                                className="w-full bg-[#ff6b35] hover:bg-[#e55a2b] text-white rounded-none"
+                                onClick={suggestion.implementation}
+                              >
+                                Apply This
+                              </Button>
+                            </div>
+                          ))}
+                        </CardContent>
+                      </Card>
+                    )}
+                    
+                    {/* AI Writing Tools */}
+                    <Card className="bg-white border-2 border-[#1a2b4a] rounded-none">
+                      <CardHeader className="bg-[#f5f1e8] border-b-2 border-[#ff6b35] pb-3">
+                        <CardTitle className="text-base font-black text-[#1a2b4a] uppercase">AI Writing Tools</CardTitle>
                       </CardHeader>
-                      <CardContent className="space-y-2">
-                        {!content.includes('?') && (
-                          <p className="text-sm text-[#1a2b4a]">💡 Add questions to engage readers</p>
-                        )}
-                        {content.length < 800 && (
-                          <p className="text-sm text-[#1a2b4a]">📝 Aim for 800+ words for better SEO</p>
-                        )}
-                        {!content.match(/\d+/) && (
-                          <p className="text-sm text-[#1a2b4a]">📊 Include statistics for credibility</p>
-                        )}
+                      <CardContent className="pt-4 space-y-2">
+                        <Button 
+                          variant="outline"
+                          className="w-full justify-start border-[#1a2b4a] hover:bg-[#f5f1e8] rounded-none"
+                          onClick={restructureContent}
+                          disabled={isGenerating}
+                        >
+                          <RefreshCw className="w-4 h-4 mr-2 text-[#ff6b35]" />
+                          Restructure Following Best Practices
+                        </Button>
+                        <Button 
+                          variant="outline"
+                          className="w-full justify-start border-[#1a2b4a] hover:bg-[#f5f1e8] rounded-none"
+                          onClick={() => {
+                            const context = analyzeContentContext(content, title, keywords);
+                            const hook = generateContextualHook(content, keywords, title);
+                            // Find where to insert the hook
+                            if (!blogSections.some(s => s.type === 'hook')) {
+                              setContent(hook + '\n\n' + content);
+                            } else {
+                              alert('Your content already has a hook!');
+                            }
+                          }}
+                        >
+                          <Brain className="w-4 h-4 mr-2 text-[#ff6b35]" />
+                          Generate Contextual Hook
+                        </Button>
+                        <Button 
+                          variant="outline"
+                          className="w-full justify-start border-[#1a2b4a] hover:bg-[#f5f1e8] rounded-none"
+                          onClick={() => {
+                            const conclusion = `\n\n## Conclusion: Your Next Steps\n\nWe've covered the essential aspects of ${keywords[0] || 'business optimization'}. The key is implementing these strategies systematically.\n\n**Ready to transform your business?** Contact our expert team for personalized guidance.`;
+                            setContent(content + conclusion);
+                          }}
+                        >
+                          <CheckCircle2 className="w-4 h-4 mr-2 text-[#ff6b35]" />
+                          Write Conclusion
+                        </Button>
+                        <Button 
+                          variant="outline"
+                          className="w-full justify-start border-[#1a2b4a] hover:bg-[#f5f1e8] rounded-none"
+                          onClick={async () => {
+                            const citations = `\n\n## References and Sources\n\n1. **HMRC Guidance**\n   - [Corporation Tax rates](https://www.gov.uk/corporation-tax)\n   - [VAT rates](https://www.gov.uk/vat-rates)\n\n2. **Professional Bodies**\n   - ICAEW Tax Faculty Guidelines 2024\n   - ACCA Technical Articles\n\n3. **Industry Reports**\n   - "UK Tax Landscape 2024" - PwC\n   - "Small Business Tax Survey" - FSB\n\n*Last updated: ${new Date().toLocaleDateString()}*`;
+                            
+                            setContent(content + citations);
+                          }}
+                        >
+                          <Quote className="w-4 h-4 mr-2 text-[#ff6b35]" />
+                          Add Citations
+                        </Button>
                       </CardContent>
                     </Card>
-                  )}
-                </div>
+
+                    {/* Real-time Suggestions */}
+                    {content.length > 200 && (
+                      <Card className="bg-[#f5f1e8] border-2 border-[#ff6b35] rounded-none">
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-sm font-bold text-[#1a2b4a] uppercase">AI Insights</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-2">
+                          {!content.includes('?') && (
+                            <p className="text-sm text-[#1a2b4a]">💡 Add questions to engage readers</p>
+                          )}
+                          {content.length < 800 && (
+                            <p className="text-sm text-[#1a2b4a]">📝 Aim for 800+ words for better SEO</p>
+                          )}
+                          {!content.match(/\d+/) && (
+                            <p className="text-sm text-[#1a2b4a]">📊 Include statistics for credibility</p>
+                          )}
+                        </CardContent>
+                      </Card>
+                    )}
+                  </div>
+                </ScrollArea>
               </TabsContent>
 
-              <TabsContent value="review" className="flex-1 p-4 overflow-y-auto">
-                <div className="space-y-4">
-                  {/* Quick Stats */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <Card className={`${contentScore >= 80 ? 'bg-green-50' : contentScore >= 60 ? 'bg-orange-50' : 'bg-red-50'} rounded-none`}>
-                      <CardContent className="p-4">
-                        <p className="text-sm text-[#1a2b4a]">SEO Score</p>
-                        <p className="text-2xl font-bold text-[#1a2b4a]">{Math.round(contentScore * 0.9)}%</p>
+              <TabsContent value="review" className="flex-1 p-4">
+                <ScrollArea className="h-full" style={{ height: 'calc(100vh - 350px)' }}>
+                  <div className="space-y-4">
+                    {/* Quick Stats */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <Card className={`${contentScore >= 80 ? 'bg-green-50' : contentScore >= 60 ? 'bg-orange-50' : 'bg-red-50'} rounded-none`}>
+                        <CardContent className="p-4">
+                          <p className="text-sm text-[#1a2b4a]">SEO Score</p>
+                          <p className="text-2xl font-bold text-[#1a2b4a]">{Math.round(contentScore * 0.9)}%</p>
+                        </CardContent>
+                      </Card>
+                      <Card className={`${contentScore >= 80 ? 'bg-green-50' : contentScore >= 60 ? 'bg-orange-50' : 'bg-red-50'} rounded-none`}>
+                        <CardContent className="p-4">
+                          <p className="text-sm text-[#1a2b4a]">Overall</p>
+                          <p className="text-2xl font-bold text-[#1a2b4a]">{contentScore}%</p>
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    {/* SEO Improvements */}
+                    <Card className="bg-white border-2 border-[#1a2b4a] rounded-none">
+                      <CardHeader className="bg-[#f5f1e8] border-b-2 border-[#ff6b35]">
+                        <CardTitle className="font-black text-[#1a2b4a] uppercase">SEO Optimization</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3 pt-4">
+                        {!title && (
+                          <Alert className="bg-[#f5f1e8] border-2 border-[#ff6b35] rounded-none">
+                            <AlertCircle className="w-4 h-4 text-[#ff6b35]" />
+                            <AlertDescription className="text-[#1a2b4a] font-bold">
+                              Add a compelling title to improve SEO
+                            </AlertDescription>
+                          </Alert>
+                        )}
+                        {keywords.length === 0 && (
+                          <Alert className="bg-[#f5f1e8] border-2 border-[#ff6b35] rounded-none">
+                            <AlertCircle className="w-4 h-4 text-[#ff6b35]" />
+                            <AlertDescription className="text-[#1a2b4a] font-bold">
+                              Add keywords to optimize for search engines
+                            </AlertDescription>
+                          </Alert>
+                        )}
+                        {keywords.length > 0 && !keywords.some(k => content.toLowerCase().includes(k.toLowerCase())) && (
+                          <Alert className="bg-[#f5f1e8] border-2 border-[#ff6b35] rounded-none">
+                            <AlertCircle className="w-4 h-4 text-[#ff6b35]" />
+                            <AlertDescription className="text-[#1a2b4a] font-bold">
+                              Use your keywords naturally in the content
+                            </AlertDescription>
+                          </Alert>
+                        )}
+                        <Button 
+                          className="w-full bg-[#ff6b35] hover:bg-[#e55a2b] text-[#f5f1e8] font-black uppercase rounded-none"
+                          onClick={applyAllImprovements}
+                          disabled={isApplyingImprovements}
+                        >
+                          {isApplyingImprovements ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Applying Improvements...
+                            </>
+                          ) : (
+                            <>
+                              <Wand2 className="w-4 h-4 mr-2" />
+                              Apply All Improvements
+                            </>
+                          )}
+                        </Button>
                       </CardContent>
                     </Card>
-                    <Card className={`${contentScore >= 80 ? 'bg-green-50' : contentScore >= 60 ? 'bg-orange-50' : 'bg-red-50'} rounded-none`}>
-                      <CardContent className="p-4">
-                        <p className="text-sm text-[#1a2b4a]">Overall</p>
-                        <p className="text-2xl font-bold text-[#1a2b4a]">{contentScore}%</p>
+
+                    {/* Content Quality Metrics */}
+                    <Card className="bg-white border-2 border-[#1a2b4a] rounded-none">
+                      <CardHeader className="bg-[#f5f1e8] border-b-2 border-[#ff6b35]">
+                        <CardTitle className="font-black text-[#1a2b4a] uppercase">Quality Metrics</CardTitle>
+                      </CardHeader>
+                      <CardContent className="pt-4 space-y-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-gray-600">Word Count</span>
+                          <span className="font-bold text-[#1a2b4a]">{overallReview?.wordCount || 0}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-gray-600">Reading Time</span>
+                          <span className="font-bold text-[#1a2b4a]">{overallReview?.readingTime || 0} min</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-gray-600">Headings</span>
+                          <span className="font-bold text-[#1a2b4a]">{(content.match(/#/g) || []).length}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-gray-600">Questions</span>
+                          <span className="font-bold text-[#1a2b4a]">{(content.match(/\?/g) || []).length}</span>
+                        </div>
                       </CardContent>
                     </Card>
                   </div>
-
-                  {/* Improvements */}
-                  <Card className="bg-white border-2 border-[#1a2b4a] rounded-none">
-                    <CardHeader className="bg-[#f5f1e8] border-b-2 border-[#ff6b35]">
-                      <CardTitle className="font-black text-[#1a2b4a] uppercase">Suggested Improvements</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3 pt-4">
-                      {!title && (
-                        <Alert className="bg-[#f5f1e8] border-2 border-[#ff6b35] rounded-none">
-                          <AlertCircle className="w-4 h-4 text-[#ff6b35]" />
-                          <AlertDescription className="text-[#1a2b4a] font-bold">
-                            Add a compelling title to improve SEO
-                          </AlertDescription>
-                        </Alert>
-                      )}
-                      {keywords.length === 0 && (
-                        <Alert className="bg-[#f5f1e8] border-2 border-[#ff6b35] rounded-none">
-                          <AlertCircle className="w-4 h-4 text-[#ff6b35]" />
-                          <AlertDescription className="text-[#1a2b4a] font-bold">
-                            Add keywords to optimize for search engines
-                          </AlertDescription>
-                        </Alert>
-                      )}
-                      <Button 
-                        className="w-full bg-[#ff6b35] hover:bg-[#e55a2b] text-[#f5f1e8] font-black uppercase rounded-none"
-                        onClick={applyAllImprovements}
-                        disabled={isApplyingImprovements}
-                      >
-                        {isApplyingImprovements ? (
-                          <>
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            Applying Improvements...
-                          </>
-                        ) : (
-                          <>
-                            <Wand2 className="w-4 h-4 mr-2" />
-                            Apply All Improvements
-                          </>
-                        )}
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </div>
+                </ScrollArea>
               </TabsContent>
 
               <TabsContent value="social" className="flex-1 p-4 overflow-y-auto">
@@ -1384,42 +1706,6 @@ export default function AIBlogEditor({
           </div>
         </div>
       </div>
-      
-      {aiSuggestionsModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-none max-w-2xl w-full max-h-[80vh] overflow-hidden">
-            <div className="p-6 border-b border-gray-200">
-              <h2 className="text-2xl font-bold text-[#1a2b4a]">AI Suggestions</h2>
-            </div>
-            <div className="p-6 overflow-y-auto max-h-[60vh]">
-              {currentAiSuggestions.map((suggestion, index) => (
-                <div key={index} className="mb-4 p-4 border border-gray-200 rounded-none">
-                  <h3 className="font-bold text-[#1a2b4a] mb-2">{suggestion.title}</h3>
-                  <p className="text-gray-700 mb-2">{suggestion.description}</p>
-                  <Button
-                    size="sm"
-                    onClick={() => {
-                      alert(`Applied: ${suggestion.title}`);
-                      // Add actual implementation if needed
-                    }}
-                    className="bg-[#ff6b35] hover:bg-[#e55a2b] text-white rounded-none"
-                  >
-                    Apply This Suggestion
-                  </Button>
-                </div>
-              ))}
-            </div>
-            <div className="p-6 border-t border-gray-200">
-              <Button
-                onClick={() => setAiSuggestionsModal(false)}
-                className="w-full bg-gray-500 hover:bg-gray-600 text-white rounded-none"
-              >
-                Close
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
