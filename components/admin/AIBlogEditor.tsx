@@ -786,9 +786,10 @@ export default function AIBlogEditor({
     const analyzeContent = async () => {
       if (!content || content.length < 100) return;
       
+      console.log('🔍 Analyzing content locally (no API calls) - length:', content.length);
       setIsAnalyzing(true);
       try {
-        // Use enhanced local quality scoring
+        // Use enhanced local quality scoring as primary method
         const sections = analyzeContentStructure(content);
         setBlogSections(sections);
         
@@ -811,31 +812,8 @@ export default function AIBlogEditor({
           setContent(enhancedContent);
         }
         
-        // Fallback to API if available
-        try {
-          const response = await fetch('/api/ai/score', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ content, keywords, title })
-          });
-          
-          if (response.ok) {
-            const data = await response.json();
-            // Use API data if it's better than local analysis
-            if (data.score > qualityAnalysis.overallScore) {
-              setContentScore(data.score);
-              setOverallReview({
-                score: data.score,
-                grade: data.score >= 90 ? 'A+' : data.score >= 80 ? 'A' : data.score >= 70 ? 'B' : 'C',
-                wordCount: data.details.wordCount,
-                readingTime: Math.ceil(data.details.wordCount / 200),
-                readabilityScore: Math.round(qualityAnalysis.readability.overallScore)
-              });
-            }
-          }
-        } catch (apiError) {
-          console.log('API analysis not available, using local analysis');
-        }
+        // REMOVED: API call on every content change - this was causing the continuous refresh
+        // API calls will now only be made when explicitly requested (e.g., "Apply All Improvements")
         
       } catch (error) {
         console.error('Failed to analyze content:', error);
@@ -844,9 +822,40 @@ export default function AIBlogEditor({
       }
     };
 
-    const debounceTimer = setTimeout(analyzeContent, 1000);
+    // Increased debounce time to reduce frequency of analysis
+    const debounceTimer = setTimeout(analyzeContent, 2000);
     return () => clearTimeout(debounceTimer);
   }, [content, keywords, title]);
+
+  // New function to manually trigger API analysis when needed
+  const triggerAPIAnalysis = async () => {
+    if (!content || content.length < 100) return;
+    
+    console.log('🚀 Triggering API analysis manually');
+    try {
+      const response = await fetch('/api/ai/score', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content, keywords, title })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ API analysis completed, score:', data.score);
+        // Update scores with API data
+        setContentScore(data.score);
+        setOverallReview(prev => prev ? {
+          ...prev,
+          score: data.score,
+          grade: data.score >= 90 ? 'A+' : data.score >= 80 ? 'A' : data.score >= 70 ? 'B' : 'C',
+          wordCount: data.details.wordCount,
+          readingTime: Math.ceil(data.details.wordCount / 200)
+        } : null);
+      }
+    } catch (error) {
+      console.log('❌ API analysis not available, using local analysis only');
+    }
+  };
 
   // Generate actionable AI suggestions based on content
   useEffect(() => {
@@ -941,6 +950,9 @@ export default function AIBlogEditor({
   const applyAllImprovements = async () => {
     setIsApplyingImprovements(true);
     try {
+      // First trigger API analysis to get the most accurate current score
+      await triggerAPIAnalysis();
+      
       const response = await fetch('/api/ai/apply-all-fixes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1853,6 +1865,32 @@ export default function AIBlogEditor({
                         </CardContent>
                       </Card>
                     </div>
+
+                    {/* Manual Refresh Button */}
+                    <Card className="bg-white border-2 border-[#1a2b4a] rounded-none">
+                      <CardContent className="p-4">
+                        <Button 
+                          className="w-full bg-[#1a2b4a] hover:bg-[#0f1a2e] text-[#f5f1e8] font-black uppercase rounded-none"
+                          onClick={triggerAPIAnalysis}
+                          disabled={isAnalyzing}
+                        >
+                          {isAnalyzing ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Refreshing Analysis...
+                            </>
+                          ) : (
+                            <>
+                              <RefreshCw className="w-4 h-4 mr-2" />
+                              Refresh AI Analysis
+                            </>
+                          )}
+                        </Button>
+                        <p className="text-xs text-gray-600 mt-2 text-center">
+                          Get the most accurate AI-powered analysis
+                        </p>
+                      </CardContent>
+                    </Card>
 
                     {/* SEO Improvements */}
                     <Card className="bg-white border-2 border-[#1a2b4a] rounded-none">
